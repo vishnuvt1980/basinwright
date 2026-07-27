@@ -229,13 +229,41 @@
    ------------------------------------------------------------------------- */
 
 [data-substrate] {
-  --sub-raw: #8a95a8;
-  --sub-context: #6cb8f6;
-  --sub-ground: #8c9bff;
-  --sub-verify: #40e0c0;
-  --sub-explain: #ffab47;
-  --sub-decided: #d2ecff;
-  --sub-reject: #ff707b;
+  --sub-raw: #7a828f;
+  --sub-context: #0067b8;
+  --sub-ground: #5c2e91;
+  --sub-verify: #038387;
+  --sub-explain: #b8500f;
+  --sub-decided: #004578;
+  --sub-reject: #a4262c;
+  --sub-ops: #3c4f6d;
+  --sub-own: #107c10;
+}
+
+:root[data-theme="dark"] [data-substrate] {
+  --sub-raw: #6b7891;
+  --sub-context: #6bb8f5;
+  --sub-ground: #8c99ff;
+  --sub-verify: #40e6c7;
+  --sub-explain: #ffa847;
+  --sub-decided: #d1edff;
+  --sub-reject: #ff6b80;
+  --sub-ops: #8ca8db;
+  --sub-own: #9ef259;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) [data-substrate] {
+    --sub-raw: #6b7891;
+    --sub-context: #6bb8f5;
+    --sub-ground: #8c99ff;
+    --sub-verify: #40e6c7;
+    --sub-explain: #ffa847;
+    --sub-decided: #d1edff;
+    --sub-reject: #ff6b80;
+    --sub-ops: #8ca8db;
+    --sub-own: #9ef259;
+  }
 }
 
 /* ==========================================================================
@@ -374,6 +402,27 @@ body {
   &::-webkit-scrollbar { display: none; }
 }
 
+/* Highlight for the substrate's closing line. The pill carries the tint and
+   the pulse; the span inside carries the gradient, because one element cannot
+   both clip a gradient to its text and paint its own background. */
+@utility substrate-flare {
+  border-radius: var(--radius-md);
+  background: color-mix(in oklab, var(--sub-own) 14%, transparent);
+  animation: substrate-flare 2.1s ease-in-out infinite;
+}
+
+@utility substrate-flare-text {
+  background-image: linear-gradient(
+    100deg,
+    var(--sub-own),
+    var(--sub-verify) 45%,
+    var(--sub-context)
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
 /* Platform topology — the SVG fallback dims to match the active rail item.
    Driven by a data attribute rather than props, so the diagram stays a server
    component inside the client stage and degrades to "everything lit" when
@@ -412,10 +461,35 @@ body {
   50%      { opacity: 1; }
 }
 
-/* Chapter copy in the substrate instrument replays this on every change, so a
-   new chapter reads as a new card rather than as text mutating in place. */
+/* Chapter copy in the substrate banner replays this on every change, so a new
+   chapter reads as a new card rather than as text mutating in place. */
 @keyframes substrate-chapter-in {
   from { opacity: 0; transform: translateY(6px); }
+}
+
+/* The rail's progress fill. Duration is matched to CHAPTER_MS in
+   substrate-banner.tsx — change one, change the other. */
+@keyframes substrate-chapter-fill {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+/* The line the whole picture is arguing towards: the business owns what comes
+   out of it. It pulses because it is the punchline, and nothing else in the
+   hero is allowed to. Reduced motion strips the animation via the rule at the
+   end of this file; the colour and the ring survive, which is the part that
+   carries the meaning. */
+@keyframes substrate-flare {
+  0%, 100% {
+    box-shadow:
+      0 0 0 1px color-mix(in oklab, var(--sub-own) 45%, transparent),
+      0 0 20px -6px var(--sub-own);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px color-mix(in oklab, var(--sub-own) 85%, transparent),
+      0 0 34px -2px var(--sub-own);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

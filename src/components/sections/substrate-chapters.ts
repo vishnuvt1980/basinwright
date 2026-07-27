@@ -19,6 +19,11 @@ export type SubstrateChapter = {
   icon: string | null;
   tone: Tone;
   points: string[];
+  /// Set from the entry's `badge`. The chapter this marks is the one the whole
+  /// picture is arguing towards, and it is given a treatment none of the others
+  /// get — so it is a deliberate editorial choice in the CMS, not a hard-coded
+  /// index that quietly moves when someone reorders the story.
+  highlight: boolean;
 };
 
 export function substrateChapters(
@@ -33,5 +38,6 @@ export function substrateChapters(
     icon: entry.icon,
     tone: toneForAccent(entry.accent, entry.title),
     points: entry.bullets,
+    highlight: entry.badge?.toLowerCase() === "highlight",
   }));
 }

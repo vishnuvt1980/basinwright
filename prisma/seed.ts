@@ -59,7 +59,7 @@ const sections: SectionSeed[] = [
   {
     key: "logos",
     kind: SectionKind.LOGO_WALL,
-    order: 1,
+    order: 2,
     eyebrow: "Trusted by Enterprise",
     title: "Running in production inside regulated organisations",
     entries: [
@@ -76,7 +76,7 @@ const sections: SectionSeed[] = [
   {
     key: "platform",
     kind: SectionKind.PLATFORM_GRID,
-    order: 2,
+    order: 3,
     eyebrow: "The AI Platform for Modern Enterprises",
     title: "Everything your organisation needs, in one operating environment",
     subtitle:
@@ -137,7 +137,7 @@ const sections: SectionSeed[] = [
   {
     key: "why",
     kind: SectionKind.WHY_PILLARS,
-    order: 3,
+    order: 4,
     eyebrow: "Why BasinWright",
     title: "One platform, engineered for the enterprise floor",
     subtitle:
@@ -207,7 +207,7 @@ const sections: SectionSeed[] = [
     // restacks the diagram.
     key: "topology",
     kind: SectionKind.PLATFORM_TOPOLOGY,
-    order: 4,
+    order: 5,
     eyebrow: "Platform Topology",
     title: "Four layers, one control plane",
     subtitle:
@@ -258,17 +258,22 @@ const sections: SectionSeed[] = [
     ],
   },
   {
-    // The chapters below are read in order by the substrate stage: entry 0
-    // drives the ingest emphasis, entry 4 the provenance trace. Copy is
-    // editable; the sequence is structural.
+    // Not a block on the page: this is the hero's banner. `page.tsx` pulls it
+    // out of the section flow and hands it to the hero, which either draws it
+    // as a live simulation or tells the same story as plain text.
+    //
+    // Entry order is structural — the stage maps each chapter onto the part of
+    // the substrate it lights up, so reordering the entries reorders the
+    // emphasis with them. Copy is free to change. The entry carrying the badge
+    // "highlight" gets the closing treatment, wherever it sits.
     key: "substrate",
     kind: SectionKind.COGNITIVE_SUBSTRATE,
-    order: 5,
+    order: 1,
     eyebrow: "Cognitive Substrate",
-    title: "Watch enterprise data become a decision",
+    title: "We build it, run it and watch it. You own it.",
     subtitle:
-      "A live simulation of the substrate underneath the platform. Every mark on the canvas is a record with its own state, quality and lineage — the picture is downstream of the simulation, not a shader with copy laid over it.",
-    body: "Scroll to move through the pipeline. Click a connected signal to inject a burst, or point at a case to trace the exact records that produced it.",
+      "A live simulation of the substrate underneath the platform. Every mark is a record with its own state, quality and lineage — the picture is downstream of the simulation, not a shader with copy laid over it.",
+    body: "Nothing here is a loop. The counters, the cases and the decisions are all produced by a simulation running in your browser.",
     entries: [
       {
         title: "Everything arrives messy",
@@ -292,6 +297,19 @@ const sections: SectionSeed[] = [
         ],
       },
       {
+        title: "BasinWright builds the model and deploys it into your estate",
+        subtitle: "Build & deploy",
+        body: "We train, tune and evaluate against your governed data, then deploy into your tenancy and your region — not ours. The control plane underneath the field is our work; the estate it runs in is yours.",
+        icon: "Rocket",
+        accent: "ember",
+        bullets: [
+          "Trained on your data",
+          "Evaluated before promotion",
+          "Deployed in your tenancy",
+          "Your region, your keys",
+        ],
+      },
+      {
         title: "Three engines, running at once",
         subtitle: "Ground · Verify · Explain",
         body: "Cognitive RAG grounds the case in retrieved evidence, deterministic models verify it against real constraints, and LLM reasoning weighs the options and explains the call. Three concurrent lanes, not three sequential steps.",
@@ -300,25 +318,39 @@ const sections: SectionSeed[] = [
         bullets: ["Cognitive RAG", "Deterministic models", "LLM reasoning"],
       },
       {
+        title: "Monitored every hour of every day",
+        subtitle: "Run & monitor 24×7",
+        body: "Drift, accuracy, latency and cost are watched continuously, and a model that starts to slip is retrained and re-evaluated before it reaches a decision that matters. Running it is the part that never stops — and it is the part we carry.",
+        icon: "Activity",
+        accent: "brass",
+        bullets: ["Drift detection", "Accuracy & latency SLOs", "Cost per decision", "Retrain and roll forward"],
+      },
+      {
         title: "A case decides only when every lane is satisfied",
         subtitle: "Decision layer",
-        body: "Evidence accrues per lane and nothing is decided early. The agent council then runs its skills over the assembled evidence — skills are interoperable, so a case checks out whichever it needs from whichever agent holds it. Confidence is computed, not asserted.",
+        body: "Evidence accrues per lane and nothing is decided early. The agent council then runs its skills over the assembled evidence, and every decision keeps the lineage of the exact records that produced it. Confidence is computed, not asserted.",
         icon: "Scale",
         accent: "ember",
         bullets: [
           "Evidence quorum",
           "Agent council",
           "Computed confidence",
-          "Written to the ledger",
+          "Record-level lineage",
         ],
       },
       {
-        title: "Every decision traces itself back",
-        subtitle: "Provenance",
-        body: "Point at any case and the exact records that produced it light up back through the graph while everything else drops away. Provenance is not a report you request afterwards — it is how the decision was assembled in the first place.",
-        icon: "Eye",
-        accent: "slate",
-        bullets: ["Record-level lineage", "Source attribution", "Replayable", "Audit-ready"],
+        title: "Your business owns the model and the intelligence",
+        subtitle: "Ownership",
+        badge: "highlight",
+        body: "We build it, deploy it and keep it running — but what comes out the other end is yours. The model, the weights, the governed data it learned from and every decision it has ever made stay inside your estate, under your control. Intelligence you own and can walk away with, not a black box you rent by the month.",
+        icon: "Lock",
+        accent: "verdigris",
+        bullets: [
+          "You own the model",
+          "You own the data",
+          "You own the decisions",
+          "No lock-in",
+        ],
       },
     ],
   },

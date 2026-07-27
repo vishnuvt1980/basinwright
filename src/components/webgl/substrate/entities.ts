@@ -5,16 +5,21 @@
    of the piece — because the simulation owns the state, the interface can ask
    it real questions ("which records produced this decision?") instead of
    narrating over decoration.
+
+   Colour is stored as palette *keys*, never as resolved values, so the whole
+   field can be re-inked when the visitor switches between light and dark
+   without touching a single record.
 --------------------------------------------------------------------------- */
 
 import {
   DECISION,
   ENGINES,
   HUB,
-  INK,
+  OPS,
+  OWNERSHIP,
   QUARANTINE,
   SOURCES,
-  type Ink,
+  type InkKey,
   type NodeGroup,
   type SubstrateNode,
 } from "./topology";
@@ -23,12 +28,6 @@ const TAU = Math.PI * 2;
 const rand = (a: number, b: number) => a + Math.random() * (b - a);
 const pick = <T>(arr: readonly T[]): T => arr[(Math.random() * arr.length) | 0];
 const ease = (t: number) => t * t * (3 - 2 * t);
-
-const mixInk = (a: Ink, b: Ink, k: number): number[] => [
-  a[0] + (b[0] - a[0]) * k,
-  a[1] + (b[1] - a[1]) * k,
-  a[2] + (b[2] - a[2]) * k,
-];
 
 /// Where a record currently is in the pipeline. Doubles as the key the
 /// narrative uses to decide whether this record is part of what the copy is
@@ -39,7 +38,9 @@ export type Leg =
   | "remediate"
   | "expire"
   | "engine"
-  | "deliver";
+  | "deliver"
+  /// The last hop: a decision passing across the line to the customer.
+  | "own";
 
 const LEG_GROUP: Record<Leg, NodeGroup> = {
   ingest: "source",
@@ -48,9 +49,17 @@ const LEG_GROUP: Record<Leg, NodeGroup> = {
   remediate: "hub",
   engine: "engine",
   deliver: "decision",
+  own: "ownership",
 };
 
 export const legGroup = (leg: Leg): NodeGroup => LEG_GROUP[leg];
+
+/// A record's colour, as a blend of at most two palette entries. Resolved at
+/// pack time against whichever palette the theme is currently using.
+export type InkRef = { a: InkKey; b: InkKey | null; k: number };
+
+const solid = (a: InkKey): InkRef => ({ a, b: null, k: 0 });
+const blend = (a: InkKey, b: InkKey, k: number): InkRef => ({ a, b, k });
 
 export type Record_ = {
   id: number;
@@ -73,7 +82,7 @@ export type Record_ = {
   seed: number;
   spin: number;
   orbitR: number;
-  ink: number[];
+  ink: InkRef;
   x: number;
   y: number;
   ax: number;
@@ -90,7 +99,7 @@ export type Record_ = {
 export type Resident = {
   node: SubstrateNode;
   group: NodeGroup;
-  ink: Ink;
+  ink: InkKey;
   shape: number;
   radius: number;
   angle: number;
@@ -103,7 +112,7 @@ export type Resident = {
 export type Flash = {
   x: number;
   y: number;
-  ink: Ink;
+  ink: InkKey;
   life: number;
   strength: number;
   group: NodeGroup;
@@ -116,6 +125,8 @@ export type FieldStats = {
   quarantined: number;
   remediated: number;
   delivered: number;
+  /// Decisions that have crossed to the customer's side of the line.
+  owned: number;
   live: number;
 };
 
@@ -138,6 +149,7 @@ export class Field {
     quarantined: 0,
     remediated: 0,
     delivered: 0,
+    owned: 0,
     live: 0,
   };
   readonly bySource: Record<string, number>;
@@ -152,21 +164,22 @@ export class Field {
     const core = (
       node: SubstrateNode,
       count: number,
-      ink: Ink,
       radius: number,
-      shape: number,
+      /// Angular speed range — the control plane turns slower than the data.
+      pace: [number, number] = [0.25, 0.7],
+      shape = node.shape,
     ) => {
       for (let i = 0; i < count; i++) {
         this.residents.push({
           node,
           group: node.group,
-          ink,
+          ink: node.ink,
           shape,
           // annulus, not a filled disc: sampling radius uniformly puts most of
           // the points near the centre and the node reads as a blob
           radius: radius * Math.sqrt(rand(0.34, 1)),
           angle: rand(0, TAU),
-          speed: rand(0.25, 0.7) * (Math.random() < 0.5 ? -1 : 1),
+          speed: rand(pace[0], pace[1]) * (Math.random() < 0.5 ? -1 : 1),
           bob: rand(0.6, 1.5),
           seed: rand(0, TAU),
           size: rand(0.11, 0.22),
@@ -174,11 +187,16 @@ export class Field {
       }
     };
 
-    SOURCES.forEach((s) => core(s, 20, INK.raw, 1.7, s.shape));
-    core(HUB, 54, INK.context, 4.2, 0);
-    ENGINES.forEach((e) => core(e, 34, e.ink, 3.1, 0));
-    core(DECISION, 40, INK.decided, 3.2, 3);
-    core(QUARANTINE, 16, INK.reject, 1.6, 1);
+    SOURCES.forEach((s) => core(s, 20, 1.7));
+    core(HUB, 54, 4.2, [0.25, 0.7], 0);
+    ENGINES.forEach((e) => core(e, 34, 3.1, [0.25, 0.7], 0));
+    core(QUARANTINE, 16, 1.6);
+    core(DECISION, 40, 3.2);
+    // The end of the line gets the densest core on the board. It is the node
+    // the whole picture is arguing towards.
+    core(OWNERSHIP, 46, 3.4);
+    // The control plane is present but unhurried: fewer marks, slower orbits.
+    OPS.forEach((o) => core(o, 18, 1.9, [0.16, 0.4]));
   }
 
   /* ---- spawning ---------------------------------------------------------- */
@@ -212,7 +230,7 @@ export class Field {
       spin: rand(-1.4, 1.4),
       // varied dwell radii: an annulus, not a blob
       orbitR: rand(0.5, 1.4),
-      ink: [...INK.raw],
+      ink: solid("raw"),
       x: src.x,
       y: src.y,
       ax: src.x,
@@ -229,7 +247,7 @@ export class Field {
     return e;
   }
 
-  flash(x: number, y: number, ink: Ink, strength: number, group: NodeGroup) {
+  flash(x: number, y: number, ink: InkKey, strength: number, group: NodeGroup) {
     this.flashes.push({ x, y, ink, life: 1, strength, group });
   }
 
@@ -323,7 +341,7 @@ export class Field {
           this.flash(
             HUB.x + rand(-2.5, 2.5),
             HUB.y + rand(-2.5, 2.5),
-            INK.context,
+            "context",
             0.34,
             "hub",
           );
@@ -335,16 +353,16 @@ export class Field {
       if (e.trust < 0.1 && !e.priority) {
         this.stats.quarantined++;
         this.#retarget(e, QUARANTINE, "quarantine", rand(-4, 4), 1 / rand(1.6, 2.6));
-        e.ink = [...INK.reject];
+        e.ink = solid("reject");
         return;
       }
 
       e.hold = rand(0.3, 0.85);
       e.mess = 0.06; // normalised
       e.trust = rand(0.48, 0.72); // linked to a governed concept
-      e.ink = [...INK.context];
+      e.ink = solid("context");
       if (e.caseId) {
-        this.flash(HUB.x + rand(-3, 3), HUB.y + rand(-3, 3), INK.context, 0.3, "hub");
+        this.flash(HUB.x + rand(-3, 3), HUB.y + rand(-3, 3), "context", 0.3, "hub");
       }
       return;
     }
@@ -357,7 +375,7 @@ export class Field {
         this.stats.remediated++;
         this.#retarget(e, HUB, "remediate", rand(-5, 5), 1 / rand(2, 3));
         e.trust = rand(0.4, 0.6);
-        e.ink = mixInk(INK.reject, INK.context, 0.5);
+        e.ink = blend("reject", "context", 0.5);
       } else {
         e.hold = rand(0.6, 1.6);
         e.leg = "expire";
@@ -378,7 +396,7 @@ export class Field {
     if (e.leg === "engine") {
       e.hold = rand(0.5, 1.3);
       e.trust = Math.min(1, e.trust + rand(0.18, 0.34));
-      e.ink = [...ENGINES[e.lane].ink];
+      e.ink = solid(ENGINES[e.lane].ink);
       return;
     }
 
@@ -388,11 +406,31 @@ export class Field {
         this.flash(
           DECISION.x + rand(-2, 2),
           DECISION.y + rand(-2, 2),
-          INK.decided,
+          "decided",
           0.5,
           "decision",
         );
         arrivals.push({ caseId: e.caseId, lane: e.lane, src: e.src });
+      }
+      // A decision does not stop at the decision layer. It carries on across
+      // the line and becomes something the customer holds — which is the last
+      // thing this picture has to say, so it is the one hop that is drawn
+      // rather than assumed.
+      this.#retarget(e, OWNERSHIP, "own", rand(-3, 3), 1 / rand(1.4, 2.2));
+      e.ink = blend("decided", "own", 0.55);
+      return;
+    }
+
+    if (e.leg === "own") {
+      this.stats.owned++;
+      if (e.caseId) {
+        this.flash(
+          OWNERSHIP.x + rand(-2, 2),
+          OWNERSHIP.y + rand(-2, 2),
+          "own",
+          0.55,
+          "ownership",
+        );
       }
       e.dead = true;
     }
@@ -407,7 +445,7 @@ export class Field {
     }
     if (e.leg === "engine") {
       this.#retarget(e, DECISION, "deliver", rand(-4, 4), 1 / rand(1.6, 2.6));
-      e.ink = mixInk(ENGINES[e.lane].ink, INK.decided, 0.55);
+      e.ink = blend(ENGINES[e.lane].ink, "decided", 0.55);
       return;
     }
     if (e.leg === "expire") e.dead = true;

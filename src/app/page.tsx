@@ -15,6 +15,13 @@ export default async function HomePage() {
     getNav("header"),
   ]);
 
+  // The substrate is content-managed like any other section, but it is not a
+  // block on the page — it is the hero's banner. Pull it out of the flow and
+  // hand it to the hero, which draws it or tells the same story as plain text.
+  const substrate =
+    sections.find((s) => s.kind === "COGNITIVE_SUBSTRATE") ?? null;
+  const blocks = sections.filter((s) => s.kind !== "COGNITIVE_SUBSTRATE");
+
   const suggestions = (settings["chat.suggestions"] ?? "")
     .split("|")
     .map((s) => s.trim())
@@ -35,8 +42,12 @@ export default async function HomePage() {
       />
 
       <main id="main">
-        {sections.map((section) => (
-          <SectionRenderer key={section.id} section={section} />
+        {blocks.map((section) => (
+          <SectionRenderer
+            key={section.id}
+            section={section}
+            substrate={substrate}
+          />
         ))}
       </main>
 

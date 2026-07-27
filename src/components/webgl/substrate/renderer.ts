@@ -114,6 +114,10 @@ const PRESENT_FS = `#version 300 es
 precision highp float;
 in vec2 vUV;
 uniform sampler2D uTex;
+/// 1.0 in light mode: the buffer holds how much light each mark *removes*.
+uniform float uInvert;
+/// The page's own background, so the canvas edge is invisible against it.
+uniform vec3 uGround;
 out vec4 frag;
 void main(){
   vec3 c = texture(uTex, vUV).rgb;
@@ -126,8 +130,17 @@ void main(){
   float l = dot(c, vec3(0.299, 0.587, 0.114));
   c = max(vec3(0.0), mix(vec3(l), c, 1.45));
   vec2 d = vUV - 0.5;
-  c *= 1.0 - dot(d, d) * 0.55;
-  c += vec3(0.012, 0.021, 0.043);          // substrate haze
+
+  if (uInvert > 0.5) {
+    // Light mode. Every ink was fed in as its own complement, so inverting
+    // here turns additive accumulation into subtractive mixing — ink on paper,
+    // with hues intact. Blending toward the ground colour rather than
+    // subtracting from pure white keeps the field seated on the page.
+    c = uGround * (1.0 - c) + c * (uGround * 0.12);
+  } else {
+    c *= 1.0 - dot(d, d) * 0.55;
+    c += uGround;                    // substrate haze
+  }
   frag = vec4(c, 1.0);
 }`;
 
@@ -166,6 +179,10 @@ export type DrawArgs = {
   overlayCount: number;
   lineVerts: number;
   fade: number;
+  /// True in light mode, where the buffer holds subtractive ink.
+  invert: boolean;
+  /// The page background the field has to sit seamlessly against.
+  ground: readonly [number, number, number];
 };
 
 export type SubstrateRenderer = {
@@ -185,7 +202,12 @@ export function createRenderer(
   maxLineVerts = 4096,
 ): SubstrateRenderer | null {
   const context = canvas.getContext("webgl2", {
-    alpha: false,
+    // Transparent rather than opaque, even though every painted frame is fully
+    // opaque. An opaque context shows solid black from the moment it exists
+    // until its first frame lands — and the first frame can be a long way off
+    // if the page opened in a background tab, where animation frames are
+    // withheld. A black slab over the hero is a worse failure than a blank one.
+    alpha: true,
     antialias: false,
     depth: false,
     premultipliedAlpha: true,
@@ -209,6 +231,8 @@ export function createRenderer(
     lineAdd: u(progLine, "uAdd"),
     fade: u(progFade, "uFade"),
     tex: u(progPresent, "uTex"),
+    invert: u(progPresent, "uInvert"),
+    ground: u(progPresent, "uGround"),
     copyTex: u(progCopy, "uTex"),
   };
 
@@ -322,6 +346,8 @@ export function createRenderer(
     overlayCount,
     lineVerts,
     fade,
+    invert,
+    ground,
   }: DrawArgs) {
     const totalInstances = overlayFrom + overlayCount;
     if (totalInstances > 0) {
@@ -385,6 +411,8 @@ export function createRenderer(
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, targets.compose.tex);
     gl.uniform1i(uni.tex, 0);
+    gl.uniform1f(uni.invert, invert ? 1 : 0);
+    gl.uniform3f(uni.ground, ground[0], ground[1], ground[2]);
     gl.bindVertexArray(vaoEmpty);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
     gl.bindVertexArray(null);

@@ -17,7 +17,7 @@ export function SubstrateNarrative({
   chapters: SubstrateChapter[];
 }) {
   return (
-    <ol className="mt-14 flex flex-col">
+    <ol data-substrate className="mt-14 flex flex-col">
       {chapters.map((chapter, index) => (
         <li
           key={chapter.id}
@@ -51,9 +51,19 @@ export function SubstrateNarrative({
               ) : null}
             </div>
 
-            <h3 className="mt-2 text-lg text-balance text-ink">
-              {chapter.title}
-            </h3>
+            {/* The closing line gets the same treatment here as it does in the
+                banner. A phone should reach the same punchline. */}
+            {chapter.highlight ? (
+              <h3 className="substrate-flare mt-2 inline-block px-2.5 py-1">
+                <span className="substrate-flare-text text-lg font-semibold text-balance">
+                  {chapter.title}
+                </span>
+              </h3>
+            ) : (
+              <h3 className="mt-2 text-lg text-balance text-ink">
+                {chapter.title}
+              </h3>
+            )}
 
             {chapter.body ? (
               <p className="mt-2 max-w-2xl text-sm leading-relaxed text-pretty text-ink-2">

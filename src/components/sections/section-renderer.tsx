@@ -1,5 +1,4 @@
 import { Agents } from "@/components/sections/agents";
-import { CognitiveSubstrate } from "@/components/sections/cognitive-substrate";
 import { Cta } from "@/components/sections/cta";
 import { Hero } from "@/components/sections/hero";
 import { Industries } from "@/components/sections/industries";
@@ -16,15 +15,19 @@ import { SectionHeading } from "@/components/ui/primitives";
 import { Reveal } from "@/components/ui/reveal";
 import type { SectionWithEntries } from "@/lib/content";
 
-/// Maps a CMS `SectionKind` to the component that renders it. Adding a kind to
-/// the Prisma enum and a row here is all it takes to ship a new block type.
+/**
+ * Maps a CMS `SectionKind` to the component that renders it. Adding a kind to
+ * the Prisma enum and a row here is all it takes to ship a new block type.
+ *
+ * Two kinds are deliberately absent. `HERO` takes an extra prop and is handled
+ * below; `COGNITIVE_SUBSTRATE` is not a block on the page at all — it is the
+ * hero's banner, and `page.tsx` routes it there.
+ */
 const RENDERERS = {
-  HERO: Hero,
   LOGO_WALL: LogoWall,
   PLATFORM_GRID: PlatformGrid,
   WHY_PILLARS: WhyPillars,
   PLATFORM_TOPOLOGY: PlatformTopology,
-  COGNITIVE_SUBSTRATE: CognitiveSubstrate,
   AGENTS: Agents,
   MODELS: Models,
   PRODUCTS: Products,
@@ -58,8 +61,19 @@ function RichText({ section }: { section: SectionWithEntries }) {
   );
 }
 
-export function SectionRenderer({ section }: { section: SectionWithEntries }) {
-  const Component = RENDERERS[section.kind];
+export function SectionRenderer({
+  section,
+  substrate = null,
+}: {
+  section: SectionWithEntries;
+  /// The substrate section, passed through to the hero that draws it.
+  substrate?: SectionWithEntries | null;
+}) {
+  if (section.kind === "HERO") {
+    return <Hero section={section} substrate={substrate} />;
+  }
+
+  const Component = RENDERERS[section.kind as keyof typeof RENDERERS];
   if (!Component) return null;
   return <Component section={section} />;
 }

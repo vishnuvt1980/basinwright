@@ -9,23 +9,26 @@
 import type { Tone } from "@/components/icon";
 
 import { CaseBoard, AGENTS, NEED, type CasePhase, type LedgerEntry } from "./cases";
-import { Field, legGroup } from "./entities";
+import { Field, legGroup, type InkRef } from "./entities";
 import { createRenderer } from "./renderer";
 import {
   DECISION,
   ENGINES,
   HUB,
-  INK,
   LINKS,
   NODES,
-  PROVENANCE_CHAPTER,
+  OWNERSHIP,
   SOURCES,
+  TRACE_CHAPTER,
   chapterEmphasis,
   makeCamera,
+  palette,
   type Anchor,
   type Camera,
   type Ink,
+  type InkKey,
   type NodeGroup,
+  type Palette,
 } from "./topology";
 
 /* -------------------------------------------------------------------------- */
@@ -80,7 +83,14 @@ export type HudLabel = {
 
 export type HudSnapshot = {
   meters: { ingest: number; live: number; inflight: number; decided: number };
-  hub: { merged: number; quarantined: number; remediated: number; delivered: number };
+  hub: {
+    merged: number;
+    quarantined: number;
+    remediated: number;
+    delivered: number;
+    /// Decisions handed across to the customer.
+    owned: number;
+  };
   sources: HudSource[];
   agents: HudAgent[];
   cases: HudCase[];
@@ -90,7 +100,7 @@ export type HudSnapshot = {
 
 export const EMPTY_SNAPSHOT: HudSnapshot = {
   meters: { ingest: 0, live: 0, inflight: 0, decided: 0 },
-  hub: { merged: 0, quarantined: 0, remediated: 0, delivered: 0 },
+  hub: { merged: 0, quarantined: 0, remediated: 0, delivered: 0, owned: 0 },
   sources: [],
   agents: [],
   cases: [],
@@ -107,6 +117,8 @@ export type Substrate = {
   /// The case the visitor is pointing at, traced back through the graph.
   setHighlight(caseId: number | null): void;
   setPaused(paused: boolean): void;
+  /// Light and dark are two different renderings of the same simulation.
+  setDark(dark: boolean): void;
   /// Operator injection — a disruption that jumps the queue and runs hot.
   inject(): void;
   /// A burst of records from one connected system.
@@ -116,6 +128,10 @@ export type Substrate = {
 
 export type SubstrateOptions = {
   canvas: HTMLCanvasElement;
+  /// The safe area the world is fitted into. The canvas itself is full-bleed
+  /// behind the copy; this element marks the part of it the field may use.
+  field: HTMLElement;
+  dark: boolean;
   /// False under reduced motion: the simulation still runs, at a calmer rate.
   animated: boolean;
   /// Publishes ~7 times a second, which is as fast as any of these numbers can
@@ -178,12 +194,33 @@ const AUTO_TRACE_LIFE = 4;
 
 const fmtRate = (n: number) => (Number.isFinite(n) ? Math.max(0, n) : 0);
 
+/// Reads the page's own background so the field can sit seamlessly on it —
+/// which matters more here than anywhere, because the canvas is the hero and
+/// runs edge to edge.
+function readGround(dark: boolean): [number, number, number] {
+  const raw = getComputedStyle(document.documentElement)
+    .getPropertyValue("--bw-canvas")
+    .trim()
+    .replace("#", "");
+
+  if (raw.length === 6) {
+    return [
+      parseInt(raw.slice(0, 2), 16) / 255,
+      parseInt(raw.slice(2, 4), 16) / 255,
+      parseInt(raw.slice(4, 6), 16) / 255,
+    ];
+  }
+  return dark ? [0.055, 0.09, 0.149] : [1, 1, 1];
+}
+
 /* -------------------------------------------------------------------------- */
 /* Driver                                                                     */
 /* -------------------------------------------------------------------------- */
 
 export function createSubstrate({
   canvas,
+  field: fieldElement,
+  dark,
   animated,
   onSnapshot,
   onVerdict,
@@ -221,24 +258,62 @@ export function createSubstrate({
   let disposed = false;
   let dpr = DPR_FULL;
 
+  /* --- palette ------------------------------------------------------------ */
+
+  let isDark = dark;
+  let pal: Palette = palette(isDark);
+  let ground = readGround(isDark);
+
+  /* Light mode needs a heavier hand. On black, a mark competes with nothing;
+     on white it has to remove enough light to be seen at all, and the same
+     alpha that reads as a bright dart on the dark field reads as a smudge on
+     paper. One gain, applied where alpha is written, keeps every level in the
+     simulation tuned once. */
+  let inkGain = isDark ? 1 : 1.8;
+
+  // Shared scratch: every resolved colour is copied into a buffer immediately,
+  // so one tuple serves the whole frame and the hot loop allocates nothing.
+  const scratch: [number, number, number] = [0, 0, 0];
+
+  function inkOf(ref: InkRef): Ink {
+    const a = pal[ref.a];
+    if (ref.b === null) return a;
+    const b = pal[ref.b];
+    scratch[0] = a[0] + (b[0] - a[0]) * ref.k;
+    scratch[1] = a[1] + (b[1] - a[1]) * ref.k;
+    scratch[2] = a[2] + (b[2] - a[2]) * ref.k;
+    return scratch;
+  }
+
   /* --- layout ------------------------------------------------------------- */
 
   let camera: Camera | null = null;
   let sizeBoost = 1;
 
   function layout() {
-    const rect = canvas.getBoundingClientRect();
-    const cssW = Math.max(1, Math.round(rect.width));
-    const cssH = Math.max(1, Math.round(rect.height));
+    const box = canvas.getBoundingClientRect();
+    const cssW = Math.max(1, Math.round(box.width));
+    const cssH = Math.max(1, Math.round(box.height));
     const ratio = Math.min(window.devicePixelRatio || 1, dpr);
 
     canvas.width = Math.round(cssW * ratio);
     canvas.height = Math.round(cssH * ratio);
     resize(canvas.width, canvas.height);
 
-    // The camera fits the world into the canvas box itself. The HUD rails sit
-    // beside the canvas rather than over it, so there is nothing to avoid.
-    camera = makeCamera({ x: 0, y: 0, width: cssW, height: cssH }, cssW, cssH);
+    // The world is fitted to the safe element, not the canvas, so the field
+    // never runs under the headline no matter how the hero reflows.
+    const safe = fieldElement.getBoundingClientRect();
+    camera = makeCamera(
+      {
+        x: safe.x - box.x,
+        y: safe.y - box.y,
+        width: Math.max(1, safe.width),
+        height: Math.max(1, safe.height),
+      },
+      cssW,
+      cssH,
+    );
+
     sizeBoost = Math.min(
       MAX_SIZE_BOOST,
       Math.max(1, REFERENCE_SCALE / camera.scale),
@@ -260,7 +335,7 @@ export function createSubstrate({
     rot: number,
     shape: number,
     glow: number,
-    ink: ArrayLike<number>,
+    ink: Ink,
     alpha: number,
   ) {
     if (ic >= maxInstances) return;
@@ -274,7 +349,7 @@ export function createSubstrate({
     instanceData[o + 6] = ink[0];
     instanceData[o + 7] = ink[1];
     instanceData[o + 8] = ink[2];
-    instanceData[o + 9] = alpha;
+    instanceData[o + 9] = alpha * inkGain;
     ic++;
   }
 
@@ -287,7 +362,7 @@ export function createSubstrate({
     lineData[o + 2] = ink[0];
     lineData[o + 3] = ink[1];
     lineData[o + 4] = ink[2];
-    lineData[o + 5] = alpha;
+    lineData[o + 5] = alpha * inkGain;
     lc++;
   }
 
@@ -297,14 +372,16 @@ export function createSubstrate({
   function strand(
     a: { x: number; y: number },
     b: { x: number; y: number },
-    inkA: Ink,
-    inkB: Ink,
+    keyA: InkKey,
+    keyB: InkKey,
     base: number,
     pulseAmp: number,
     phase: number,
     now: number,
     speed: number,
   ) {
+    const inkA = pal[keyA];
+    const inkB = pal[keyB];
     for (let i = 0; i < SEG; i++) {
       for (const t of [i / SEG, (i + 1) / SEG]) {
         const p = (t - now * speed + phase) % 1;
@@ -334,6 +411,8 @@ export function createSubstrate({
     engine: 1,
     decision: 1,
     quarantine: 1,
+    ops: 1,
+    ownership: 1,
   };
 
   function easeEmphasis(dt: number) {
@@ -356,8 +435,9 @@ export function createSubstrate({
 
   function labels(): HudLabel[] {
     if (!camera) return [];
+    const cam = camera;
     return NODES.map((n) => {
-      const [x, y] = camera!.toScreen(n.x, n.y);
+      const [x, y] = cam.toScreen(n.x, n.y);
       return {
         id: n.id,
         label: n.label,
@@ -389,6 +469,7 @@ export function createSubstrate({
         quarantined: field.stats.quarantined,
         remediated: field.stats.remediated,
         delivered: field.stats.delivered,
+        owned: field.stats.owned,
       },
       sources: SOURCES.map((s) => ({
         id: s.id,
@@ -506,9 +587,9 @@ export function createSubstrate({
       if (trace.life <= 0) trace = null;
     }
 
-    // The provenance chapter demonstrates the thing it describes: with nothing
-    // hovered, the stage keeps tracing cases of its own accord.
-    if (chapter === PROVENANCE_CHAPTER && board.highlight === null && !trace) {
+    // The chapter about the decision demonstrates the thing it describes: with
+    // nothing hovered, the stage keeps tracing cases of its own accord.
+    if (chapter === TRACE_CHAPTER && board.highlight === null && !trace) {
       const candidate =
         board.active.find((c) => c.phase === "deliberating") ??
         board.active[board.active.length - 1];
@@ -538,7 +619,8 @@ export function createSubstrate({
       );
     }
 
-    /* provenance: the exact path that produced a decision */
+    /* provenance: the exact path that produced a decision, all the way across
+       the line to the customer */
     if (focusCase) {
       const glowT = Math.min(
         1,
@@ -547,12 +629,13 @@ export function createSubstrate({
       const amp = 0.55 + 0.45 * Math.sin(time * 6);
       for (const id of new Set(focusCase.provenance)) {
         const s = SOURCES.find((x) => x.id === id);
-        if (s) strand(s, HUB, INK.raw, INK.context, 0.42 * glowT, 0.7, 0, time, 0.42);
+        if (s) strand(s, HUB, "raw", "context", 0.42 * glowT, 0.7, 0, time, 0.42);
       }
       for (const e of ENGINES) {
-        strand(HUB, e, INK.context, e.ink, 0.38 * glowT * amp, 0.8, 0, time, 0.42);
-        strand(e, DECISION, e.ink, INK.decided, 0.38 * glowT * amp, 0.8, 0.5, time, 0.42);
+        strand(HUB, e, "context", e.ink, 0.38 * glowT * amp, 0.8, 0, time, 0.42);
+        strand(e, DECISION, e.ink, "decided", 0.38 * glowT * amp, 0.8, 0.5, time, 0.42);
       }
+      strand(DECISION, OWNERSHIP, "decided", "own", 0.44 * glowT * amp, 0.9, 0.25, time, 0.42);
     }
 
     /* flux — packed first, drawn into the trail buffer */
@@ -563,9 +646,9 @@ export function createSubstrate({
       // Levels are set against the trail equilibrium, which is roughly
       // ink-per-frame / fade — about 7x here. Ambient traffic is the roar a
       // tracked case lives inside; it must never out-shout the case itself.
-      // Held just under saturation: past ~1.0 accumulated the marks clip to
-      // white and the colour-is-meaning read is lost.
-      let alpha = tracked ? 0.45 : 0.1 + e.trust * 0.12;
+      // Held just under saturation: past ~1.0 accumulated the marks clip and
+      // the colour-is-meaning read is lost.
+      let alpha = tracked ? 0.45 : 0.11 + e.trust * 0.13;
       if (focus !== null && !isFocus) alpha *= 0.16;
       alpha *= emphasis[legGroup(e.leg)];
       const size = e.size * (isFocus ? 1.8 : 1) * (0.85 + e.trust * 0.4);
@@ -576,7 +659,7 @@ export function createSubstrate({
         e.ang,
         e.shape,
         0.25 + e.trust * 0.6 + (isFocus ? 1.0 : 0),
-        e.ink,
+        inkOf(e.ink),
         alpha,
       );
     }
@@ -590,7 +673,7 @@ export function createSubstrate({
         0,
         0,
         1.4,
-        f.ink,
+        pal[f.ink],
         f.life * f.life * 0.2 * f.strength * emphasis[f.group],
       );
     }
@@ -608,7 +691,7 @@ export function createSubstrate({
         ang + Math.PI / 2,
         r.shape,
         0.55,
-        r.ink,
+        pal[r.ink],
         (0.3 + 0.2 * Math.sin(time * 2 + r.seed)) *
           (focus === null ? 1 : 0.45) *
           emphasis[r.group],
@@ -631,6 +714,8 @@ export function createSubstrate({
       // A mark aligned to its own heading repaints its own trail, so the decay
       // has to be quicker here than it would be for round sprites.
       fade: 1 - Math.exp(-dt * 12),
+      invert: !isDark,
+      ground,
     });
   }
 
@@ -638,6 +723,7 @@ export function createSubstrate({
   // which read state declared above.
   layout();
   observer.observe(canvas);
+  observer.observe(fieldElement);
   raf = requestAnimationFrame(frame);
 
   return {
@@ -652,6 +738,18 @@ export function createSubstrate({
       // offscreen interval as one dt.
       if (!next && paused) last = performance.now() / 1000;
       paused = next;
+    },
+    setDark(next) {
+      if (next === isDark) return;
+      isDark = next;
+      pal = palette(isDark);
+      inkGain = isDark ? 1 : 1.8;
+      // Read after the class flip, so this picks up the theme actually in
+      // effect rather than the one being left.
+      ground = readGround(isDark);
+      // The trail buffer still holds ink from the old palette. It decays in
+      // about a quarter of a second, which reads as a cross-fade rather than
+      // as a glitch, so it is left to wash out on its own.
     },
     inject() {
       trace = { id: board.inject().id, life: 3 };
