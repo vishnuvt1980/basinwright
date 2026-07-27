@@ -1,0 +1,11 @@
+# Bind both published ports to loopback. Caddy on the host terminates TLS and
+# reverse-proxies to 127.0.0.1:3001; nothing else should be reachable from off
+# the box. `!override` replaces the base list rather than appending to it.
+services:
+  db:
+    ports: !override
+      - "127.0.0.1:5434:5432"
+
+  web:
+    ports: !override
+      - "127.0.0.1:3001:3000"

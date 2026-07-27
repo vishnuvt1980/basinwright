@@ -1,0 +1,15 @@
+node_modules
+.next
+.git
+.claude
+.env
+.env.*
+!.env.example
+Dockerfile
+docker-compose.yml
+docker-compose.override.yml
+*.log
+*.tsbuildinfo
+.DS_Store
+brand
+docs

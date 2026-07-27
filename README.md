@@ -237,16 +237,53 @@ Accessibility and resilience are handled rather than assumed — `prefers-reduce
 ```bash
 npm run dev         # dev server
 npm run build       # production build
-npm run db:seed     # re-seed content (idempotent)
+npm run db:seed     # reset content to the seed — replaces sections/entries/nav
 npm run db:studio   # browse the database
 npm run db:reset    # drop, re-migrate, re-seed
 ```
 
-## Before deploying
+## Deployment
 
-- [ ] Set a real `SESSION_SECRET` (`openssl rand -base64 48`)
-- [ ] Change `ADMIN_PASSWORD` and re-seed, or update the user in `/admin`
-- [ ] Point `DATABASE_URL` at managed Postgres
-- [ ] Add `AI_API_KEY`
+Production runs on the Vultr box at `192.248.150.151`, in Docker, behind the
+Caddy already on that host. It shares the box with wersel.ai, so every port is
+shifted and bound to loopback: **wersel.ai holds 3000/5433, basinwright.com
+holds 3001/5434**, and Caddy is the only thing that reaches either.
+
+```
+/datadrive/basinwright        the deploy checkout (git remote: origin/main)
+  .env                        server-only secrets, never committed
+  docker-compose.yml          db + web + a one-off seed service
+  docker-compose.override.yml binds both published ports to 127.0.0.1
+/etc/caddy/Caddyfile          TLS + reverse proxy for both sites
+```
+
+`output: "standalone"` in `next.config.ts` is what makes the runner image
+small — see the `Dockerfile` for the two directories tracing leaves behind.
+
+### Deploying a change
+
+```bash
+ssh linuxuser@192.248.150.151
+cd /datadrive/basinwright && git pull
+docker compose up -d --build
+```
+
+The web container runs `prisma migrate deploy` before `server.js`, so a commit
+that adds a migration needs nothing extra.
+
+### The seed is destructive — do not wire it into startup
+
+`prisma/seed.ts` replaces sections, entries and navigation **wholesale**. It is
+deliberately not part of the container's start command: running it on each
+deploy would throw away everything edited in `/admin` since the last one. Leads
+and chat transcripts are never touched, and the admin user is upserted rather
+than replaced. Run it only when you mean to reset the CMS to the seed content:
+
+```bash
+docker compose --profile tools run --rm seed
+```
+
+### Still to do
+
 - [ ] Replace the placeholder customer logos and hero statistics — they are illustrative
 - [ ] Build out the pages the footer links to (currently `#` placeholders)

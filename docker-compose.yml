@@ -1,0 +1,72 @@
+# Production stack for basinwright.com.
+#
+# The host shares this box with another site, so both published ports are
+# shifted off the defaults and bound to loopback in docker-compose.override.yml
+# — Caddy on the host is the only thing that reaches the web container.
+#
+# Ports on this host: wersel.ai holds 3000/5433, basinwright.com holds 3001/5434.
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-basinwright}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-basinwright}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - "5434:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-basinwright} -d ${POSTGRES_DB:-basinwright}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: basinwright-web:latest
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-basinwright}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-basinwright}?schema=public
+      SESSION_SECRET: ${SESSION_SECRET:?SESSION_SECRET must be set in .env}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@basinwright.com}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      ADMIN_NAME: ${ADMIN_NAME:-BasinWright Admin}
+      AI_API_KEY: ${AI_API_KEY:-}
+      AI_BASE_URL: ${AI_BASE_URL:-https://api.together.xyz/v1}
+      AI_MODEL: ${AI_MODEL:-meta-llama/Llama-3.3-70B-Instruct-Turbo}
+      AI_MAX_TOKENS: ${AI_MAX_TOKENS:-800}
+      AI_TEMPERATURE: ${AI_TEMPERATURE:-0.4}
+    ports:
+      - "3001:3000"
+    # Migrations only. The seed is deliberately NOT run here: it replaces
+    # sections, entries and navigation wholesale, so running it on every
+    # restart would throw away everything edited in /admin since the last
+    # deploy. Seed once, by hand, with the `seed` service below.
+    command: sh -c "node node_modules/prisma/build/index.js migrate deploy && node server.js"
+
+  # One-off, on demand: `docker compose --profile tools run --rm seed`.
+  # Safe to re-run only when you intend to reset the CMS to the seed content.
+  # The admin user is upserted rather than replaced, so it survives either way.
+  seed:
+    image: basinwright-web:latest
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-basinwright}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-basinwright}?schema=public
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@basinwright.com}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      ADMIN_NAME: ${ADMIN_NAME:-BasinWright Admin}
+    profiles: ["tools"]
+    command: sh -c "node node_modules/tsx/dist/cli.mjs prisma/seed.ts"
+
+volumes:
+  db_data:
