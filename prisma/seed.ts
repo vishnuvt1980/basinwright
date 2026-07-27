@@ -1,36 +1,20 @@
 import { PrismaClient, SectionKind } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
+import {
+  allDocs,
+  footerNav,
+  headerNav,
+  legalNav,
+  navSettings,
+  pages,
+} from "./content";
+import type { SectionSeed } from "./content";
+
 const prisma = new PrismaClient();
 
-type EntrySeed = {
-  title: string;
-  subtitle?: string;
-  body?: string;
-  icon?: string;
-  href?: string;
-  badge?: string;
-  accent?: string;
-  bullets?: string[];
-};
-
-type SectionSeed = {
-  key: string;
-  kind: SectionKind;
-  order: number;
-  eyebrow?: string;
-  title?: string;
-  headlineLines?: string[];
-  subtitle?: string;
-  body?: string;
-  ctaLabel?: string;
-  ctaHref?: string;
-  ctaLabel2?: string;
-  ctaHref2?: string;
-  meta?: Record<string, unknown>;
-  entries?: EntrySeed[];
-};
-
+/// The homepage. Its blocks carry no `page` value, so they take the schema
+/// default of "home". Everything else lives in prisma/content/pages.ts.
 const sections: SectionSeed[] = [
   {
     key: "hero",
@@ -866,60 +850,27 @@ const settings = [
   },
 ];
 
-const headerNav = [
-  { label: "Products", href: "#products" },
-  { label: "Solutions", href: "#solutions" },
-  { label: "Industries", href: "#industries" },
-  { label: "Models", href: "#models" },
-  { label: "Pricing", href: "#pricing" },
-];
+/// Writes one block and its entries. Shared by the homepage and every
+/// editorial page — the renderer does not care which page a block sits on.
+async function createSection(section: SectionSeed, page: string) {
+  const { entries = [], meta, ...rest } = section;
 
-const footerNav: { group: string; items: { label: string; href: string }[] }[] = [
-  {
-    group: "Products",
-    items: [
-      { label: "BasinWright MaaS", href: "#products" },
-      { label: "BasinWright Compute", href: "#products" },
-      { label: "BasinWright Agents", href: "#products" },
-      { label: "BasinWright Studio", href: "#products" },
-      { label: "BasinWright Knowledge", href: "#products" },
-      { label: "BasinWright Marketplace", href: "#products" },
-    ],
-  },
-  {
-    group: "Developers",
-    items: [
-      { label: "Documentation", href: "#" },
-      { label: "API Reference", href: "#" },
-      { label: "SDKs", href: "#" },
-      { label: "CLI", href: "#" },
-      { label: "Terraform", href: "#" },
-      { label: "GitHub", href: "#" },
-    ],
-  },
-  {
-    group: "Company",
-    items: [
-      { label: "About", href: "#" },
-      { label: "Leadership", href: "#" },
-      { label: "Partners", href: "#" },
-      { label: "Careers", href: "#" },
-      { label: "News", href: "#" },
-      { label: "Research", href: "#" },
-    ],
-  },
-  {
-    group: "Resources",
-    items: [
-      { label: "Case Studies", href: "#" },
-      { label: "Whitepapers", href: "#" },
-      { label: "Learning Centre", href: "#" },
-      { label: "Blog", href: "#" },
-      { label: "Release Notes", href: "#" },
-      { label: "Support", href: "#" },
-    ],
-  },
-];
+  await prisma.section.create({
+    data: {
+      ...rest,
+      page,
+      headlineLines: section.headlineLines ?? [],
+      meta: meta as never,
+      entries: {
+        create: entries.map((entry, i) => ({
+          ...entry,
+          bullets: entry.bullets ?? [],
+          order: i,
+        })),
+      },
+    },
+  });
+}
 
 async function main() {
   console.log("Seeding BasinWright…");
@@ -946,34 +897,48 @@ async function main() {
   await prisma.entry.deleteMany();
   await prisma.section.deleteMany();
 
-  for (const s of sections) {
-    const { entries = [], meta, ...rest } = s;
-    await prisma.section.create({
+  for (const section of sections) await createSection(section, "home");
+  console.log(`  ${sections.length} homepage sections seeded`);
+
+  // --- Editorial pages ----------------------------------------------------
+  await prisma.page.deleteMany();
+
+  let pageBlocks = 0;
+  for (const page of pages) {
+    const { sections: blocks, ...shell } = page;
+    await prisma.page.create({ data: { ...shell, published: page.published ?? true } });
+    for (const block of blocks) await createSection(block, page.slug);
+    pageBlocks += blocks.length;
+  }
+  console.log(`  ${pages.length} pages seeded (${pageBlocks} blocks)`);
+
+  // --- Library ------------------------------------------------------------
+  await prisma.doc.deleteMany();
+
+  for (const doc of allDocs) {
+    const { publishedAt, metrics, tags, ...rest } = doc;
+    await prisma.doc.create({
       data: {
         ...rest,
-        headlineLines: s.headlineLines ?? [],
-        meta: meta as never,
-        entries: {
-          create: entries.map((e, i) => ({
-            ...e,
-            bullets: e.bullets ?? [],
-            order: i,
-          })),
-        },
+        publishedAt: new Date(publishedAt),
+        tags: tags ?? [],
+        metrics: metrics as never,
       },
     });
   }
-  console.log(`  ${sections.length} sections seeded`);
+  console.log(`  ${allDocs.length} library documents seeded`);
 
   // --- Settings -----------------------------------------------------------
-  for (const setting of settings) {
+  // `value` is deliberately left alone on update: re-seeding should not undo
+  // copy edited in /admin, only repair the labels and grouping around it.
+  for (const setting of [...settings, ...navSettings]) {
     await prisma.siteSetting.upsert({
       where: { key: setting.key },
       update: { label: setting.label, group: setting.group, order: setting.order },
       create: setting,
     });
   }
-  console.log(`  ${settings.length} settings seeded`);
+  console.log(`  ${settings.length + navSettings.length} settings seeded`);
 
   // --- Navigation ---------------------------------------------------------
   await prisma.navItem.deleteMany();
@@ -982,6 +947,7 @@ async function main() {
       data: { ...item, order: i, location: "header" },
     });
   }
+
   let order = 0;
   for (const column of footerNav) {
     for (const item of column.items) {
@@ -989,6 +955,12 @@ async function main() {
         data: { ...item, order: order++, location: "footer", group: column.group },
       });
     }
+  }
+
+  for (const [i, item] of legalNav.entries()) {
+    await prisma.navItem.create({
+      data: { ...item, order: i, location: "legal" },
+    });
   }
   console.log("  navigation seeded");
 

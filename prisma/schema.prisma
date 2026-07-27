@@ -60,7 +60,7 @@ enum SectionKind {
   CTA
   RICH_TEXT
 
-  PAGE_HEADER
+  CALLOUT
   PROSE
   FEATURE_GRID
   STAT_BAND

@@ -3,10 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { SectionKind } from "@prisma/client";
+import { DocKind, SectionKind } from "@prisma/client";
 
 import { requireUser } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { isReservedSlug } from "@/lib/library";
 
 /// Every action re-checks the session. Server Functions POST to the page route
 /// and are reachable directly, so proxy matching alone is not authorization.
@@ -77,8 +78,22 @@ export async function updateSection(
 
   if (!parsed.success) return fail("Some fields are invalid.");
 
+  // DOC_LIST blocks are configured through two extra fields rather than a raw
+  // JSON textarea. Absent fields leave `meta` alone, so every other kind — and
+  // anything hand-edited in the database — is untouched by a save.
+  const collection = optional(formData.get("metaCollection"));
+  const meta = formData.has("metaCollection")
+    ? {
+        collection,
+        limit: Number(formData.get("metaLimit")) || 3,
+      }
+    : undefined;
+
   try {
-    await db.section.update({ where: { id }, data: parsed.data });
+    await db.section.update({
+      where: { id },
+      data: { ...parsed.data, ...(meta ? { meta } : {}) },
+    });
   } catch {
     return fail("Could not save the section.");
   }
@@ -102,6 +117,7 @@ export async function toggleSectionVisibility(formData: FormData) {
 
   refreshSite();
   revalidatePath("/admin");
+  revalidatePath("/admin/pages", "layout");
 }
 
 export async function moveSection(formData: FormData) {
@@ -110,25 +126,35 @@ export async function moveSection(formData: FormData) {
   const id = String(formData.get("id") ?? "");
   const direction = String(formData.get("direction") ?? "");
 
-  const sections = await db.section.findMany({ orderBy: { order: "asc" } });
-  const index = sections.findIndex((s) => s.id === id);
+  const section = await db.section.findUnique({ where: { id } });
+  if (!section) return;
+
+  // Ordering is per page. Reordering across the whole table would interleave
+  // the homepage with /about the moment either grew a block.
+  const siblings = await db.section.findMany({
+    where: { page: section.page },
+    orderBy: { order: "asc" },
+  });
+
+  const index = siblings.findIndex((s) => s.id === id);
   if (index === -1) return;
 
   const swapWith = direction === "up" ? index - 1 : index + 1;
-  if (swapWith < 0 || swapWith >= sections.length) return;
+  if (swapWith < 0 || swapWith >= siblings.length) return;
 
   // Rewrite the whole ordering so gaps and duplicate `order` values self-heal.
-  const reordered = [...sections];
+  const reordered = [...siblings];
   [reordered[index], reordered[swapWith]] = [reordered[swapWith], reordered[index]];
 
   await db.$transaction(
-    reordered.map((section, i) =>
-      db.section.update({ where: { id: section.id }, data: { order: i } }),
+    reordered.map((item, i) =>
+      db.section.update({ where: { id: item.id }, data: { order: i } }),
     ),
   );
 
   refreshSite();
   revalidatePath("/admin");
+  revalidatePath("/admin/pages", "layout");
 }
 
 /* -------------------------------------------------------------------------- */
@@ -347,14 +373,20 @@ export async function createSection(formData: FormData) {
   const kindInput = String(formData.get("kind") ?? "");
   const kind = Object.values(SectionKind).includes(kindInput as SectionKind)
     ? (kindInput as SectionKind)
-    : SectionKind.RICH_TEXT;
+    : SectionKind.PROSE;
 
-  const last = await db.section.findFirst({ orderBy: { order: "desc" } });
+  const page = String(formData.get("page") ?? "home") || "home";
+
+  const last = await db.section.findFirst({
+    where: { page },
+    orderBy: { order: "desc" },
+  });
 
   const section = await db.section.create({
     data: {
       key: `section-${Date.now()}`,
       kind,
+      page,
       order: (last?.order ?? -1) + 1,
       title: "New section",
       visible: false,
@@ -363,4 +395,243 @@ export async function createSection(formData: FormData) {
 
   refreshSite();
   redirect(`/admin/sections/${section.id}`);
+}
+
+export async function deleteSection(formData: FormData) {
+  await guard();
+
+  const id = String(formData.get("id") ?? "");
+  const section = await db.section.findUnique({ where: { id } });
+  if (!section) return;
+
+  await db.section.delete({ where: { id } });
+
+  refreshSite();
+  revalidatePath("/admin");
+  revalidatePath("/admin/pages", "layout");
+  redirect(section.page === "home" ? "/admin" : `/admin/pages/${section.page}`);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Pages                                                                      */
+/* -------------------------------------------------------------------------- */
+
+/// Lowercase, hyphenated, no leading or trailing separators.
+const slugify = (value: string) =>
+  value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+export async function updatePage(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  await guard();
+
+  const id = String(formData.get("id") ?? "");
+  if (!id) return fail("Missing page id.");
+
+  const existing = await db.page.findUnique({ where: { id } });
+  if (!existing) return fail("That page no longer exists.");
+
+  const title = String(formData.get("title") ?? "").trim();
+  if (!title) return fail("Title is required.");
+
+  const slug = slugify(String(formData.get("slug") ?? existing.slug));
+  if (!slug) return fail("Slug is required.");
+  if (isReservedSlug(slug)) {
+    return fail(`"/${slug}" is a library collection and cannot be used as a page.`);
+  }
+
+  try {
+    await db.$transaction(async (tx) => {
+      await tx.page.update({
+        where: { id },
+        data: {
+          slug,
+          title,
+          eyebrow: optional(formData.get("eyebrow")),
+          subtitle: optional(formData.get("subtitle")),
+          seoTitle: optional(formData.get("seoTitle")),
+          seoDescription: optional(formData.get("seoDescription")),
+          published: formData.get("published") === "on",
+        },
+      });
+
+      // Blocks are joined to their page by slug, so a rename has to carry them.
+      if (slug !== existing.slug) {
+        await tx.section.updateMany({
+          where: { page: existing.slug },
+          data: { page: slug },
+        });
+      }
+    });
+  } catch {
+    return fail("Could not save the page. Is that slug already taken?");
+  }
+
+  refreshSite();
+  revalidatePath(`/admin/pages/${id}`);
+  revalidatePath("/admin/pages");
+  return ok("Page saved.");
+}
+
+export async function createPage() {
+  await guard();
+
+  const last = await db.page.findFirst({ orderBy: { order: "desc" } });
+  const slug = `page-${Date.now()}`;
+
+  const page = await db.page.create({
+    data: {
+      slug,
+      title: "New page",
+      order: (last?.order ?? -1) + 1,
+      published: false,
+    },
+  });
+
+  revalidatePath("/admin/pages");
+  redirect(`/admin/pages/${page.id}`);
+}
+
+export async function deletePage(formData: FormData) {
+  await guard();
+
+  const id = String(formData.get("id") ?? "");
+  const page = await db.page.findUnique({ where: { id } });
+  if (!page) return;
+
+  // Sections reference the page by slug rather than by relation, so cascade
+  // is manual — otherwise the blocks would outlive the page as orphans.
+  await db.$transaction([
+    db.section.deleteMany({ where: { page: page.slug } }),
+    db.page.delete({ where: { id } }),
+  ]);
+
+  refreshSite();
+  revalidatePath("/admin/pages");
+  redirect("/admin/pages");
+}
+
+/* -------------------------------------------------------------------------- */
+/* Library                                                                    */
+/* -------------------------------------------------------------------------- */
+
+const docSchema = z.object({
+  kind: z.enum(DocKind),
+  slug: z.string().min(1),
+  title: z.string().min(1),
+  excerpt: z.string().min(1),
+  body: z.string().min(1),
+});
+
+export async function updateDoc(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  await guard();
+
+  const id = String(formData.get("id") ?? "");
+  if (!id) return fail("Missing document id.");
+
+  const parsed = docSchema.safeParse({
+    kind: String(formData.get("kind") ?? ""),
+    slug: slugify(String(formData.get("slug") ?? "")),
+    title: String(formData.get("title") ?? "").trim(),
+    excerpt: String(formData.get("excerpt") ?? "").trim(),
+    body: String(formData.get("body") ?? "").trim(),
+  });
+
+  if (!parsed.success) {
+    return fail("Kind, slug, title, excerpt and body are all required.");
+  }
+
+  const publishedAt = new Date(String(formData.get("publishedAt") ?? ""));
+
+  try {
+    await db.doc.update({
+      where: { id },
+      data: {
+        ...parsed.data,
+        subtitle: optional(formData.get("subtitle")),
+        category: optional(formData.get("category")),
+        industry: optional(formData.get("industry")),
+        author: optional(formData.get("author")),
+        authorRole: optional(formData.get("authorRole")),
+        version: optional(formData.get("version")),
+        icon: optional(formData.get("icon")),
+        accent: optional(formData.get("accent")),
+        seoTitle: optional(formData.get("seoTitle")),
+        seoDescription: optional(formData.get("seoDescription")),
+        tags: String(formData.get("tags") ?? "")
+          .split(",")
+          .map((t) => t.trim())
+          .filter(Boolean),
+        readMinutes: Number(formData.get("readMinutes")) || 6,
+        featured: formData.get("featured") === "on",
+        gated: formData.get("gated") === "on",
+        published: formData.get("published") === "on",
+        ...(Number.isNaN(publishedAt.valueOf()) ? {} : { publishedAt }),
+      },
+    });
+  } catch {
+    return fail("Could not save the document. Is that slug already taken?");
+  }
+
+  refreshSite();
+  revalidatePath(`/admin/library/${id}`);
+  revalidatePath("/admin/library");
+  return ok("Document saved.");
+}
+
+export async function createDoc(formData: FormData) {
+  await guard();
+
+  const kindInput = String(formData.get("kind") ?? "");
+  const kind = Object.values(DocKind).includes(kindInput as DocKind)
+    ? (kindInput as DocKind)
+    : DocKind.BLOG;
+
+  const doc = await db.doc.create({
+    data: {
+      kind,
+      slug: `draft-${Date.now()}`,
+      title: "Untitled",
+      excerpt: "A one-line summary, used on cards and as the meta description.",
+      body: "## Start here\n\nWrite in Markdown. Headings, lists, quotes, tables and links are all supported.",
+      published: false,
+    },
+  });
+
+  revalidatePath("/admin/library");
+  redirect(`/admin/library/${doc.id}`);
+}
+
+export async function toggleDocPublished(formData: FormData) {
+  await guard();
+
+  const id = String(formData.get("id") ?? "");
+  const doc = await db.doc.findUnique({ where: { id } });
+  if (!doc) return;
+
+  await db.doc.update({ where: { id }, data: { published: !doc.published } });
+
+  refreshSite();
+  revalidatePath("/admin/library");
+}
+
+export async function deleteDoc(formData: FormData) {
+  await guard();
+
+  const id = String(formData.get("id") ?? "");
+  if (!id) return;
+
+  await db.doc.delete({ where: { id } });
+
+  refreshSite();
+  revalidatePath("/admin/library");
+  redirect("/admin/library");
 }

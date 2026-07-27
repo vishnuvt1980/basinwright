@@ -62,9 +62,10 @@ function NavRowForm({ item }: { item: NavRow }) {
 }
 
 export default async function NavigationPage() {
-  const [header, footer] = await Promise.all([
+  const [header, footer, legal] = await Promise.all([
     db.navItem.findMany({ where: { location: "header" }, orderBy: { order: "asc" } }),
     db.navItem.findMany({ where: { location: "footer" }, orderBy: { order: "asc" } }),
+    db.navItem.findMany({ where: { location: "legal" }, orderBy: { order: "asc" } }),
   ]);
 
   const footerColumns = groupFooterNav(footer);
@@ -73,8 +74,11 @@ export default async function NavigationPage() {
     <>
       <header>
         <h1 className="font-display text-3xl text-ink">Navigation</h1>
-        <p className="mt-2 text-sm text-ink-3">
-          Header links and footer columns. Edit a row and press Save.
+        <p className="mt-2 max-w-xl text-sm text-ink-3">
+          Header links, footer columns and the legal row. Edit a row and press Save. A
+          link starting <span className="font-mono text-xs">https://</span> opens in a
+          new tab and is marked as leaving the site — that is how the developer column
+          points at the product.
         </p>
       </header>
 
@@ -121,6 +125,25 @@ export default async function NavigationPage() {
           </ul>
         </section>
       ))}
+
+      <section className={`mt-6 ${sectionClass}`}>
+        <div className="mb-5 flex items-center justify-between gap-4">
+          <h2 className={groupHeadingClass}>Legal row</h2>
+          <form action={createNavItem}>
+            <input type="hidden" name="location" value="legal" />
+            <button type="submit" className={addButtonClass}>
+              <Icon name="Plus" className="size-4" />
+              Add link
+            </button>
+          </form>
+        </div>
+
+        <ul className="flex flex-col gap-2">
+          {legal.map((item) => (
+            <NavRowForm key={item.id} item={item} />
+          ))}
+        </ul>
+      </section>
     </>
   );
 }

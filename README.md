@@ -65,37 +65,79 @@ The assistant's system prompt is **generated from live CMS content on every requ
 
 ## How the CMS is modelled
 
-Rather than a table per block type, the homepage is modelled generically so one editing UI covers everything:
+Rather than a table per block type, every page is modelled generically so one editing UI covers everything:
 
-- **`Section`** — one per block on the page. `kind` (an enum) selects the React component that renders it; `order` and `visible` control page composition.
-- **`Entry`** — the repeated items inside a section: capability cards, agents, product tiers, pricing plans, logos. Carries `title`, `body`, `icon`, `bullets[]`, `accent`, and so on.
+- **`Section`** — one per block. `kind` (an enum) selects the React component that renders it; `order` and `visible` control composition; `page` is the slug it belongs to. The homepage is `"home"`.
+- **`Entry`** — the repeated items inside a section: capability cards, agents, product tiers, FAQ pairs, link rows. Carries `title`, `body`, `icon`, `bullets[]`, `accent`, and so on.
+- **`Page`** — the shell of an editorial page: slug, heading, subtitle, SEO, published. Its body is the `Section` rows carrying the same slug. The homepage has no `Page` row — its shell lives in code.
+- **`Doc`** — the content library. One model behind seven collections (`DocKind`): case studies, whitepapers, blog, learning articles, research, news and release notes. `body` is Markdown.
 - **`SiteSetting`** — global strings, grouped and typed for form rendering.
-- **`NavItem`** — header links and footer columns.
+- **`NavItem`** — header links, footer columns and the legal row (`location`).
 - **`Lead`** / **`ChatConversation`** — captured from the site. A `Lead` also carries the substrate console configuration the visitor built, if they built one — see below.
 
-Adding a new block type means adding a value to the `SectionKind` enum and one line in `src/components/sections/section-renderer.tsx`.
+Adding a new block type means adding a value to the `SectionKind` enum and one line in `src/components/sections/section-renderer.tsx`. Adding a library collection means a `DocKind` value and a row in `COLLECTIONS` in `src/lib/library.ts` — no new route files.
+
+### Routing
+
+Two dynamic segments serve everything below the homepage:
+
+| Route | Serves |
+| --- | --- |
+| `/[slug]` | a library collection index (`/blog`, `/case-studies`, …) or, failing that, a `Page` |
+| `/[slug]/[doc]` | one library document |
+
+Collections win, so their slugs are reserved — `isReservedSlug` stops the admin creating a page that would be shadowed by one. Static routes (`/admin`, `/api`) still take precedence over both.
+
+Documentation is **not** on this site. Every developer link points at `app.basinwright.com`, which is behind the product subscription; the footer column carries a note saying so, editable as the `footer.note.Developers` setting.
 
 ```
 src/
   app/
-    page.tsx                  homepage — server-rendered from Postgres
+    (site)/                   the public site — header, footer and chat widget in one layout
+      page.tsx                homepage — server-rendered from Postgres
+      [slug]/page.tsx         collection index or CMS page
+      [slug]/[doc]/page.tsx   a library document
+      not-found.tsx           404 with the site chrome
     api/chat/route.ts         SSE streaming chat endpoint
     admin/
       (auth)/login/           unauthenticated sign-in
-      (shell)/                authenticated CMS: sections, settings, nav, leads, chats
+      (shell)/                authenticated CMS: homepage, pages, library, settings,
+                              nav, leads, chats
       actions.ts              content mutations
       auth-actions.ts         login / logout
   components/
-    sections/                 one component per SectionKind
+    sections/                 one component per SectionKind (editorial.tsx holds the
+                              general-purpose blocks)
+    library/                  cards, collection index, article layout
     webgl/                    hero shader, platform topology, cognitive substrate
     admin/                    CMS form primitives
   lib/
     content.ts   db.ts   ai.ts   auth.ts   session.ts
+    library.ts                the collection registry and the library's queries
+    markdown.tsx              the Markdown subset the CMS renders
     industries.ts             the industry catalogue the console is tailored from
     demo-config.ts            the visitor's console configuration: types, validation, summaries
     demo-config-store.ts      the same, as a client-side external store over localStorage
+prisma/
+  content/                    the seed corpus: pages, navigation and the library
 proxy.ts                      admin route gate (v16 renamed middleware.ts → proxy.ts)
 ```
+
+## Sharing, search and machine readers
+
+Three audiences read this site without a browser, and they want different things.
+
+**Messaging apps and social** — WhatsApp, X, Facebook, LinkedIn, Slack, iMessage — read Open Graph and Twitter tags out of the server-rendered `<head>`. Their crawlers do not run JavaScript and give up quickly.
+
+- `metadataBase` is set from `SITE_URL`. Without it Next emits *relative* `og:image` URLs and every preview silently breaks.
+- Every page builds its social tags through `socialMeta()` in `src/lib/seo.ts`. This is not ceremony: Next merges metadata per field, so a page that sets `openGraph: { title }` by hand replaces the parent object entirely and loses `og:site_name`, `og:locale` and — worse — `twitter:card`, which downgrades every X share from a full-width card to a thumbnail.
+- Cards are generated at 1200×630 by `next/og` from `src/lib/og-card.tsx`: one for the site, one per page/collection, one per document with its byline and date. satori supports flexbox only and no CSS variables, which is why that file has literal hex colours.
+
+**Search engines** get `app/sitemap.ts` (every page, collection and document with real `lastModified`), `app/robots.ts`, canonical URLs on every route, and JSON-LD: `Organization` + `WebSite` site-wide, `Article`/`TechArticle`/`NewsArticle`/`ScholarlyArticle`/`BlogPosting` per document, `CollectionPage` + `ItemList` per index, and `FAQPage` wherever a page carries an FAQ block.
+
+**LLM crawlers** — GPTBot, ChatGPT-User, OAI-SearchBot, Google-Extended, ClaudeBot, PerplexityBot and the rest — are allowed by name in `robots.txt` rather than merely by the wildcard, and served `/llms.txt`: a plain-Markdown map of the whole site generated from the CMS, so it cannot drift from the content.
+
+`robots.txt`, `sitemap.xml`, `llms.txt` and the root Open Graph image are all `force-dynamic`. They read the CMS, and the Docker image is built without a database — left cacheable, Next would try to render them during `next build` and fail the build.
 
 ## The substrate console
 
@@ -279,11 +321,13 @@ next upgrade — the runner carries only the query engine and what tracing found
 
 ### The seed is destructive — do not wire it into startup
 
-`prisma/seed.ts` replaces sections, entries and navigation **wholesale**. It is
-deliberately not part of the container's start command: running it on each
-deploy would throw away everything edited in `/admin` since the last one. Leads
-and chat transcripts are never touched, and the admin user is upserted rather
-than replaced. Run it only when you mean to reset the CMS to the seed content:
+`prisma/seed.ts` replaces sections, entries, pages, library documents and
+navigation **wholesale**. It is deliberately not part of the container's start
+command: running it on each deploy would throw away everything edited in
+`/admin` since the last one. Leads and chat transcripts are never touched, the
+admin user is upserted rather than replaced, and existing setting *values* are
+left alone — only their labels and grouping are repaired. Run it only when you
+mean to reset the CMS to the seed content:
 
 ```bash
 docker compose --profile tools run --rm seed
@@ -292,4 +336,8 @@ docker compose --profile tools run --rm seed
 ### Still to do
 
 - [ ] Replace the placeholder customer logos and hero statistics — they are illustrative
-- [ ] Build out the pages the footer links to (currently `#` placeholders)
+- [ ] The seeded library, case studies and legal pages are written as realistic examples,
+      not as approved copy. Legal in particular needs counsel before it is treated as
+      binding.
+- [ ] Stand up `app.basinwright.com` — every developer link and the gated whitepaper CTA
+      point at it, and it does not exist yet

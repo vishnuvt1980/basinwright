@@ -6,7 +6,9 @@ import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { requireUser } from "@/lib/auth";
 
 const NAV = [
-  { href: "/admin", label: "Sections", icon: "LayoutList" },
+  { href: "/admin", label: "Homepage", icon: "LayoutList" },
+  { href: "/admin/pages", label: "Pages", icon: "FileText" },
+  { href: "/admin/library", label: "Library", icon: "Library" },
   { href: "/admin/settings", label: "Site settings", icon: "Settings" },
   { href: "/admin/navigation", label: "Navigation", icon: "SlidersHorizontal" },
   { href: "/admin/leads", label: "Leads", icon: "Inbox" },

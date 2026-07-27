@@ -56,6 +56,10 @@ services:
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-basinwright}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-basinwright}?schema=public
       SESSION_SECRET: ${SESSION_SECRET:?SESSION_SECRET must be set in .env}
+      # Canonical origin. Every og:image, canonical link, sitemap entry and
+      # llms.txt URL is built from this — a wrong value breaks link previews
+      # everywhere at once, so it is set explicitly rather than inferred.
+      SITE_URL: ${SITE_URL:-https://basinwright.com}
       ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@basinwright.com}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
       ADMIN_NAME: ${ADMIN_NAME:-BasinWright Admin}

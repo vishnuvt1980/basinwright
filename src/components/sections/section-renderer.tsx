@@ -1,5 +1,16 @@
 import { Agents } from "@/components/sections/agents";
 import { Cta } from "@/components/sections/cta";
+import { DocList } from "@/components/sections/doc-list";
+import {
+  Callout,
+  Contact,
+  Faq,
+  FeatureGrid,
+  LinkList,
+  Prose,
+  StatBand,
+  Timeline,
+} from "@/components/sections/editorial";
 import { Hero } from "@/components/sections/hero";
 import { Industries } from "@/components/sections/industries";
 import { Infrastructure } from "@/components/sections/infrastructure";
@@ -19,9 +30,13 @@ import type { SectionWithEntries } from "@/lib/content";
  * Maps a CMS `SectionKind` to the component that renders it. Adding a kind to
  * the Prisma enum and a row here is all it takes to ship a new block type.
  *
+ * The first group are the homepage's bespoke blocks; the second are the
+ * general-purpose ones the editorial pages are built from. Nothing in either
+ * group knows which page it is on, so any block works anywhere.
+ *
  * Two kinds are deliberately absent. `HERO` takes an extra prop and is handled
  * below; `COGNITIVE_SUBSTRATE` is not a block on the page at all — it is the
- * hero's banner, and `page.tsx` routes it there.
+ * hero's banner, and the homepage routes it there.
  */
 const RENDERERS = {
   LOGO_WALL: LogoWall,
@@ -38,6 +53,16 @@ const RENDERERS = {
   CTA: Cta,
   STATS: RichText,
   RICH_TEXT: RichText,
+
+  PROSE: Prose,
+  FEATURE_GRID: FeatureGrid,
+  STAT_BAND: StatBand,
+  TIMELINE: Timeline,
+  FAQ: Faq,
+  LINK_LIST: LinkList,
+  CALLOUT: Callout,
+  CONTACT: Contact,
+  DOC_LIST: DocList,
 } as const;
 
 function RichText({ section }: { section: SectionWithEntries }) {

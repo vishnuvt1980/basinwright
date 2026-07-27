@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
-import { createEntry } from "@/app/admin/actions";
+import { createEntry, deleteSection } from "@/app/admin/actions";
 import { EntryForm } from "@/components/admin/entry-form";
 import { SectionForm } from "@/components/admin/section-form";
 import { Icon } from "@/components/icon";
@@ -34,14 +34,25 @@ export default async function SectionEditorPage({
 
   if (!section) notFound();
 
+  // Blocks belong to a page by slug. The homepage has no `Page` row, so back
+  // goes to the sections index; everything else goes to its page editor.
+  const owner =
+    section.page === "home"
+      ? null
+      : await db.page.findUnique({ where: { slug: section.page } });
+
+  const back = owner
+    ? { href: `/admin/pages/${owner.id}`, label: owner.title }
+    : { href: "/admin", label: "Homepage sections" };
+
   return (
     <>
       <Link
-        href="/admin"
+        href={back.href}
         className="inline-flex items-center gap-2 text-sm text-ink-3 transition-colors hover:text-accent"
       >
         <Icon name="ArrowLeft" className="size-4" />
-        All sections
+        {back.label}
       </Link>
 
       <header className="mt-5">
@@ -49,7 +60,8 @@ export default async function SectionEditorPage({
           {section.title || section.key}
         </h1>
         <p className="mt-2 font-mono text-xs text-ink-3">
-          {section.kind} · key: {section.key}
+          {section.kind} · /{section.page === "home" ? "" : section.page} · key:{" "}
+          {section.key}
         </p>
       </header>
 
@@ -94,6 +106,18 @@ export default async function SectionEditorPage({
           </p>
         )}
       </section>
+
+      <form action={deleteSection} className="mt-10 border-t border-line pt-6">
+        <input type="hidden" name="id" value={section.id} />
+        <button
+          type="submit"
+          data-tone="ember"
+          className="inline-flex items-center gap-2 rounded-full border border-[color-mix(in_oklab,var(--tone)_35%,transparent)] px-4 py-2 text-xs text-[var(--tone)] transition-colors hover:bg-[color-mix(in_oklab,var(--tone)_12%,transparent)]"
+        >
+          <Icon name="Trash" className="size-3.5" />
+          Delete block
+        </button>
+      </form>
     </>
   );
 }

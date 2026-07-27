@@ -1,0 +1,9 @@
+-- AlterEnum
+BEGIN;
+CREATE TYPE "SectionKind_new" AS ENUM ('HERO', 'LOGO_WALL', 'PLATFORM_GRID', 'WHY_PILLARS', 'PLATFORM_TOPOLOGY', 'COGNITIVE_SUBSTRATE', 'AGENTS', 'MODELS', 'PRODUCTS', 'INDUSTRIES', 'SOLUTIONS', 'INFRASTRUCTURE', 'PRICING', 'STATS', 'CTA', 'RICH_TEXT', 'CALLOUT', 'PROSE', 'FEATURE_GRID', 'STAT_BAND', 'TIMELINE', 'FAQ', 'LINK_LIST', 'DOC_LIST', 'CONTACT');
+ALTER TABLE "sections" ALTER COLUMN "kind" TYPE "SectionKind_new" USING ("kind"::text::"SectionKind_new");
+ALTER TYPE "SectionKind" RENAME TO "SectionKind_old";
+ALTER TYPE "SectionKind_new" RENAME TO "SectionKind";
+DROP TYPE "public"."SectionKind_old";
+COMMIT;
+
