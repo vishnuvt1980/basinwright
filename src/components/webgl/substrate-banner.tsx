@@ -197,7 +197,7 @@ export default function SubstrateBanner({
       <div
         ref={safe}
         aria-hidden
-        className="pointer-events-none absolute inset-x-[4%] top-[13%] bottom-[30%] sm:bottom-[28%]"
+        className="pointer-events-none absolute inset-x-[4%] top-[11%] bottom-[36%]"
       />
 
       <div className="pointer-events-none absolute inset-0" aria-hidden>

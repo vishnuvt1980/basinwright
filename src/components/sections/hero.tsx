@@ -132,7 +132,7 @@ export function Hero({
       {/* The banner: full width, the field with nothing laid over it but its
           own readouts, its story and one call to action. */}
       {banner ? (
-        <div className="relative h-[min(84svh,50rem)] min-h-[32rem] overflow-hidden">
+        <div className="relative h-[min(92svh,54rem)] min-h-[34rem] overflow-hidden">
           <SubstrateBanner
             chapters={chapters}
             hint={substrate?.body ?? null}

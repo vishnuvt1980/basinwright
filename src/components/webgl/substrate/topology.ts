@@ -15,7 +15,10 @@
 --------------------------------------------------------------------------- */
 
 /// World extents. Everything below is expressed in these units, never pixels.
-export const WORLD = { w: 100, h: 56 };
+// Wide and shallow. The banner is a full-width strip, so a world with a
+// portrait-ish aspect would be fitted by its height and leave most of the
+// width empty. Everything below is laid out to fill a letterbox.
+export const WORLD = { w: 100, h: 40 };
 
 export type Ink = readonly [number, number, number];
 
@@ -141,12 +144,12 @@ export type SubstrateNode = {
 /// The systems the substrate ingests from. Names match the connectors the rest
 /// of the site names in the platform topology section.
 export const SOURCES: SubstrateNode[] = [
-  { id: "erp", group: "source", label: "SAP S/4HANA", sub: "orders · deliveries", shape: 1, x: 7, y: 47, anchor: "right", ink: "raw" },
-  { id: "crm", group: "source", label: "Salesforce", sub: "accounts · cases", shape: 1, x: 12, y: 38, anchor: "right", ink: "raw" },
-  { id: "tel", group: "source", label: "IoT Telemetry", sub: "sensors · scans", shape: 0, x: 6, y: 29, anchor: "right", ink: "raw" },
-  { id: "evt", group: "source", label: "Event Streams", sub: "kafka · webhooks", shape: 0, x: 12, y: 20, anchor: "right", ink: "raw" },
-  { id: "doc", group: "source", label: "SharePoint", sub: "contracts · email", shape: 2, x: 7, y: 11, anchor: "right", ink: "raw" },
-  { id: "led", group: "source", label: "Snowflake", sub: "gl · invoices", shape: 1, x: 17, y: 53, anchor: "right", ink: "raw" },
+  { id: "erp", group: "source", label: "SAP S/4HANA", sub: "orders · deliveries", shape: 1, x: 7, y: 33, anchor: "right", ink: "raw" },
+  { id: "crm", group: "source", label: "Salesforce", sub: "accounts · cases", shape: 1, x: 10, y: 27, anchor: "right", ink: "raw" },
+  { id: "tel", group: "source", label: "IoT Telemetry", sub: "sensors · scans", shape: 0, x: 6, y: 20, anchor: "right", ink: "raw" },
+  { id: "evt", group: "source", label: "Event Streams", sub: "kafka · webhooks", shape: 0, x: 11, y: 13, anchor: "right", ink: "raw" },
+  { id: "doc", group: "source", label: "SharePoint", sub: "contracts · email", shape: 2, x: 7, y: 7, anchor: "right", ink: "raw" },
+  { id: "led", group: "source", label: "Snowflake", sub: "gl · invoices", shape: 1, x: 15, y: 37, anchor: "right", ink: "raw" },
 ];
 
 export const HUB: SubstrateNode = {
@@ -154,8 +157,8 @@ export const HUB: SubstrateNode = {
   group: "hub",
   label: "Cognitive Data Hub",
   sub: "resolve · link · govern",
-  x: 32,
-  y: 29,
+  x: 31,
+  y: 20,
   anchor: "top",
   shape: 0,
   ink: "context",
@@ -164,17 +167,17 @@ export const HUB: SubstrateNode = {
 export type EngineNode = SubstrateNode & { verb: string };
 
 export const ENGINES: EngineNode[] = [
-  { id: "rag", group: "engine", label: "Cognitive RAG", sub: "retrieve & ground", verb: "GROUND", ink: "ground", x: 55, y: 45, anchor: "top", shape: 0 },
-  { id: "det", group: "engine", label: "Deterministic Models", sub: "simulate & verify", verb: "VERIFY", ink: "verify", x: 59, y: 29, anchor: "bottom", shape: 0 },
-  { id: "llm", group: "engine", label: "LLM Reasoning", sub: "weigh & explain", verb: "EXPLAIN", ink: "explain", x: 55, y: 14, anchor: "bottom", shape: 0 },
+  { id: "rag", group: "engine", label: "Cognitive RAG", sub: "retrieve & ground", verb: "GROUND", ink: "ground", x: 54, y: 32, anchor: "top", shape: 0 },
+  { id: "det", group: "engine", label: "Deterministic Models", sub: "simulate & verify", verb: "VERIFY", ink: "verify", x: 58, y: 20, anchor: "bottom", shape: 0 },
+  { id: "llm", group: "engine", label: "LLM Reasoning", sub: "weigh & explain", verb: "EXPLAIN", ink: "explain", x: 54, y: 11, anchor: "bottom", shape: 0 },
 ];
 
 /// BasinWright's own plane. Not part of the data path — this is the work we do
 /// so the data path keeps working.
 export const OPS: SubstrateNode[] = [
-  { id: "build", group: "ops", label: "Build", sub: "train · tune · evaluate", shape: 1, x: 44, y: 4, anchor: "bottom", ink: "ops" },
-  { id: "deploy", group: "ops", label: "Deploy", sub: "your tenancy · your region", shape: 1, x: 59, y: 4, anchor: "bottom", ink: "ops" },
-  { id: "monitor", group: "ops", label: "Monitor 24×7", sub: "drift · cost · accuracy", shape: 0, x: 74, y: 4, anchor: "bottom", ink: "ops" },
+  { id: "build", group: "ops", label: "Build", sub: "train · tune", shape: 1, x: 44, y: 2, anchor: "bottom", ink: "ops" },
+  { id: "deploy", group: "ops", label: "Deploy", sub: "your tenancy", shape: 1, x: 61, y: 2, anchor: "bottom", ink: "ops" },
+  { id: "monitor", group: "ops", label: "Monitor 24×7", sub: "drift · cost", shape: 0, x: 78, y: 2, anchor: "bottom", ink: "ops" },
 ];
 
 export const DECISION: SubstrateNode = {
@@ -182,8 +185,8 @@ export const DECISION: SubstrateNode = {
   group: "decision",
   label: "Decision Layer",
   sub: "grounded · verified · actionable",
-  x: 78,
-  y: 29,
+  x: 77,
+  y: 20,
   anchor: "top",
   shape: 3,
   ink: "decided",
@@ -195,8 +198,8 @@ export const OWNERSHIP: SubstrateNode = {
   group: "ownership",
   label: "Your Business",
   sub: "owns the model · owns the intelligence",
-  x: 93,
-  y: 29,
+  x: 92,
+  y: 20,
   anchor: "bottom",
   shape: 3,
   ink: "own",
@@ -207,8 +210,8 @@ export const QUARANTINE: SubstrateNode = {
   group: "quarantine",
   label: "Quarantine",
   sub: "held for remediation",
-  x: 29,
-  y: 4,
+  x: 25,
+  y: 2,
   anchor: "bottom",
   shape: 1,
   ink: "reject",
