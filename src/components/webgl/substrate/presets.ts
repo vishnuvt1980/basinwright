@@ -1,21 +1,21 @@
 /* ---------------------------------------------------------------------------
-   What the simulation is simulating.
+   What the simulation is currently simulating.
 
-   Everything industry-specific lives here and nowhere else: the systems that
-   feed the substrate, and the cases it works. The topology — six sources, a
-   hub, three engines, a decision, an owner — is the product's shape and does
-   not change; only the names on it and the work flowing through it do.
+   The topology — some sources, a hub, three engines, a decision, an owner — is
+   the product's shape and does not change. What flows through it does: the
+   systems that feed it, the cases it works, the disruption an operator can
+   throw at it, and how loud the whole thing runs.
 
-   That split is deliberate. Tailoring the demo to a visitor's industry, their
-   own source systems and their own use cases is a matter of adding a preset
-   below and calling `applyPreset`, not of touching the renderer, the field or
-   the case board.
+   This module holds only that running state. The catalogue it is built from
+   lives in `@/lib/industries`, and the code that turns a visitor's answers into
+   one of these lives in `./configure`. Keeping the three apart is what lets the
+   case board read the active content without importing any of the machinery
+   that produced it.
 --------------------------------------------------------------------------- */
 
-/// One connected system. Positional: the six entries map onto the six source
-/// nodes in the topology, top to bottom, so a preset swaps names without
-/// moving anything.
-export type SourcePreset = { label: string; sub: string };
+import { DEFAULT_SOURCES } from "@/lib/industries";
+
+import { setSources } from "./topology";
 
 export type CaseTemplate = {
   title: string;
@@ -27,32 +27,38 @@ export type CaseTemplate = {
   skills: string[];
 };
 
-export type SubstratePreset = {
+export type RuntimePreset = {
+  /// Changes whenever the content does, so a React tree can key an engine on it
+  /// and get a clean rebuild instead of a half-swapped board.
   id: string;
-  /// Shown when the visitor is choosing.
-  label: string;
-  sources: SourcePreset[];
+  /// The rotation. Cases open from this list, in order, forever.
   cases: CaseTemplate[];
+  /// What "Inject disruption" throws at the board.
+  disruption: CaseTemplate;
+  /// Multiplies the ambient record rate: a global operator's board is busier
+  /// than a single-region one's, and it should look it.
+  intensity: number;
 };
 
 /* -------------------------------------------------------------------------- */
+/* The default board                                                          */
+/* -------------------------------------------------------------------------- */
 
-export const SUPPLY_CHAIN: SubstratePreset = {
-  id: "supply-chain",
-  label: "Supply chain & logistics",
-  sources: [
-    { label: "SAP S/4HANA", sub: "orders · deliveries" },
-    { label: "Salesforce", sub: "accounts · cases" },
-    { label: "IoT Telemetry", sub: "sensors · scans" },
-    { label: "Event Streams", sub: "kafka · webhooks" },
-    { label: "SharePoint", sub: "contracts · email" },
-    { label: "Snowflake", sub: "gl · invoices" },
-  ],
+/**
+ * What runs before a visitor has told us anything about themselves.
+ *
+ * Deliberately generic — cross-industry supply and finance decisions every one
+ * of our sectors would recognise. The moment they configure the console this is
+ * replaced wholesale.
+ */
+export const DEFAULT_PRESET: RuntimePreset = {
+  id: "default",
+  intensity: 1,
   cases: [
     {
       title: "Carrier ETA slip — Dock 18",
-      trigger: "Carrier ETA slipped 6h against a committed SLA",
-      decision: "Reroute 240 units via the Chennai DC",
+      trigger: "Carrier ETA slipped 6h against a committed service level",
+      decision: "Reroute 240 units via the secondary distribution centre",
       impact: "$2.9M revenue protected · 93% service recovery",
       skills: ["detect", "retrieve", "simulate", "explain"],
     },
@@ -64,7 +70,7 @@ export const SUPPLY_CHAIN: SubstratePreset = {
       skills: ["correlate", "retrieve", "bound", "weigh"],
     },
     {
-      title: "Stockout risk — SKU 44-2189",
+      title: "Stockout risk — line 44-2189",
       trigger: "Demand signal diverging from the replenishment plan",
       decision: "Hold promotional stock for tier-1 accounts",
       impact: "$1.9M margin defended · fill rate back to 88%",
@@ -73,60 +79,55 @@ export const SUPPLY_CHAIN: SubstratePreset = {
     {
       title: "Supplier clause conflict",
       trigger: "Contract §7.2 contradicts the supplier surcharge notice",
-      decision: "Invoke clause 14b, withhold the surcharge",
+      decision: "Invoke clause 14b and withhold the surcharge",
       impact: "$480K claim blocked · dispute pack assembled",
       skills: ["retrieve", "cite", "bound", "explain"],
     },
     {
       title: "Cold-chain excursion",
       trigger: "Reefer telemetry breached 8°C for 22 minutes",
-      decision: "Divert the batch to secondary QA hold",
+      decision: "Divert the batch to a secondary quality hold",
       impact: "$1.3M write-off avoided · audit trail sealed",
       skills: ["detect", "correlate", "simulate", "cite"],
     },
     {
       title: "Duplicate invoice run",
       trigger: "318 ledger rows matched across two ERP instances",
-      decision: "Block the payment run, merge to the golden record",
-      impact: "$840K double-payment prevented",
+      decision: "Block the payment run and merge to the golden record",
+      impact: "$840K double payment prevented",
       skills: ["correlate", "bound", "cite", "weigh"],
     },
   ],
+  disruption: {
+    title: "Port strike — west corridor",
+    trigger: "Operator-injected disruption across three lanes",
+    decision: "Split volume: air-lift tier-1, rail the remainder",
+    impact: "$6.4M exposure contained · 71% of commitments held",
+    skills: ["detect", "correlate", "retrieve", "simulate", "weigh", "explain"],
+  },
 };
 
-/// The disruption the operator injects by hand. Kept apart from the rotation
-/// because it is meant to arrive out of nowhere and run hot.
-export const DISRUPTION: CaseTemplate = {
-  title: "Port strike — west corridor",
-  trigger: "Operator-injected disruption across three lanes",
-  decision: "Split volume: air-lift tier-1, rail the remainder",
-  impact: "$6.4M exposure contained · 71% of SLAs held",
-  skills: ["detect", "correlate", "retrieve", "simulate", "weigh", "explain"],
-};
-
-export const PRESETS: SubstratePreset[] = [SUPPLY_CHAIN];
-
-/// The preset the simulation is currently running. Read by the topology when
-/// it names its source nodes and by the case board when it opens a case.
-export let activePreset: SubstratePreset = SUPPLY_CHAIN;
+/**
+ * The preset the simulation is currently running.
+ *
+ * Read by the case board every time it opens a case, so swapping it takes
+ * effect on the next case rather than requiring a restart — but source *count*
+ * does require a restart, which is why `applyPreset` is documented as something
+ * you call before building an engine.
+ */
+export let activePreset: RuntimePreset = DEFAULT_PRESET;
 
 /**
  * Switches the running content.
  *
- * Call before constructing the engine. The topology's source nodes are shared
- * objects — the lattice, the residents and the labels all point at them — so
- * the names are rewritten in place rather than rebuilt, and nothing that holds
- * a reference goes stale.
+ * Call before constructing an engine. `setSources` rewrites the ingest side of
+ * the topology in place, and the field seeds its residents and its per-source
+ * counters from whatever it finds there at construction time.
  */
 export function applyPreset(
-  preset: SubstratePreset,
-  sourceNodes: { label: string; sub: string }[],
+  preset: RuntimePreset,
+  sources: { label: string; sub: string }[],
 ) {
   activePreset = preset;
-  preset.sources.forEach((source, index) => {
-    const node = sourceNodes[index];
-    if (!node) return;
-    node.label = source.label;
-    node.sub = source.sub;
-  });
+  setSources(sources.length ? sources : DEFAULT_SOURCES);
 }

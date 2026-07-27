@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="1.5 1.5 21 21" width="32" height="32" role="img" aria-label="BasinWright">
+  <title>BasinWright</title>
+  <!--
+    The mark, cropped to its own bounds and re-weighted for a 16px tab.
+
+    Fluent's grid leaves 3px of padding inside a 24px box, which at favicon size
+    is a third of the tile spent on nothing — hence the tighter viewBox. The lit
+    dots are pushed much further ahead of the lattice than in the full mark: at
+    16px, nine dots of near-equal weight collapse into a grey smudge, and what
+    has to survive is three colours in a check. The lattice stays because it is
+    what makes this the same mark rather than a different one, but it drops back
+    to texture.
+
+    Colours track the browser's own theme, so the mark holds on a dark tab strip
+    as well as a light one. They are the same values as public/brand/ and as the
+    bw-mark tokens in globals.css.
+  -->
+  <style>
+    .grid { fill: #ccd3dd }
+    .compute { fill: #0067b8 }
+    .data { fill: #038387 }
+    .intelligence { fill: #107c10 }
+    @media (prefers-color-scheme: dark) {
+      .grid { fill: #4e5a72 }
+      .compute { fill: #6bb8f5 }
+      .data { fill: #40e6c7 }
+      .intelligence { fill: #9ef259 }
+    }
+  </style>
+
+  <g class="grid">
+    <circle cx="5" cy="5" r="1.15"/>
+    <circle cx="12" cy="5" r="1.15"/>
+    <circle cx="12" cy="12" r="1.15"/>
+    <circle cx="19" cy="12" r="1.15"/>
+    <circle cx="5" cy="19" r="1.15"/>
+    <circle cx="19" cy="19" r="1.15"/>
+  </g>
+
+  <circle class="compute" cx="5" cy="12" r="2.9"/>
+  <circle class="data" cx="12" cy="19" r="2.9"/>
+  <circle class="intelligence" cx="19" cy="5" r="2.9"/>
+</svg>

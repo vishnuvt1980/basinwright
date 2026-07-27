@@ -3,6 +3,7 @@
 import { z } from "zod";
 
 import { db } from "@/lib/db";
+import { parseDemoConfig, type DemoConfig } from "@/lib/demo-config";
 
 const leadSchema = z.object({
   name: z.string().trim().min(2, "Please enter your name.").max(120),
@@ -18,6 +19,23 @@ export type LeadState = {
   message?: string;
   fieldErrors?: Record<string, string>;
 };
+
+/**
+ * The console configuration the visitor built, if they built one.
+ *
+ * It arrives as a JSON string in a hidden field, which means it is entirely
+ * visitor-controlled — so it goes through the same validator the browser used,
+ * against the same catalogue. Anything that does not survive that is dropped
+ * silently: an enquiry must never fail because of an attachment to it.
+ */
+function readDemoConfig(raw: FormDataEntryValue | null): DemoConfig | null {
+  if (typeof raw !== "string" || !raw || raw.length > 8000) return null;
+  try {
+    return parseDemoConfig(JSON.parse(raw));
+  } catch {
+    return null;
+  }
+}
 
 export async function submitLead(
   _prev: LeadState,
@@ -46,8 +64,16 @@ export async function submitLead(
     return { status: "error", message: "Please check the highlighted fields.", fieldErrors };
   }
 
+  const demoConfig = readDemoConfig(formData.get("demoConfig"));
+
   try {
-    await db.lead.create({ data: parsed.data });
+    await db.lead.create({
+      data: {
+        ...parsed.data,
+        industry: demoConfig?.industry ?? null,
+        demoConfig: demoConfig ?? undefined,
+      },
+    });
   } catch {
     return {
       status: "error",

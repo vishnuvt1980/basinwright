@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" role="img" aria-label="BasinWright">
+  <title>BasinWright</title>
+  <desc>Alternate: four corners lit — compute, data, model and intelligence — holding the lattice between them.</desc>
+  <style>
+    .grid { fill: #aab2bf }
+    .compute { fill: #0067b8 }
+    .data { fill: #038387 }
+    .model { fill: #5c2e91 }
+    .intelligence { fill: #107c10 }
+    @media (prefers-color-scheme: dark) {
+      .grid { fill: #45506b }
+      .compute { fill: #6bb8f5 }
+      .data { fill: #40e6c7 }
+      .model { fill: #8c99ff }
+      .intelligence { fill: #9ef259 }
+    }
+  </style>
+
+  <g class="grid">
+    <circle cx="12" cy="5" r="1.5"/>
+    <circle cx="5" cy="12" r="1.5"/>
+    <circle cx="12" cy="12" r="1.5"/>
+    <circle cx="19" cy="12" r="1.5"/>
+    <circle cx="12" cy="19" r="1.5"/>
+  </g>
+
+  <!-- Read clockwise from the top left, which is the order the platform runs
+       in: compute carries data, data trains the model, the model returns
+       intelligence — and the intelligence is yours, so it takes the one green
+       on the board. -->
+  <circle class="compute" cx="5" cy="5" r="2"/>
+  <circle class="data" cx="19" cy="5" r="2"/>
+  <circle class="intelligence" cx="19" cy="19" r="2"/>
+  <circle class="model" cx="5" cy="19" r="2"/>
+</svg>

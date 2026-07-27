@@ -71,7 +71,7 @@ Rather than a table per block type, the homepage is modelled generically so one 
 - **`Entry`** — the repeated items inside a section: capability cards, agents, product tiers, pricing plans, logos. Carries `title`, `body`, `icon`, `bullets[]`, `accent`, and so on.
 - **`SiteSetting`** — global strings, grouped and typed for form rendering.
 - **`NavItem`** — header links and footer columns.
-- **`Lead`** / **`ChatConversation`** — captured from the site.
+- **`Lead`** / **`ChatConversation`** — captured from the site. A `Lead` also carries the substrate console configuration the visitor built, if they built one — see below.
 
 Adding a new block type means adding a value to the `SectionKind` enum and one line in `src/components/sections/section-renderer.tsx`.
 
@@ -91,8 +91,33 @@ src/
     admin/                    CMS form primitives
   lib/
     content.ts   db.ts   ai.ts   auth.ts   session.ts
+    industries.ts             the industry catalogue the console is tailored from
+    demo-config.ts            the visitor's console configuration: types, validation, summaries
+    demo-config-store.ts      the same, as a client-side external store over localStorage
 proxy.ts                      admin route gate (v16 renamed middleware.ts → proxy.ts)
 ```
+
+## The substrate console
+
+The hero banner runs a live simulation of the product. **Open the full console** on it
+asks the visitor what to build first — industry, line of business, their own systems,
+the decisions they want it working, their scale and data residency, and what is hurting
+right now — and then runs the whole simulation on *their* answers: their systems feed
+the ingest side, their decisions cross the board, the agent council is named for their
+sector, and the last node carries their own company name.
+
+| Where | What |
+| --- | --- |
+| `lib/industries.ts` | Every industry, its systems, its decisions, its agents. The only file to touch when adding a sector. |
+| `webgl/substrate/configure.ts` | Turns a `DemoConfig` into a running board. Call before an engine is built, never while one is stepping. |
+| `webgl/substrate/topology.ts` | `setSources` rewrites the ingest side in place — the lattice and the field hold references into it. |
+| `webgl/substrate-configurator.tsx` | The questions. |
+
+The answers are kept in `localStorage`, so a returning visitor goes straight to their own
+console and the hero banner adopts their world too. They are sent nowhere unless the
+visitor later submits the contact form, where the configuration is shown to them, is
+theirs to detach, and — if they leave it attached — arrives in `/admin/leads` under
+their enquiry.
 
 ## Design
 
@@ -102,6 +127,21 @@ Derived from the brand image in `brand/` — a brass compass set into a topograp
 - **Charcoal** `#08090b`–`#2f363f` — the marble ground
 - **Parchment** `#fbf7ef` — contour-map substrate, the light theme's canvas
 - **Verdigris** `#3f7d72` / **Ember** `#b87333` — oxidised copper accents
+
+### The mark
+
+Fluent UI System Icons' **Grid Dots**, with three of the nine dots lit — compute
+(blue), data (teal), intelligence (green). The lattice is the estate: raw,
+unresolved, always running. The three lit dots are what we do to it, coloured in
+the substrate console's own order — governed → proven → yours — and positioned so
+they trace a check mark across the grid: the *Wright* in BasinWright.
+
+Assets, palette, usage rules and the four-dot alternate live in
+[`public/brand/README.md`](public/brand/README.md), served from
+`/brand/` so other apps can point straight at them. `favicon.ico` and
+`apple-icon.png` are rebuilt from those SVGs with
+`node scripts/generate-brand-icons.mjs`; everything else is `src/app/icon.svg`,
+which is theme-aware and needs no raster.
 
 ### Theming
 

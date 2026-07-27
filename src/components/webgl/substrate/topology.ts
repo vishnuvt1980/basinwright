@@ -14,7 +14,7 @@
    by us, and what comes out the end belongs to the customer.
 --------------------------------------------------------------------------- */
 
-import { SUPPLY_CHAIN } from "./presets";
+import { DEFAULT_SOURCES } from "@/lib/industries";
 
 /**
  * World extents. Everything below is expressed in these units, never pixels.
@@ -146,29 +146,46 @@ export type SubstrateNode = {
   ink: InkKey;
 };
 
-/// The systems the substrate ingests from. Names come from the active preset;
-/// positions come from the slots above.
-/// Where the six source nodes sit, and what shape their records take. Fixed:
-/// a preset renames them, it does not move them. Shape 0 signal, 1 record,
-/// 2 document.
+/**
+ * Where a source node may sit, ordered up the left edge of the world.
+ *
+ * The slots are fixed — a configuration renames the ingest side and changes how
+ * many systems feed it, it never moves the picture. When a visitor connects
+ * fewer than six systems the slots are chosen spread across the whole edge
+ * rather than taken from the top, so the fan-in stays balanced at any count.
+ */
 const SOURCE_SLOTS = [
-  { id: "erp", shape: 1, x: 7, y: 33, anchor: "right" as const },
-  { id: "crm", shape: 1, x: 10, y: 27, anchor: "right" as const },
-  { id: "tel", shape: 0, x: 6, y: 20, anchor: "right" as const },
-  { id: "evt", shape: 0, x: 11, y: 13, anchor: "right" as const },
-  { id: "doc", shape: 2, x: 7, y: 7, anchor: "right" as const },
-  { id: "led", shape: 1, x: 15, y: 37, anchor: "right" as const },
+  { x: 7, y: 7, anchor: "right" as const },
+  { x: 11, y: 13, anchor: "right" as const },
+  { x: 6, y: 20, anchor: "right" as const },
+  { x: 10, y: 27, anchor: "right" as const },
+  { x: 7, y: 33, anchor: "right" as const },
+  { x: 15, y: 37, anchor: "right" as const },
 ];
 
-export const SOURCES: SubstrateNode[] = SUPPLY_CHAIN.sources.map(
-  (source, index) => ({
-    ...SOURCE_SLOTS[index],
-    group: "source" as const,
-    ink: "raw" as const,
-    label: source.label,
-    sub: source.sub,
-  }),
-);
+/// Glyph proportions, cycled across whatever count of sources is connected, so
+/// the ingest side always shows a mix of signals, records and documents rather
+/// than six of the same mark. 0 signal, 1 record, 2 document.
+const SOURCE_SHAPES = [1, 0, 2, 1, 0, 1];
+
+/// Slots to use for `n` sources, spread across the full edge.
+function chooseSlots(n: number) {
+  const count = Math.max(1, Math.min(SOURCE_SLOTS.length, n));
+  if (count === 1) return [SOURCE_SLOTS[2]];
+  return Array.from({ length: count }, (_, i) =>
+    SOURCE_SLOTS[Math.round((i * (SOURCE_SLOTS.length - 1)) / (count - 1))],
+  );
+}
+
+/**
+ * The systems the substrate ingests from.
+ *
+ * Mutated in place by `setSources` rather than replaced, because the lattice,
+ * the residents, the field's per-source counters and the case board all hold
+ * references into this array. Same reason `NODES` and `LINKS` below are filled
+ * rather than rebuilt.
+ */
+export const SOURCES: SubstrateNode[] = [];
 
 export const HUB: SubstrateNode = {
   id: "hub",
@@ -235,15 +252,7 @@ export const QUARANTINE: SubstrateNode = {
   ink: "reject",
 };
 
-export const NODES: SubstrateNode[] = [
-  ...SOURCES,
-  HUB,
-  ...ENGINES,
-  ...OPS,
-  DECISION,
-  OWNERSHIP,
-  QUARANTINE,
-];
+export const NODES: SubstrateNode[] = [];
 
 export type Link = {
   a: SubstrateNode;
@@ -255,21 +264,69 @@ export type Link = {
 
 /// The permanent lattice. Everything is always connected; traffic is what
 /// varies, never the topology.
-export const LINKS: Link[] = [
-  ...SOURCES.map((s) => ({ a: s, b: HUB, inkA: "raw" as InkKey, inkB: "context" as InkKey, weight: 0.5 })),
-  ...ENGINES.map((e) => ({ a: HUB, b: e, inkA: "context" as InkKey, inkB: e.ink, weight: 1 })),
-  ...ENGINES.map((e) => ({ a: e, b: DECISION, inkA: e.ink, inkB: "decided" as InkKey, weight: 0.85 })),
-  { a: DECISION, b: OWNERSHIP, inkA: "decided", inkB: "own", weight: 1 },
-  { a: HUB, b: QUARANTINE, inkA: "context", inkB: "reject", weight: 0.4 },
-  { a: QUARANTINE, b: HUB, inkA: "reject", inkB: "context", weight: 0.28 },
-  // The control plane: built from governed data, deployed, then watched. The
-  // monitor arm reaches back into every engine, which is what "24×7" means
-  // when it is not just a phrase on a slide.
-  { a: HUB, b: OPS[0], inkA: "context", inkB: "ops", weight: 0.45 },
-  { a: OPS[0], b: OPS[1], inkA: "ops", inkB: "ops", weight: 0.6 },
-  { a: OPS[1], b: OPS[2], inkA: "ops", inkB: "ops", weight: 0.6 },
-  ...ENGINES.map((e) => ({ a: OPS[2], b: e, inkA: "ops" as InkKey, inkB: e.ink, weight: 0.32 })),
-];
+export const LINKS: Link[] = [];
+
+/**
+ * Points the ingest side of the world at a different set of systems.
+ *
+ * Must be called before an engine is constructed, never while one is running:
+ * the field seeds one orbiting core per source and keeps a counter per source
+ * id, and both are built from whatever this left behind.
+ */
+export function setSources(sources: { label: string; sub: string }[]) {
+  const slots = chooseSlots(sources.length);
+
+  SOURCES.length = 0;
+  slots.forEach((slot, index) => {
+    SOURCES.push({
+      ...slot,
+      // Positional rather than semantic: nothing outside this module reads a
+      // source id, so a stable, collision-free slot name is all it has to be.
+      id: `src${index}`,
+      group: "source",
+      ink: "raw",
+      shape: SOURCE_SHAPES[index % SOURCE_SHAPES.length],
+      label: sources[index].label,
+      sub: sources[index].sub,
+    });
+  });
+
+  NODES.length = 0;
+  NODES.push(...SOURCES, HUB, ...ENGINES, ...OPS, DECISION, OWNERSHIP, QUARANTINE);
+
+  LINKS.length = 0;
+  LINKS.push(
+    ...SOURCES.map((s) => ({ a: s, b: HUB, inkA: "raw" as InkKey, inkB: "context" as InkKey, weight: 0.5 })),
+    ...ENGINES.map((e) => ({ a: HUB, b: e, inkA: "context" as InkKey, inkB: e.ink, weight: 1 })),
+    ...ENGINES.map((e) => ({ a: e, b: DECISION, inkA: e.ink, inkB: "decided" as InkKey, weight: 0.85 })),
+    { a: DECISION, b: OWNERSHIP, inkA: "decided" as InkKey, inkB: "own" as InkKey, weight: 1 },
+    { a: HUB, b: QUARANTINE, inkA: "context" as InkKey, inkB: "reject" as InkKey, weight: 0.4 },
+    { a: QUARANTINE, b: HUB, inkA: "reject" as InkKey, inkB: "context" as InkKey, weight: 0.28 },
+    // The control plane: built from governed data, deployed, then watched. The
+    // monitor arm reaches back into every engine, which is what "24×7" means
+    // when it is not just a phrase on a slide.
+    { a: HUB, b: OPS[0], inkA: "context" as InkKey, inkB: "ops" as InkKey, weight: 0.45 },
+    { a: OPS[0], b: OPS[1], inkA: "ops" as InkKey, inkB: "ops" as InkKey, weight: 0.6 },
+    { a: OPS[1], b: OPS[2], inkA: "ops" as InkKey, inkB: "ops" as InkKey, weight: 0.6 },
+    ...ENGINES.map((e) => ({ a: OPS[2], b: e, inkA: "ops" as InkKey, inkB: e.ink, weight: 0.32 })),
+  );
+}
+
+/**
+ * The captions the board carries before anyone has configured it.
+ *
+ * A configuration renames the hub's governance line, the deploy node and the
+ * last node in place; this is what they are put back to when it is cleared.
+ * Captured before anything can overwrite them.
+ */
+export const DEFAULT_CAPTIONS = {
+  governance: HUB.sub,
+  tenancy: OPS[1].sub,
+  owner: { label: OWNERSHIP.label, sub: OWNERSHIP.sub },
+} as const;
+
+/// The board a visitor who has configured nothing is looking at.
+setSources(DEFAULT_SOURCES);
 
 /* -------------------------------------------------------------------------- */
 /* Narrative emphasis                                                         */

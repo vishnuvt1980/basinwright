@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" role="img" aria-label="BasinWright">
+  <title>BasinWright</title>
+  <desc>For dark surfaces. Fluent Grid Dots with compute, data and intelligence lit, tracing a check mark.</desc>
+  <g fill="#45506b">
+    <circle cx="5" cy="5" r="1.5"/>
+    <circle cx="12" cy="5" r="1.5"/>
+    <circle cx="12" cy="12" r="1.5"/>
+    <circle cx="19" cy="12" r="1.5"/>
+    <circle cx="5" cy="19" r="1.5"/>
+    <circle cx="19" cy="19" r="1.5"/>
+  </g>
+  <circle fill="#6bb8f5" cx="5" cy="12" r="2"/>
+  <circle fill="#40e6c7" cx="12" cy="19" r="2"/>
+  <circle fill="#9ef259" cx="19" cy="5" r="2"/>
+</svg>

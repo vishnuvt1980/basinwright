@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" role="img" aria-label="BasinWright">
+  <title>BasinWright</title>
+  <desc>The mark with the check mark drawn through it — for slides and large formats, where the three lit dots alone leave the reading to the viewer.</desc>
+  <style>
+    .grid { fill: #aab2bf }
+    .compute { fill: #0067b8 }
+    .data { fill: #038387 }
+    .intelligence { fill: #107c10 }
+    .check { stroke: url(#bw-check) }
+    @media (prefers-color-scheme: dark) {
+      .grid { fill: #45506b }
+      .compute { fill: #6bb8f5 }
+      .data { fill: #40e6c7 }
+      .intelligence { fill: #9ef259 }
+      .check { stroke: url(#bw-check-dark) }
+    }
+  </style>
+
+  <defs>
+    <!-- The stroke runs the same three hues in the same order as the dots it
+         joins, so the check is coloured by what it passes through. -->
+    <linearGradient id="bw-check" x1="5" y1="12" x2="19" y2="5" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0067b8"/>
+      <stop offset="0.5" stop-color="#038387"/>
+      <stop offset="1" stop-color="#107c10"/>
+    </linearGradient>
+    <linearGradient id="bw-check-dark" x1="5" y1="12" x2="19" y2="5" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#6bb8f5"/>
+      <stop offset="0.5" stop-color="#40e6c7"/>
+      <stop offset="1" stop-color="#9ef259"/>
+    </linearGradient>
+  </defs>
+
+  <g class="grid">
+    <circle cx="5" cy="5" r="1.5"/>
+    <circle cx="12" cy="5" r="1.5"/>
+    <circle cx="12" cy="12" r="1.5"/>
+    <circle cx="19" cy="12" r="1.5"/>
+    <circle cx="5" cy="19" r="1.5"/>
+    <circle cx="19" cy="19" r="1.5"/>
+  </g>
+
+  <path class="check" d="M5 12 L12 19 L19 5" fill="none" stroke-width="1.6"
+        stroke-linecap="round" stroke-linejoin="round" opacity="0.45"/>
+
+  <circle class="compute" cx="5" cy="12" r="2"/>
+  <circle class="data" cx="12" cy="19" r="2"/>
+  <circle class="intelligence" cx="19" cy="5" r="2"/>
+</svg>

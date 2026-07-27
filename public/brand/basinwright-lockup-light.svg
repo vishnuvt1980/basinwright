@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 168 24" width="168" height="24" role="img" aria-label="BasinWright">
+  <title>BasinWright</title>
+  <desc>Horizontal lockup for light surfaces: the mark, then the wordmark.</desc>
+
+  <g fill="#aab2bf">
+    <circle cx="5" cy="5" r="1.5"/>
+    <circle cx="12" cy="5" r="1.5"/>
+    <circle cx="12" cy="12" r="1.5"/>
+    <circle cx="19" cy="12" r="1.5"/>
+    <circle cx="5" cy="19" r="1.5"/>
+    <circle cx="19" cy="19" r="1.5"/>
+  </g>
+  <circle fill="#0067b8" cx="5" cy="12" r="2"/>
+  <circle fill="#038387" cx="12" cy="19" r="2"/>
+  <circle fill="#107c10" cx="19" cy="5" r="2"/>
+
+  <!-- Live text, not outlines: it stays selectable and searchable, and the
+       stack degrades to each platform's native UI face. Where a consumer
+       cannot be trusted to have any of these, use the mark on its own. -->
+  <text x="32" y="12" dominant-baseline="central" fill="#0e1726"
+        font-family="Segoe UI Variable Display, Segoe UI, system-ui, -apple-system, Helvetica Neue, Arial, sans-serif"
+        font-size="17" letter-spacing="-0.35">BasinWright</text>
+</svg>

@@ -13,6 +13,7 @@ import {
 import { Icon } from "@/components/icon";
 import type { SubstrateChapter } from "@/components/sections/substrate-chapters";
 import { cn } from "@/components/ui/primitives";
+import { applyDemoConfig } from "@/components/webgl/substrate/configure";
 import {
   EMPTY_SNAPSHOT,
   createSubstrate,
@@ -21,6 +22,7 @@ import {
   type Substrate,
 } from "@/components/webgl/substrate/engine";
 import { chapterEmphasis, type Anchor } from "@/components/webgl/substrate/topology";
+import { describeDemoConfig, type DemoConfig } from "@/lib/demo-config";
 
 /**
  * The substrate demo, full screen, with every instrument the simulation can
@@ -92,15 +94,22 @@ function createSnapshotStore() {
 
 export default function SubstrateDemo({
   chapters,
+  config,
   dark,
   animated,
   onClose,
+  onReconfigure,
 }: {
   chapters: SubstrateChapter[];
+  /// What the visitor asked the console to be. Null runs the default board.
+  config: DemoConfig | null;
   dark: boolean;
   /// False under reduced motion — the simulation runs at a calmer rate.
   animated: boolean;
   onClose: () => void;
+  /// Reopens the configurator. The console is torn down first, so the next one
+  /// is built against whatever they change.
+  onReconfigure: () => void;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -133,6 +142,11 @@ export default function SubstrateDemo({
     const field = safe.current;
     if (!element || !field) return;
 
+    // Before the engine, never after: the field seeds one orbiting core per
+    // connected system and a counter per system id, both from whatever the
+    // configuration left on the topology.
+    applyDemoConfig(config);
+
     const substrate = createSubstrate({
       canvas: element,
       field,
@@ -156,7 +170,7 @@ export default function SubstrateDemo({
     };
     // `dark` is applied through `setDark` rather than by rebuilding the engine.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [animated, onClose, store]);
+  }, [animated, config, onClose, store]);
 
   useEffect(() => {
     engine.current?.setDark(dark);
@@ -192,7 +206,9 @@ export default function SubstrateDemo({
         <TopRail
           meters={snapshot.meters}
           owned={snapshot.hub.owned}
+          context={config ? describeDemoConfig(config) : null}
           onInject={() => engine.current?.inject()}
+          onReconfigure={onReconfigure}
           onClose={() => dialog.current?.close()}
         />
 
@@ -298,12 +314,17 @@ function PanelHeading({
 function TopRail({
   meters,
   owned,
+  context,
   onInject,
+  onReconfigure,
   onClose,
 }: {
   meters: HudSnapshot["meters"];
   owned: number;
+  /// The visitor's industry and line of business, when they told us.
+  context: string | null;
   onInject: () => void;
+  onReconfigure: () => void;
   onClose: () => void;
 }) {
   const readouts = [
@@ -316,10 +337,15 @@ function TopRail({
 
   return (
     <div className="flex shrink-0 items-center gap-6 border-b border-line px-5 py-3">
-      <p className="flex items-center gap-2 font-mono text-[0.65rem] font-medium tracking-[0.14em] text-ink-2 uppercase">
-        <span className="size-1.5 animate-shimmer rounded-full bg-[var(--sub-own)]" />
-        Cognitive substrate · live
-      </p>
+      <div className="min-w-0">
+        <p className="flex items-center gap-2 font-mono text-[0.65rem] font-medium tracking-[0.14em] text-ink-2 uppercase">
+          <span className="size-1.5 animate-shimmer rounded-full bg-[var(--sub-own)]" />
+          Cognitive substrate · live
+        </p>
+        {context ? (
+          <p className="mt-0.5 truncate text-[0.7rem] text-ink-3">{context}</p>
+        ) : null}
+      </div>
 
       <dl className="ml-auto flex items-end gap-7">
         {readouts.map((readout) => (
@@ -349,6 +375,15 @@ function TopRail({
       >
         <span className="size-1.5 rounded-full bg-current" aria-hidden />
         Inject disruption
+      </button>
+
+      <button
+        type="button"
+        onClick={onReconfigure}
+        className="flex items-center gap-2 rounded-md border border-line px-3 py-1.5 font-mono text-[0.65rem] tracking-[0.12em] text-ink-2 uppercase transition-colors hover:border-accent/60 hover:text-ink"
+      >
+        <Icon name="SlidersHorizontal" className="size-3.5" />
+        Reconfigure
       </button>
 
       <button

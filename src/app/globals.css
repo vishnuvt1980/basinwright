@@ -134,6 +134,13 @@
   --bw-accent-strong: #005a9e;
   --bw-on-accent: #ffffff;
 
+  /* The mark. Three lit dots on Fluent's Grid Dots lattice — see the block
+     below the substrate palette for what they mean. */
+  --bw-mark-grid: #aab2bf;
+  --bw-mark-compute: #0067b8;
+  --bw-mark-data: #038387;
+  --bw-mark-intelligence: #107c10;
+
   /* Fluent elevation 8 — a soft ambient drop, never a coloured glow. */
   --bw-shadow-panel: 0 3.2px 7.2px rgb(0 0 0 / 0.13), 0 0.6px 1.8px rgb(0 0 0 / 0.11);
 }
@@ -156,6 +163,11 @@
   --bw-accent-strong: #a9d3f2;
   --bw-on-accent: #0e1726;
 
+  --bw-mark-grid: #45506b;
+  --bw-mark-compute: #6bb8f5;
+  --bw-mark-data: #40e6c7;
+  --bw-mark-intelligence: #9ef259;
+
   --bw-shadow-panel: 0 3.2px 7.2px rgb(0 0 0 / 0.5), 0 0.6px 1.8px rgb(0 0 0 / 0.4);
 }
 
@@ -175,6 +187,11 @@
     --bw-accent: #6cb8f6;
     --bw-accent-strong: #a9d3f2;
     --bw-on-accent: #0e1726;
+
+    --bw-mark-grid: #45506b;
+    --bw-mark-compute: #6bb8f5;
+    --bw-mark-data: #40e6c7;
+    --bw-mark-intelligence: #9ef259;
 
     --bw-shadow-panel: 0 3.2px 7.2px rgb(0 0 0 / 0.5), 0 0.6px 1.8px rgb(0 0 0 / 0.4);
   }
@@ -265,6 +282,30 @@
     --sub-own: #9ef259;
   }
 }
+
+/* --- The mark ------------------------------------------------------------
+   Fluent's Grid Dots, with three of the nine dots lit.
+
+   The lattice is the estate: nine systems, raw and unresolved, which is why
+   the unlit dots take the substrate's own `raw` hue, softened. The three lit
+   dots are what we do to it, and they are lit in the substrate's own order —
+   `context` (governed), `verify` (proven), `own` (yours). A legend swatch in
+   the console and a dot in the logo are therefore the same colour saying the
+   same thing.
+
+   Their positions are the argument: mid-left, bottom-centre, top-right traces
+   a check mark across the grid — the "Wright" in BasinWright, work signed off
+   rather than merely delivered. Three dots, for the three things the check is
+   drawn through: compute, data, intelligence.
+
+   The standalone assets in `public/brand/` carry these same values as literal
+   hex. Change one, change both.
+   ------------------------------------------------------------------------- */
+
+@utility mark-grid { fill: var(--bw-mark-grid); }
+@utility mark-compute { fill: var(--bw-mark-compute); }
+@utility mark-data { fill: var(--bw-mark-data); }
+@utility mark-intelligence { fill: var(--bw-mark-intelligence); }
 
 /* ==========================================================================
    Base

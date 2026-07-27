@@ -10,33 +10,47 @@ import { ButtonLink, cn } from "@/components/ui/primitives";
 
 type NavLink = { id: string; label: string; href: string };
 
+/// Where the mark's three lit dots sit on Fluent's Grid Dots lattice. Read in
+/// order they trace a check mark — the "Wright" in the name — and in colour they
+/// run the substrate's own sequence: governed, proven, yours.
+const LIT = [
+  { x: 5, y: 12, className: "mark-compute", label: "Compute" },
+  { x: 12, y: 19, className: "mark-data", label: "Data" },
+  { x: 19, y: 5, className: "mark-intelligence", label: "Intelligence" },
+];
+
+/// The other six. Fluent's regular weight against the lit dots' filled weight,
+/// so the three lead the lattice without being made outsized.
+const UNLIT = [
+  [5, 5],
+  [12, 5],
+  [12, 12],
+  [19, 12],
+  [5, 19],
+  [19, 19],
+];
+
 function Wordmark({ name }: { name: string }) {
   return (
     <Link href="/" className="group flex items-center gap-2.5" aria-label={`${name} home`}>
-      {/* Compass rose reduced to its essential geometry. */}
-      <svg viewBox="0 0 32 32" className="size-7" aria-hidden>
-        <circle
-          cx="16" cy="16" r="13"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.2"
-          className="text-accent/70 transition-colors duration-500 group-hover:text-accent"
-        />
-        <circle
-          cx="16" cy="16" r="8.5"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="0.7"
-          className="text-accent/40"
-        />
-        <path
-          d="M16 3.5 L18.6 13.4 L16 16 L13.4 13.4 Z M16 28.5 L13.4 18.6 L16 16 L18.6 18.6 Z"
-          className="fill-accent"
-        />
-        <path
-          d="M3.5 16 L13.4 13.4 L16 16 L13.4 18.6 Z M28.5 16 L18.6 18.6 L16 16 L18.6 13.4 Z"
-          className="fill-accent/60"
-        />
+      {/* Fluent's Grid Dots with three of the nine lit. The estate is the
+          lattice; what we resolve out of it is the check drawn through it.
+          See the mark block in globals.css for the full reading. */}
+      <svg viewBox="0 0 24 24" className="size-7" aria-hidden>
+        <g className="mark-grid opacity-70 transition-opacity duration-500 group-hover:opacity-100">
+          {UNLIT.map(([x, y]) => (
+            <circle key={`${x}-${y}`} cx={x} cy={y} r="1.5" />
+          ))}
+        </g>
+        {LIT.map((dot) => (
+          <circle
+            key={dot.label}
+            cx={dot.x}
+            cy={dot.y}
+            r="2"
+            className={dot.className}
+          />
+        ))}
       </svg>
       <span className="font-display text-lg tracking-tight text-ink">{name}</span>
     </Link>

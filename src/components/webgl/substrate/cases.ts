@@ -14,7 +14,7 @@
 
 import type { Tone } from "@/components/icon";
 
-import { activePreset, DISRUPTION, type CaseTemplate } from "./presets";
+import { activePreset, type CaseTemplate } from "./presets";
 import { ENGINES, SOURCES, type SubstrateNode } from "./topology";
 
 const rand = (a: number, b: number) => a + Math.random() * (b - a);
@@ -42,6 +42,24 @@ export const AGENTS: Agent[] = [
   { id: "guardian", code: "03", name: "Margin Guardian", verb: "VERIFY", skills: ["simulate", "bound"], tone: "teal", xp: 1275 },
   { id: "orchestr", code: "04", name: "Reasoning Orchestrator", verb: "DECIDE", skills: ["weigh", "explain"], tone: "amber", xp: 968 },
 ];
+
+const DEFAULT_AGENT_NAMES: Record<string, string> = Object.fromEntries(
+  AGENTS.map((a) => [a.id, a.name]),
+);
+
+/**
+ * Renames the council for a visitor's industry.
+ *
+ * Only the names move. Ids, codes and — crucially — skills are the contract
+ * between an agent and a case template, so an insurer gets a Reserve Guardian
+ * rather than a Margin Guardian, and it is still the agent that can simulate
+ * and bound.
+ */
+export function nameAgents(names: Record<string, string> | null) {
+  for (const agent of AGENTS) {
+    agent.name = names?.[agent.id] || DEFAULT_AGENT_NAMES[agent.id];
+  }
+}
 
 /// Evidence needed per engine lane before a case may be decided. Tuned so a
 /// case lives ~30-45s: long enough that five of them overlap at all times.
@@ -96,6 +114,9 @@ type Emitter = {
 
 let nextCase = 1;
 let templateCursor = 0;
+/// Which preset the cursor is walking. Reset when the content changes, so the
+/// first case a visitor picked is the first one they see open.
+let cursorPreset = "";
 
 export class CaseBoard {
   readonly field: Emitter;
@@ -104,10 +125,10 @@ export class CaseBoard {
   decided = 0;
   /// Case the visitor is pointing at, if any. Drives the provenance trace.
   highlight: number | null = null;
-  /// Background records per second. Dropped by the frame-rate guard before the
-  /// scene is given up on entirely — thinning the roar costs less than losing
-  /// the whole picture.
-  ambientRate = 54;
+  /// Background records per second. Scaled by the visitor's operating scale,
+  /// and dropped by the frame-rate guard before the scene is given up on
+  /// entirely — thinning the roar costs less than losing the whole picture.
+  ambientRate: number;
   onDecision: (c: Case) => void = () => {};
 
   #ambientDebt = 0;
@@ -115,6 +136,7 @@ export class CaseBoard {
 
   constructor(field: Emitter) {
     this.field = field;
+    this.ambientRate = Math.round(54 * activePreset.intensity);
     this.#prewarm();
   }
 
@@ -209,6 +231,10 @@ export class CaseBoard {
   }
 
   open(priority = false): Case {
+    if (cursorPreset !== activePreset.id) {
+      cursorPreset = activePreset.id;
+      templateCursor = 0;
+    }
     const templates = activePreset.cases;
     const tmpl = templates[templateCursor++ % templates.length];
     const c: Case = {
@@ -273,7 +299,7 @@ export class CaseBoard {
     const c = this.open(true);
     c.quota = 12;
     c.emitTimer = 0;
-    c.tmpl = DISRUPTION;
+    c.tmpl = activePreset.disruption;
     c.skills = c.tmpl.skills;
     return c;
   }

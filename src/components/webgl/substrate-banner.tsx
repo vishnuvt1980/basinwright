@@ -11,6 +11,7 @@ import {
 
 import type { SubstrateChapter } from "@/components/sections/substrate-chapters";
 import { ButtonLink, cn } from "@/components/ui/primitives";
+import { applyDemoConfig } from "@/components/webgl/substrate/configure";
 import {
   EMPTY_SNAPSHOT,
   createSubstrate,
@@ -19,6 +20,7 @@ import {
   type Verdict,
 } from "@/components/webgl/substrate/engine";
 import { chapterEmphasis, type Anchor } from "@/components/webgl/substrate/topology";
+import type { DemoConfig } from "@/lib/demo-config";
 
 /**
  * The hero banner: the substrate simulation running behind the headline.
@@ -93,6 +95,7 @@ export default function SubstrateBanner({
   chapters,
   hint,
   cta,
+  config,
   dark,
   animated,
   paused,
@@ -105,6 +108,9 @@ export default function SubstrateBanner({
   /// The banner carries exactly one call to action — it sits under the story,
   /// so the visitor reads the point before being asked to act on it.
   cta: { label: string; href: string } | null;
+  /// Set once a visitor has configured the console: the hero adopts their world
+  /// too, so the page they come back to is the one they built.
+  config: DemoConfig | null;
   dark: boolean;
   /// False under reduced motion — the simulation runs at a calmer rate.
   animated: boolean;
@@ -130,6 +136,10 @@ export default function SubstrateBanner({
     const field = safe.current;
     if (!element || !field) return;
 
+    // Before the engine, never after: the field seeds its residents and its
+    // per-source counters from whatever the configuration left behind.
+    applyDemoConfig(config);
+
     const substrate = createSubstrate({
       canvas: element,
       field,
@@ -154,7 +164,7 @@ export default function SubstrateBanner({
     // `dark` is applied through `setDark` below rather than by rebuilding the
     // engine: a theme switch should re-ink the field, not restart the story.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [animated, onVerdict, store]);
+  }, [animated, config, onVerdict, store]);
 
   useEffect(() => {
     engine.current?.setDark(dark);

@@ -1,10 +1,12 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { motion } from "motion/react";
 import { submitLead, type LeadState } from "@/app/actions/leads";
 import { Icon } from "@/components/icon";
 import { Button, cn } from "@/components/ui/primitives";
+import { summariseDemoConfig, type DemoConfig } from "@/lib/demo-config";
+import { useDemoConfig } from "@/lib/demo-config-store";
 
 const initialState: LeadState = { status: "idle" };
 
@@ -38,8 +40,77 @@ function Field({
   );
 }
 
+/**
+ * What the visitor built in the substrate console, offered back to them before
+ * it is sent anywhere.
+ *
+ * Shown rather than smuggled: the configuration is the most useful thing on the
+ * whole enquiry, and the visitor gets to see exactly what an architect will be
+ * reading before they press send — and to detach it if they would rather not.
+ */
+function AttachedConsole({
+  config,
+  attached,
+  onToggle,
+}: {
+  config: DemoConfig;
+  attached: boolean;
+  onToggle: () => void;
+}) {
+  const rows = summariseDemoConfig(config);
+  if (!rows.length) return null;
+
+  return (
+    <div
+      data-substrate
+      className="rounded-xl border border-line bg-raised/50 p-4"
+    >
+      <div className="flex items-start justify-between gap-4">
+        <p className="flex items-center gap-2 font-mono text-[0.65rem] tracking-[0.12em] text-ink-3 uppercase">
+          <span
+            className={cn(
+              "size-1.5 rounded-full",
+              attached ? "bg-[var(--sub-own)]" : "bg-line-strong",
+            )}
+            aria-hidden
+          />
+          Your console setup
+        </p>
+
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-pressed={attached}
+          className="text-xs text-accent transition-colors hover:text-accent-strong hover:underline"
+        >
+          {attached ? "Do not include" : "Include"}
+        </button>
+      </div>
+
+      <dl
+        className={cn(
+          "mt-3 grid gap-x-5 gap-y-1.5 transition-opacity sm:grid-cols-[auto_minmax(0,1fr)]",
+          attached ? "opacity-100" : "opacity-40",
+        )}
+      >
+        {rows.map((row) => (
+          <div key={row.label} className="contents">
+            <dt className="text-xs whitespace-nowrap text-ink-3">{row.label}</dt>
+            <dd className="mb-1.5 text-xs leading-relaxed text-ink-2 sm:mb-0">
+              {row.value}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  );
+}
+
 export function ContactForm() {
   const [state, formAction, pending] = useActionState(submitLead, initialState);
+
+  const { ready, config } = useDemoConfig();
+  const [attached, setAttached] = useState(true);
 
   if (state.status === "success") {
     return (
@@ -95,10 +166,16 @@ export function ContactForm() {
           error={state.fieldErrors?.email}
         />
         <Field
+          // They already named their organisation when they built the console.
+          // `ready` flips exactly once, at hydration and before anyone can have
+          // typed here, so this remounts with the right default and never
+          // afterwards overwrites something they wrote themselves.
+          key={ready ? "restored" : "pending"}
           label="Organisation"
           name="company"
           autoComplete="organization"
           placeholder="Meridian Bank"
+          defaultValue={config?.company ?? ""}
           error={state.fieldErrors?.company}
         />
         <Field
@@ -121,6 +198,23 @@ export function ContactForm() {
           className={cn(fieldClass, "resize-y")}
         />
       </label>
+
+      {config ? (
+        <>
+          {attached ? (
+            <input
+              type="hidden"
+              name="demoConfig"
+              value={JSON.stringify(config)}
+            />
+          ) : null}
+          <AttachedConsole
+            config={config}
+            attached={attached}
+            onToggle={() => setAttached((current) => !current)}
+          />
+        </>
+      ) : null}
 
       {state.status === "error" && state.message ? (
         <p data-tone="ember" className="text-sm text-[var(--tone)]" role="alert">

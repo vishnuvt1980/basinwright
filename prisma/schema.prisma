@@ -156,18 +156,27 @@ model NavItem {
 // ---------------------------------------------------------------------------
 
 model Lead {
-  id        String   @id @default(cuid())
-  name      String
-  email     String
-  company   String?
-  role      String?
-  interest  String?
-  message   String?
-  source    String   @default("website")
-  handled   Boolean  @default(false)
-  createdAt DateTime @default(now())
+  id         String   @id @default(cuid())
+  name       String
+  email      String
+  company    String?
+  role       String?
+  interest   String?
+  message    String?
+  source     String   @default("website")
+  handled    Boolean  @default(false)
+  /// Industry id from the substrate console configurator, denormalised off
+  /// `demoConfig` so the leads list can be scanned and filtered without
+  /// unpacking JSON.
+  industry   String?
+  /// The whole `DemoConfig` the visitor built the console with — which systems
+  /// they named, which decisions they picked, and what they said was hurting.
+  /// The single most qualifying thing on the record.
+  demoConfig Json?
+  createdAt  DateTime @default(now())
 
   @@index([createdAt])
+  @@index([industry])
   @@map("leads")
 }
 

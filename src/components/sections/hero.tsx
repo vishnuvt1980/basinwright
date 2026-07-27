@@ -21,6 +21,8 @@ import { useGraphics } from "@/components/webgl/graphics-store";
 import { HeroCanvas } from "@/components/webgl/hero-canvas";
 import type { Verdict } from "@/components/webgl/substrate/engine";
 import type { SectionWithEntries } from "@/lib/content";
+import { demoConfigRevision } from "@/lib/demo-config";
+import { useDemoConfig } from "@/lib/demo-config-store";
 
 /// Keeps the simulation, the shaders and the readouts out of the homepage
 /// payload — they arrive only on a machine that has cleared the capability
@@ -33,6 +35,13 @@ const SubstrateBanner = dynamic(
 /// The full console. Fetched only when the visitor asks for it.
 const SubstrateDemo = dynamic(
   () => import("@/components/webgl/substrate-demo"),
+  { ssr: false },
+);
+
+/// The questions that turn the console into their console. Fetched on the same
+/// click, and never before it.
+const SubstrateConfigurator = dynamic(
+  () => import("@/components/webgl/substrate-configurator"),
   { ssr: false },
 );
 
@@ -82,7 +91,16 @@ export function Hero({
   const [onscreen, setOnscreen] = useState(true);
   // Set when the runtime frame-rate guard gives up on this machine.
   const [tooSlow, setTooSlow] = useState(false);
-  const [demoOpen, setDemoOpen] = useState(false);
+
+  /* The console is a three-state affair: shut, asking what to build, or
+     running. A returning visitor skips the middle state — they already told us
+     once, and being asked again is the opposite of being remembered. */
+  const [stage, setStage] = useState<"shut" | "asking" | "running">("shut");
+
+  // `ready` is false until localStorage has been read. Until then there is
+  // nothing worth building an engine from, and building one now would only mean
+  // tearing it down a tick later when the saved configuration arrives.
+  const { ready, config } = useDemoConfig();
 
   const { sceneEnabled, sceneAnimated } = useGraphics();
   const dark = useIsDark();
@@ -116,6 +134,21 @@ export function Hero({
     return () => presence.disconnect();
   }, []);
 
+  /* First visit asks the questions; every visit after runs what they answered.
+     Read from the store so a reconfiguration made in this session is what the
+     next click picks up. */
+  const openConsole = useCallback(
+    () => setStage(config ? "running" : "asking"),
+    [config],
+  );
+
+  /* Stable identities, because both simulations take these as effect
+     dependencies: a fresh closure on a theme flip would tear down a running
+     engine and build another one in its place. */
+  const shut = useCallback(() => setStage("shut"), []);
+  const ask = useCallback(() => setStage("asking"), []);
+  const run = useCallback(() => setStage("running"), []);
+
   const handleVerdict = useCallback((verdict: Verdict) => {
     // The engine steps its own quality down once; if that was not enough it
     // says so and the hero falls back to the plain rendering. Never let the
@@ -140,31 +173,51 @@ export function Hero({
           own readouts, its story and one call to action. */}
       {banner ? (
         <div className="relative h-[min(92svh,54rem)] min-h-[34rem] overflow-hidden">
-          <SubstrateBanner
-            chapters={chapters}
-            hint={substrate?.body ?? null}
-            cta={
-              section.ctaLabel && section.ctaHref
-                ? { label: section.ctaLabel, href: section.ctaHref }
-                : null
-            }
-            dark={dark}
-            animated={sceneAnimated}
-            // One simulation at a time: the console runs its own, and two
-            // fields competing for the GPU would slow both.
-            paused={!onscreen || tabHidden || demoOpen}
-            onVerdict={handleVerdict}
-            onOpenDemo={() => setDemoOpen(true)}
-          />
+          {ready ? (
+            <SubstrateBanner
+              // A reconfiguration changes how many systems feed the board,
+              // which the field reads once at construction. Rebuild rather
+              // than swap under a running engine.
+              key={demoConfigRevision(config)}
+              chapters={chapters}
+              hint={substrate?.body ?? null}
+              cta={
+                section.ctaLabel && section.ctaHref
+                  ? { label: section.ctaLabel, href: section.ctaHref }
+                  : null
+              }
+              config={config}
+              dark={dark}
+              animated={sceneAnimated}
+              // One simulation at a time: the console runs its own, and two
+              // fields competing for the GPU would slow both.
+              paused={!onscreen || tabHidden || stage !== "shut"}
+              onVerdict={handleVerdict}
+              onOpenDemo={openConsole}
+            />
+          ) : null}
         </div>
       ) : null}
 
-      {demoOpen ? (
+      {stage === "asking" ? (
+        <SubstrateConfigurator
+          initial={config}
+          // The configurator persists before it hands back, so the store — and
+          // with it the banner and the contact form — is already current.
+          onRun={run}
+          onCancel={shut}
+        />
+      ) : null}
+
+      {stage === "running" ? (
         <SubstrateDemo
+          key={demoConfigRevision(config)}
           chapters={chapters}
+          config={config}
           dark={dark}
           animated={sceneAnimated}
-          onClose={() => setDemoOpen(false)}
+          onClose={shut}
+          onReconfigure={ask}
         />
       ) : null}
 
