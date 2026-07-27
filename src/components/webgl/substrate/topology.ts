@@ -14,10 +14,15 @@
    by us, and what comes out the end belongs to the customer.
 --------------------------------------------------------------------------- */
 
-/// World extents. Everything below is expressed in these units, never pixels.
-// Wide and shallow. The banner is a full-width strip, so a world with a
-// portrait-ish aspect would be fitted by its height and leave most of the
-// width empty. Everything below is laid out to fill a letterbox.
+import { SUPPLY_CHAIN } from "./presets";
+
+/**
+ * World extents. Everything below is expressed in these units, never pixels.
+ *
+ * Wide and shallow: the banner is a full-width strip, and a world with a
+ * portrait-ish aspect gets fitted by its height and leaves most of the width
+ * empty. Everything below is laid out to fill a letterbox.
+ */
 export const WORLD = { w: 100, h: 40 };
 
 export type Ink = readonly [number, number, number];
@@ -141,16 +146,29 @@ export type SubstrateNode = {
   ink: InkKey;
 };
 
-/// The systems the substrate ingests from. Names match the connectors the rest
-/// of the site names in the platform topology section.
-export const SOURCES: SubstrateNode[] = [
-  { id: "erp", group: "source", label: "SAP S/4HANA", sub: "orders · deliveries", shape: 1, x: 7, y: 33, anchor: "right", ink: "raw" },
-  { id: "crm", group: "source", label: "Salesforce", sub: "accounts · cases", shape: 1, x: 10, y: 27, anchor: "right", ink: "raw" },
-  { id: "tel", group: "source", label: "IoT Telemetry", sub: "sensors · scans", shape: 0, x: 6, y: 20, anchor: "right", ink: "raw" },
-  { id: "evt", group: "source", label: "Event Streams", sub: "kafka · webhooks", shape: 0, x: 11, y: 13, anchor: "right", ink: "raw" },
-  { id: "doc", group: "source", label: "SharePoint", sub: "contracts · email", shape: 2, x: 7, y: 7, anchor: "right", ink: "raw" },
-  { id: "led", group: "source", label: "Snowflake", sub: "gl · invoices", shape: 1, x: 15, y: 37, anchor: "right", ink: "raw" },
+/// The systems the substrate ingests from. Names come from the active preset;
+/// positions come from the slots above.
+/// Where the six source nodes sit, and what shape their records take. Fixed:
+/// a preset renames them, it does not move them. Shape 0 signal, 1 record,
+/// 2 document.
+const SOURCE_SLOTS = [
+  { id: "erp", shape: 1, x: 7, y: 33, anchor: "right" as const },
+  { id: "crm", shape: 1, x: 10, y: 27, anchor: "right" as const },
+  { id: "tel", shape: 0, x: 6, y: 20, anchor: "right" as const },
+  { id: "evt", shape: 0, x: 11, y: 13, anchor: "right" as const },
+  { id: "doc", shape: 2, x: 7, y: 7, anchor: "right" as const },
+  { id: "led", shape: 1, x: 15, y: 37, anchor: "right" as const },
 ];
+
+export const SOURCES: SubstrateNode[] = SUPPLY_CHAIN.sources.map(
+  (source, index) => ({
+    ...SOURCE_SLOTS[index],
+    group: "source" as const,
+    ink: "raw" as const,
+    label: source.label,
+    sub: source.sub,
+  }),
+);
 
 export const HUB: SubstrateNode = {
   id: "hub",

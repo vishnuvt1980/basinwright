@@ -30,6 +30,12 @@ const SubstrateBanner = dynamic(
   { ssr: false },
 );
 
+/// The full console. Fetched only when the visitor asks for it.
+const SubstrateDemo = dynamic(
+  () => import("@/components/webgl/substrate-demo"),
+  { ssr: false },
+);
+
 const EASE = [0.16, 1, 0.3, 1] as const;
 
 /* -------------------------------------------------------------------------- */
@@ -76,6 +82,7 @@ export function Hero({
   const [onscreen, setOnscreen] = useState(true);
   // Set when the runtime frame-rate guard gives up on this machine.
   const [tooSlow, setTooSlow] = useState(false);
+  const [demoOpen, setDemoOpen] = useState(false);
 
   const { sceneEnabled, sceneAnimated } = useGraphics();
   const dark = useIsDark();
@@ -143,10 +150,22 @@ export function Hero({
             }
             dark={dark}
             animated={sceneAnimated}
-            paused={!onscreen || tabHidden}
+            // One simulation at a time: the console runs its own, and two
+            // fields competing for the GPU would slow both.
+            paused={!onscreen || tabHidden || demoOpen}
             onVerdict={handleVerdict}
+            onOpenDemo={() => setDemoOpen(true)}
           />
         </div>
+      ) : null}
+
+      {demoOpen ? (
+        <SubstrateDemo
+          chapters={chapters}
+          dark={dark}
+          animated={sceneAnimated}
+          onClose={() => setDemoOpen(false)}
+        />
       ) : null}
 
       {/* The copy. Below the banner where there is one, and the whole of the

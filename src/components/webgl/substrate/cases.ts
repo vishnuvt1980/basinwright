@@ -7,13 +7,14 @@
    complete AND verified, and it keeps the provenance of the exact records that
    got it there.
 
-   The case fixtures below are simulation data, not marketing copy: they are
-   what the substrate is *processing*. The copy a visitor reads lives in the
-   CMS, on the section's entries.
+   The cases themselves live in `presets.ts`: they are what the substrate is
+   *processing*, and they change with the visitor's industry. The copy a
+   visitor reads lives in the CMS, on the section's entries.
 --------------------------------------------------------------------------- */
 
 import type { Tone } from "@/components/icon";
 
+import { activePreset, DISRUPTION, type CaseTemplate } from "./presets";
 import { ENGINES, SOURCES, type SubstrateNode } from "./topology";
 
 const rand = (a: number, b: number) => a + Math.random() * (b - a);
@@ -40,59 +41,6 @@ export const AGENTS: Agent[] = [
   { id: "evidence", code: "02", name: "Evidence Navigator", verb: "GROUND", skills: ["retrieve", "cite"], tone: "berry", xp: 1512 },
   { id: "guardian", code: "03", name: "Margin Guardian", verb: "VERIFY", skills: ["simulate", "bound"], tone: "teal", xp: 1275 },
   { id: "orchestr", code: "04", name: "Reasoning Orchestrator", verb: "DECIDE", skills: ["weigh", "explain"], tone: "amber", xp: 968 },
-];
-
-export type CaseTemplate = {
-  title: string;
-  trigger: string;
-  decision: string;
-  impact: string;
-  skills: string[];
-};
-
-const TEMPLATES: CaseTemplate[] = [
-  {
-    title: "Carrier ETA slip — Dock 18",
-    trigger: "Carrier ETA slipped 6h against a committed SLA",
-    decision: "Reroute 240 units via the Chennai DC",
-    impact: "$2.9M revenue protected · 93% service recovery",
-    skills: ["detect", "retrieve", "simulate", "explain"],
-  },
-  {
-    title: "Lane cost spike — west corridor",
-    trigger: "Spot freight 31% over contract on four consecutive loads",
-    decision: "Pre-book two carriers for a 14-day window",
-    impact: "$1.1M penalty avoided · 31% less expedite spend",
-    skills: ["correlate", "retrieve", "bound", "weigh"],
-  },
-  {
-    title: "Stockout risk — SKU 44-2189",
-    trigger: "Demand signal diverging from the replenishment plan",
-    decision: "Hold promotional stock for tier-1 accounts",
-    impact: "$1.9M margin defended · fill rate back to 88%",
-    skills: ["detect", "simulate", "weigh", "explain"],
-  },
-  {
-    title: "Supplier clause conflict",
-    trigger: "Contract §7.2 contradicts the supplier surcharge notice",
-    decision: "Invoke clause 14b, withhold the surcharge",
-    impact: "$480K claim blocked · dispute pack assembled",
-    skills: ["retrieve", "cite", "bound", "explain"],
-  },
-  {
-    title: "Cold-chain excursion",
-    trigger: "Reefer telemetry breached 8°C for 22 minutes",
-    decision: "Divert the batch to secondary QA hold",
-    impact: "$1.3M write-off avoided · audit trail sealed",
-    skills: ["detect", "correlate", "simulate", "cite"],
-  },
-  {
-    title: "Duplicate invoice run",
-    trigger: "318 ledger rows matched across two ERP instances",
-    decision: "Block the payment run, merge to the golden record",
-    impact: "$840K double-payment prevented",
-    skills: ["correlate", "bound", "cite", "weigh"],
-  },
 ];
 
 /// Evidence needed per engine lane before a case may be decided. Tuned so a
@@ -261,7 +209,8 @@ export class CaseBoard {
   }
 
   open(priority = false): Case {
-    const tmpl = TEMPLATES[templateCursor++ % TEMPLATES.length];
+    const templates = activePreset.cases;
+    const tmpl = templates[templateCursor++ % templates.length];
     const c: Case = {
       id: nextCase++,
       tmpl,
@@ -324,13 +273,7 @@ export class CaseBoard {
     const c = this.open(true);
     c.quota = 12;
     c.emitTimer = 0;
-    c.tmpl = {
-      title: "Port strike — west corridor",
-      trigger: "Operator-injected disruption across three lanes",
-      decision: "Split volume: air-lift tier-1, rail the remainder",
-      impact: "$6.4M exposure contained · 71% of SLAs held",
-      skills: ["detect", "correlate", "retrieve", "simulate", "weigh", "explain"],
-    };
+    c.tmpl = DISRUPTION;
     c.skills = c.tmpl.skills;
     return c;
   }

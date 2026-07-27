@@ -97,6 +97,7 @@ export default function SubstrateBanner({
   animated,
   paused,
   onVerdict,
+  onOpenDemo,
 }: {
   chapters: SubstrateChapter[];
   /// The interaction hint from the CMS.
@@ -109,6 +110,8 @@ export default function SubstrateBanner({
   animated: boolean;
   paused: boolean;
   onVerdict: (verdict: Verdict) => void;
+  /// Opens the full console. A control, not a second call to action.
+  onOpenDemo: () => void;
 }) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const safe = useRef<HTMLDivElement>(null);
@@ -208,17 +211,19 @@ export default function SubstrateBanner({
               left: label.x,
               top: label.y,
               transform: LABEL_TRANSFORM[label.anchor],
-              opacity: 0.4 + 0.6 * chapterEmphasis(label.group, chapter),
+              // Never below two thirds. A caption is a name, and a name that
+              // has faded out is just a smudge over the graphics.
+              opacity: 0.66 + 0.34 * chapterEmphasis(label.group, chapter),
             }}
             className={cn(
               "absolute block whitespace-nowrap transition-opacity duration-500",
               LABEL_ALIGN[label.anchor],
             )}
           >
-            <b className="block text-[0.7rem] font-semibold tracking-wide text-ink">
+            <b className="block text-[0.78rem] leading-tight font-semibold text-ink">
               {label.label}
             </b>
-            <small className="hidden font-mono text-[0.6rem] text-ink-3 xl:block">
+            <small className="hidden font-mono text-[0.65rem] leading-tight text-ink-2 xl:block">
               {label.sub}
             </small>
           </span>
@@ -227,13 +232,29 @@ export default function SubstrateBanner({
 
       {/* Readouts, along the top, clear of the field. */}
       {/* Clear of the fixed site header, which is 4.5rem tall. */}
-      <div className="pointer-events-none absolute inset-x-0 top-[5.5rem] z-10 hidden lg:block">
+      <div className="absolute inset-x-0 top-[5.5rem] z-10 hidden lg:block">
         <div className="container-bw flex items-start justify-between gap-6">
-          <p className="flex items-center gap-2 font-mono text-[0.65rem] tracking-[0.14em] text-ink-3 uppercase">
-            <span className="size-1.5 animate-shimmer rounded-full bg-[var(--sub-own)]" />
-            Live simulation
-          </p>
-          <Meters meters={snapshot.meters} owned={snapshot.hub.owned} />
+          <div className="flex items-center gap-4">
+            <p className="pointer-events-none flex items-center gap-2 font-mono text-[0.65rem] font-medium tracking-[0.14em] text-ink-2 uppercase">
+              <span className="size-1.5 animate-shimmer rounded-full bg-[var(--sub-own)]" />
+              Live simulation
+            </p>
+
+            <button
+              type="button"
+              onClick={onOpenDemo}
+              className="flex items-center gap-2 rounded-md border border-line bg-surface/70 px-3 py-1.5 text-xs font-medium text-ink-2 backdrop-blur-sm transition-colors hover:border-accent/60 hover:text-ink"
+            >
+              Open the full console
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden className="size-3.5">
+                <path d="M14 3.75a.75.75 0 0 1 .75-.75h5.5a.75.75 0 0 1 .75.75v5.5a.75.75 0 0 1-1.5 0V5.56l-6.72 6.72a.75.75 0 1 1-1.06-1.06L18.44 4.5h-3.69a.75.75 0 0 1-.75-.75ZM5 6.5a.5.5 0 0 0-.5.5v12a.5.5 0 0 0 .5.5h12a.5.5 0 0 0 .5-.5v-5a.75.75 0 0 1 1.5 0v5A2 2 0 0 1 17 21H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h5a.75.75 0 0 1 0 1.5H5Z" />
+              </svg>
+            </button>
+          </div>
+
+          <div className="pointer-events-none">
+            <Meters meters={snapshot.meters} owned={snapshot.hub.owned} />
+          </div>
         </div>
       </div>
 
