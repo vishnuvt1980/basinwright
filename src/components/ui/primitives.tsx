@@ -1,8 +1,6 @@
 import Link from "next/link";
 import type { ComponentProps, ReactNode } from "react";
 
-import { ArrowRight } from "lucide-react";
-
 export function cn(...parts: (string | false | null | undefined)[]) {
   return parts.filter(Boolean).join(" ");
 }
@@ -11,10 +9,11 @@ export function cn(...parts: (string | false | null | undefined)[]) {
 /* Section chrome                                                             */
 /* -------------------------------------------------------------------------- */
 
+/// Microsoft labels a section with plain semibold text in the link blue — no
+/// wide-tracked uppercase, no leading hairline. Both of those read as template.
 export function Eyebrow({ children }: { children: ReactNode }) {
   return (
-    <span className="inline-flex items-center gap-2.5 text-[0.7rem] font-medium uppercase tracking-[0.22em] text-brass-400">
-      <span className="h-px w-7 bg-brass-500/70" />
+    <span className="inline-flex items-center text-[0.9375rem] font-semibold text-accent">
       {children}
     </span>
   );
@@ -42,13 +41,15 @@ export function SectionHeading({
       )}
     >
       {eyebrow ? <Eyebrow>{eyebrow}</Eyebrow> : null}
+      {/* microsoft.com sets its section headings at 40px/48px — nowhere near
+          the 3.4rem the old display serif ran at. */}
       {title ? (
-        <h2 className="max-w-3xl text-balance font-display text-4xl leading-[1.1] text-parchment-50 sm:text-5xl lg:text-[3.4rem]">
+        <h2 className="max-w-3xl font-display text-[2rem] leading-[1.2] text-balance text-ink sm:text-[2.5rem]">
           {title}
         </h2>
       ) : null}
       {subtitle ? (
-        <p className="max-w-2xl text-pretty text-base leading-relaxed text-basin-300 sm:text-lg">
+        <p className="max-w-2xl text-base leading-6 text-pretty text-ink-2 sm:text-lg sm:leading-7">
           {subtitle}
         </p>
       ) : null}
@@ -60,16 +61,17 @@ export function SectionHeading({
 /* Buttons                                                                    */
 /* -------------------------------------------------------------------------- */
 
+// Fluent buttons: a flat fill, 8px corner, semibold 15px label, and nothing
+// else — no gradient, no inset highlight, no coloured glow.
 const buttonBase =
-  "group relative inline-flex items-center justify-center gap-2 rounded-full text-sm font-medium transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-50";
+  "group relative inline-flex items-center justify-center gap-2 rounded-lg text-[0.9375rem] font-semibold transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-50";
 
 const variants = {
   primary:
-    "bg-linear-to-b from-brass-300 to-brass-500 px-6 py-3 text-basin-950 shadow-[0_1px_0_rgba(255,255,255,0.35)_inset,0_10px_30px_-12px_rgba(201,162,39,0.8)] hover:from-brass-200 hover:to-brass-400 hover:shadow-[0_1px_0_rgba(255,255,255,0.45)_inset,0_16px_40px_-12px_rgba(201,162,39,0.95)]",
+    "bg-accent px-4 py-2.5 text-on-accent hover:bg-accent-strong",
   secondary:
-    "border border-basin-600 bg-basin-850/60 px-6 py-3 text-parchment-100 backdrop-blur-sm hover:border-brass-600/70 hover:bg-basin-800/80 hover:text-brass-200",
-  ghost:
-    "px-4 py-2 text-basin-300 hover:text-brass-300",
+    "border border-ink bg-transparent px-4 py-2.5 text-ink hover:bg-raised",
+  ghost: "px-3 py-2 text-accent hover:underline",
 } as const;
 
 export function Button({
@@ -104,11 +106,14 @@ export function ButtonLink({
     >
       {children}
       {withArrow ? (
-        <ArrowRight
-          className="size-4 transition-transform duration-300 group-hover:translate-x-1"
-          strokeWidth={2}
+        <svg
+          viewBox="0 0 24 24"
+          fill="currentColor"
           aria-hidden
-        />
+          className="size-4 transition-transform duration-300 group-hover:translate-x-1"
+        >
+          <path d="M13.47 4.22a.75.75 0 0 0 0 1.06l5.97 5.97H3.75a.75.75 0 0 0 0 1.5h15.69l-5.97 5.97a.75.75 0 1 0 1.06 1.06l7.25-7.25a.75.75 0 0 0 0-1.06l-7.25-7.25a.75.75 0 0 0-1.06 0Z" />
+        </svg>
       ) : null}
     </Link>
   );
@@ -118,40 +123,18 @@ export function ButtonLink({
 /* Accents                                                                    */
 /* -------------------------------------------------------------------------- */
 
+/// Accent classes used by cards that carry a CMS `accent` value. Colours come
+/// from the tone variables so they flip with the theme.
 export const ACCENTS = {
-  brass: {
-    text: "text-brass-400",
-    ring: "group-hover:border-brass-500/50",
-    glow: "group-hover:shadow-[0_24px_70px_-40px_rgba(201,162,39,0.9)]",
-    chip: "bg-brass-500/12 text-brass-300 border-brass-600/40",
-    bar: "from-brass-400/80",
-  },
-  verdigris: {
-    text: "text-verdigris-300",
-    ring: "group-hover:border-verdigris-500/50",
-    glow: "group-hover:shadow-[0_24px_70px_-40px_rgba(63,125,114,0.95)]",
-    chip: "bg-verdigris-500/12 text-verdigris-300 border-verdigris-500/40",
-    bar: "from-verdigris-400/80",
-  },
-  ember: {
-    text: "text-ember-300",
-    ring: "group-hover:border-ember-500/50",
-    glow: "group-hover:shadow-[0_24px_70px_-40px_rgba(184,115,51,0.95)]",
-    chip: "bg-ember-500/12 text-ember-300 border-ember-500/40",
-    bar: "from-ember-400/80",
-  },
-  slate: {
-    text: "text-basin-300",
-    ring: "group-hover:border-basin-400/60",
-    glow: "group-hover:shadow-[0_24px_70px_-40px_rgba(148,156,168,0.6)]",
-    chip: "bg-basin-500/15 text-basin-300 border-basin-500/50",
-    bar: "from-basin-300/70",
-  },
+  brass: { tone: "brass", text: "text-accent" },
+  verdigris: { tone: "teal", text: "text-[var(--tone)]" },
+  ember: { tone: "amber", text: "text-[var(--tone)]" },
+  slate: { tone: "azure", text: "text-[var(--tone)]" },
 } as const;
 
 export type AccentName = keyof typeof ACCENTS;
 
-export function accent(name?: string | null): (typeof ACCENTS)[AccentName] {
+export function accent(name?: string | null) {
   return ACCENTS[(name as AccentName) ?? "brass"] ?? ACCENTS.brass;
 }
 
@@ -173,7 +156,7 @@ export function Chip({
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-full border border-basin-600/70 bg-basin-800/60 px-3 py-1 text-xs text-basin-300 transition-colors",
+        "inline-flex items-center rounded-md border border-line bg-raised px-3 py-1 text-xs text-ink-2 transition-colors",
         className,
       )}
     >

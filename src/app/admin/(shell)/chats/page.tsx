@@ -20,14 +20,14 @@ export default async function ChatsPage() {
   return (
     <>
       <header>
-        <h1 className="font-display text-3xl text-parchment-50">Conversations</h1>
-        <p className="mt-2 text-sm text-basin-400">
+        <h1 className="font-display text-3xl text-ink">Conversations</h1>
+        <p className="mt-2 text-sm text-ink-3">
           What visitors are asking the assistant — useful for finding content gaps.
         </p>
       </header>
 
       {conversations.length === 0 ? (
-        <p className="mt-9 rounded-xl border border-dashed border-basin-700 px-5 py-14 text-center text-sm text-basin-500">
+        <p className="mt-9 rounded-xl border border-dashed border-line px-5 py-14 text-center text-sm text-ink-3">
           No conversations yet.
         </p>
       ) : (
@@ -35,15 +35,15 @@ export default async function ChatsPage() {
           {conversations.map((conversation) => (
             <li
               key={conversation.id}
-              className="rounded-xl border border-basin-700/70 bg-basin-900/60 p-5"
+              className="rounded-xl border border-line bg-surface/60 p-5"
             >
-              <div className="flex items-center justify-between gap-4 border-b border-basin-800 pb-3">
-                <span className="font-mono text-xs text-basin-500">
+              <div className="flex items-center justify-between gap-4 border-b border-line pb-3">
+                <span className="font-mono text-xs text-ink-3">
                   {conversation.id.slice(-8)}
                 </span>
                 <time
                   dateTime={conversation.createdAt.toISOString()}
-                  className="text-xs text-basin-500"
+                  className="text-xs text-ink-3"
                 >
                   {formatter.format(conversation.createdAt)}
                 </time>
@@ -55,8 +55,8 @@ export default async function ChatsPage() {
                     key={message.id}
                     className={`max-w-[85%] rounded-xl px-3.5 py-2.5 text-sm leading-relaxed whitespace-pre-wrap ${
                       message.role === "user"
-                        ? "self-end bg-brass-500/12 text-parchment-100"
-                        : "self-start bg-basin-800/80 text-basin-200"
+                        ? "self-end bg-accent/12 text-ink"
+                        : "self-start bg-raised text-ink-2"
                     }`}
                   >
                     {message.content}

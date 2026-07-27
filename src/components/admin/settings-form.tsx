@@ -25,9 +25,9 @@ export function SettingsForm({
       {groups.map(([group, settings]) => (
         <section
           key={group}
-          className="rounded-2xl border border-basin-700/70 bg-basin-900/50 p-6"
+          className="rounded-2xl border border-line bg-surface/50 p-6"
         >
-          <h2 className="mb-6 text-sm font-medium tracking-wide text-basin-300 uppercase">
+          <h2 className="mb-6 text-sm font-medium tracking-wide text-ink-2 uppercase">
             {group}
           </h2>
 

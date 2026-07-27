@@ -2,7 +2,6 @@
 
 import { useActionState, useState } from "react";
 import type { Entry } from "@prisma/client";
-import { ChevronDown, MoveDown, MoveUp, Trash2 } from "lucide-react";
 
 import {
   deleteEntry,
@@ -19,10 +18,13 @@ import {
   TextField,
   Toggle,
 } from "@/components/admin/fields";
-import { Icon } from "@/components/icon";
+import { Icon, IconTile } from "@/components/icon";
 import { cn } from "@/components/ui/primitives";
 
 const initialState: ActionState = { status: "idle" };
+
+const iconButton =
+  "inline-flex size-8 items-center justify-center rounded-lg text-ink-3 transition-colors hover:bg-raised hover:text-ink disabled:opacity-25";
 
 export function EntryForm({
   entry,
@@ -37,9 +39,9 @@ export function EntryForm({
   const [state, formAction] = useActionState(updateEntry, initialState);
 
   return (
-    <li className="rounded-xl border border-basin-700/70 bg-basin-900/60">
+    <li className="rounded-xl border border-line bg-surface/60">
       <div className="flex items-center gap-3 p-3 pl-4">
-        <Icon name={entry.icon} className="size-4 shrink-0 text-brass-500" />
+        <IconTile name={entry.icon} size="sm" />
 
         <button
           type="button"
@@ -47,15 +49,15 @@ export function EntryForm({
           className="min-w-0 flex-1 text-left"
           aria-expanded={open}
         >
-          <p className="truncate text-sm text-parchment-100">{entry.title}</p>
+          <p className="truncate text-sm text-ink">{entry.title}</p>
           {entry.subtitle ? (
-            <p className="truncate text-xs text-basin-500">{entry.subtitle}</p>
+            <p className="truncate text-xs text-ink-3">{entry.subtitle}</p>
           ) : null}
         </button>
 
         <div className="flex shrink-0 items-center gap-1">
           {!entry.visible ? (
-            <span className="mr-1 text-[0.65rem] uppercase tracking-wider text-basin-600">
+            <span className="mr-1 text-[0.65rem] uppercase tracking-wider text-ink-3">
               hidden
             </span>
           ) : null}
@@ -67,9 +69,9 @@ export function EntryForm({
               type="submit"
               disabled={index === 0}
               aria-label="Move up"
-              className="inline-flex size-8 items-center justify-center rounded-lg text-basin-400 hover:bg-basin-800 hover:text-parchment-100 disabled:opacity-25"
+              className={iconButton}
             >
-              <MoveUp className="size-3.5" />
+              <Icon name="ArrowUp" className="size-3.5" />
             </button>
           </form>
 
@@ -80,9 +82,9 @@ export function EntryForm({
               type="submit"
               disabled={index === total - 1}
               aria-label="Move down"
-              className="inline-flex size-8 items-center justify-center rounded-lg text-basin-400 hover:bg-basin-800 hover:text-parchment-100 disabled:opacity-25"
+              className={iconButton}
             >
-              <MoveDown className="size-3.5" />
+              <Icon name="ArrowDown" className="size-3.5" />
             </button>
           </form>
 
@@ -90,9 +92,10 @@ export function EntryForm({
             type="button"
             onClick={() => setOpen((v) => !v)}
             aria-label={open ? "Collapse" : "Expand"}
-            className="inline-flex size-8 items-center justify-center rounded-lg text-basin-400 hover:bg-basin-800 hover:text-parchment-100"
+            className={iconButton}
           >
-            <ChevronDown
+            <Icon
+              name="ChevronDown"
               className={cn("size-4 transition-transform", open && "rotate-180")}
             />
           </button>
@@ -100,7 +103,7 @@ export function EntryForm({
       </div>
 
       {open ? (
-        <div className="border-t border-basin-800 p-4">
+        <div className="border-t border-line p-4">
           <form action={formAction} className="flex flex-col gap-4">
             <input type="hidden" name="id" value={entry.id} />
 
@@ -140,13 +143,14 @@ export function EntryForm({
           </form>
 
           {/* Kept outside the edit form — nested forms are invalid HTML. */}
-          <form action={deleteEntry} className="mt-3 border-t border-basin-800 pt-3">
+          <form action={deleteEntry} className="mt-3 border-t border-line pt-3">
             <input type="hidden" name="id" value={entry.id} />
             <button
               type="submit"
-              className="inline-flex items-center gap-2 rounded-full border border-ember-500/30 px-4 py-2 text-xs text-ember-300 transition-colors hover:bg-ember-500/10"
+              data-tone="ember"
+              className="inline-flex items-center gap-2 rounded-full border border-[color-mix(in_oklab,var(--tone)_35%,transparent)] px-4 py-2 text-xs text-[var(--tone)] transition-colors hover:bg-[color-mix(in_oklab,var(--tone)_12%,transparent)]"
             >
-              <Trash2 className="size-3.5" />
+              <Icon name="Trash" className="size-3.5" />
               Delete item
             </button>
           </form>

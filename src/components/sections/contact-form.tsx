@@ -2,15 +2,14 @@
 
 import { useActionState } from "react";
 import { motion } from "motion/react";
-import { Check, Loader2 } from "lucide-react";
-
 import { submitLead, type LeadState } from "@/app/actions/leads";
+import { Icon } from "@/components/icon";
 import { Button, cn } from "@/components/ui/primitives";
 
 const initialState: LeadState = { status: "idle" };
 
 const fieldClass =
-  "w-full rounded-xl border border-basin-600/70 bg-basin-900/70 px-4 py-3 text-sm text-parchment-100 placeholder:text-basin-500 transition-colors focus:border-brass-500/70 focus:outline-none";
+  "w-full rounded-xl border border-line-strong bg-surface/70 px-4 py-3 text-sm text-ink placeholder:text-ink-3 transition-colors focus:border-accent/70 focus:outline-none";
 
 function Field({
   label,
@@ -20,16 +19,21 @@ function Field({
 }: React.ComponentProps<"input"> & { label: string; error?: string }) {
   return (
     <label className="flex flex-col gap-2">
-      <span className="text-xs uppercase tracking-[0.14em] text-basin-400">
+      <span className="text-xs uppercase tracking-[0.14em] text-ink-3">
         {label}
       </span>
       <input
         name={name}
-        className={cn(fieldClass, error && "border-ember-400/70")}
+        data-tone={error ? "ember" : undefined}
+        className={cn(fieldClass, error && "border-[var(--tone)]")}
         aria-invalid={Boolean(error)}
         {...props}
       />
-      {error ? <span className="text-xs text-ember-300">{error}</span> : null}
+      {error ? (
+        <span data-tone="ember" className="text-xs text-[var(--tone)]">
+          {error}
+        </span>
+      ) : null}
     </label>
   );
 }
@@ -46,11 +50,14 @@ export function ContactForm() {
         className="panel flex flex-col items-center gap-4 p-12 text-center"
         role="status"
       >
-        <span className="inline-flex size-14 items-center justify-center rounded-full border border-verdigris-500/50 bg-verdigris-500/10">
-          <Check className="size-7 text-verdigris-300" strokeWidth={2} aria-hidden />
+        <span
+          data-tone="green"
+          className="inline-flex size-14 items-center justify-center rounded-full border border-[color-mix(in_oklab,var(--tone)_45%,transparent)] bg-[color-mix(in_oklab,var(--tone)_12%,transparent)] text-[var(--tone)]"
+        >
+          <Icon name="Check" className="size-7" />
         </span>
-        <h3 className="font-display text-2xl text-parchment-50">Request received</h3>
-        <p className="max-w-sm text-sm leading-relaxed text-basin-300">
+        <h3 className="font-display text-2xl text-ink">Request received</h3>
+        <p className="max-w-sm text-sm leading-relaxed text-ink-2">
           {state.message}
         </p>
       </motion.div>
@@ -104,7 +111,7 @@ export function ContactForm() {
       </div>
 
       <label className="flex flex-col gap-2">
-        <span className="text-xs uppercase tracking-[0.14em] text-basin-400">
+        <span className="text-xs uppercase tracking-[0.14em] text-ink-3">
           What are you building?
         </span>
         <textarea
@@ -116,7 +123,7 @@ export function ContactForm() {
       </label>
 
       {state.status === "error" && state.message ? (
-        <p className="text-sm text-ember-300" role="alert">
+        <p data-tone="ember" className="text-sm text-[var(--tone)]" role="alert">
           {state.message}
         </p>
       ) : null}
@@ -124,7 +131,7 @@ export function ContactForm() {
       <Button type="submit" disabled={pending} className="mt-1 w-full py-3.5">
         {pending ? (
           <>
-            <Loader2 className="size-4 animate-spin" aria-hidden />
+            <Icon name="Spinner" className="size-4 animate-spin" />
             Sending…
           </>
         ) : (
@@ -132,7 +139,7 @@ export function ContactForm() {
         )}
       </Button>
 
-      <p className="text-center text-xs text-basin-500">
+      <p className="text-center text-xs text-ink-3">
         We reply within one business day. No sales sequences.
       </p>
     </form>

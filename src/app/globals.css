@@ -1,87 +1,246 @@
 @import "tailwindcss";
 
 /* ==========================================================================
-   BasinWright design tokens
-   Palette drawn from the brand image: machined brass on charcoal marble,
-   parchment contour maps, oxidised verdigris inlay.
+   BasinWright design system — Microsoft / Fluent design language
+
+   Values below are taken from microsoft.com and the Fluent 2 neutral + brand
+   ramps rather than invented, so the site reads as part of that family:
+
+     ink        #0e1726   headings on microsoft.com
+     body ink   #17253d   marketing paragraphs
+     muted      #616161   secondary links and captions
+     brand      #0078d4   Fluent communication blue (primary action)
+     link       #0067b8   microsoft.com CTA / link blue
+     radius     8px       buttons and cards; 4px for inputs; 0 for chrome
+     type       Segoe UI Variable — Display for headings, Text for body
+
+   Two themes come off one set of semantic tokens. Components reference the
+   semantic names (canvas / surface / ink / line / accent) rather than the raw
+   palette, so both themes stay in sync by construction.
    ========================================================================== */
 
-@theme {
-  /* Ground — charcoal marble */
-  --color-basin-950: #08090b;
-  --color-basin-900: #0d0f12;
-  --color-basin-850: #121519;
-  --color-basin-800: #171b20;
-  --color-basin-700: #21262d;
-  --color-basin-600: #2f363f;
-  --color-basin-500: #454e59;
-  --color-basin-400: #6b7480;
-  --color-basin-300: #949ca8;
+/* --- Raw palette (theme-independent hues) -------------------------------- */
 
-  /* Brass — the compass, the rails, the primary accent */
-  --color-brass-50: #fdf9ed;
-  --color-brass-100: #f8eec9;
-  --color-brass-200: #f0dd9c;
-  --color-brass-300: #e5c66a;
-  --color-brass-400: #d9ae43;
-  --color-brass-500: #c9a227;
-  --color-brass-600: #a8811d;
-  --color-brass-700: #7f611a;
-  --color-brass-800: #5b451a;
-  --color-brass-900: #3b2d14;
+@theme static {
+  /* Communication blue — the Fluent primary ramp */
+  --color-brand-50: #eff6fc;
+  --color-brand-100: #deecf9;
+  --color-brand-200: #c7e0f4;
+  --color-brand-300: #a9d3f2;
+  --color-brand-400: #6cb8f6;
+  --color-brand-500: #2899f5;
+  --color-brand-600: #0078d4;
+  --color-brand-700: #0067b8;
+  --color-brand-800: #005a9e;
+  --color-brand-900: #004578;
 
-  /* Parchment — the contour map substrate */
-  --color-parchment-50: #fbf7ef;
-  --color-parchment-100: #f4ecdb;
-  --color-parchment-200: #e9dcc0;
-  --color-parchment-300: #d9c69d;
-  --color-parchment-400: #c2a97a;
+  /* Neutral shades — the blue-cast near-blacks microsoft.com uses for ink
+     and for its dark marketing bands. */
+  --color-shade-950: #080d16;
+  --color-shade-900: #0e1726;
+  --color-shade-850: #17253d;
+  --color-shade-800: #1f3050;
+  --color-shade-700: #2a3a54;
+  --color-shade-600: #3c4f6d;
+  --color-shade-500: #616161;
+  --color-shade-400: #8a8886;
+  --color-shade-300: #a19f9d;
 
-  /* Verdigris — oxidised copper inlay */
-  --color-verdigris-300: #7fbdb1;
-  --color-verdigris-400: #5b9c90;
-  --color-verdigris-500: #3f7d72;
-  --color-verdigris-600: #2f6058;
+  /* Neutral tints — Fluent's light greys */
+  --color-tint-50: #ffffff;
+  --color-tint-100: #faf9f8;
+  --color-tint-200: #f3f2f1;
+  --color-tint-300: #edebe9;
+  --color-tint-400: #e1dfdd;
+  --color-tint-500: #c8c6c4;
 
-  /* Ember — warm copper */
-  --color-ember-300: #e0a06a;
-  --color-ember-400: #cf8348;
-  --color-ember-500: #b87333;
+  /* Fluent shared colours, used for icon tones and status */
+  --color-teal-500: #038387;
+  --color-green-500: #107c10;
+  --color-amber-500: #b8500f;
+  --color-ember-500: #a4262c;
+}
 
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-display), ui-serif, Georgia, serif;
-  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+/* --- Semantic tokens, wired to the theme-flipping variables -------------- */
 
-  --radius-panel: 1.25rem;
+@theme inline {
+  --color-canvas: var(--bw-canvas);
+  --color-surface: var(--bw-surface);
+  --color-raised: var(--bw-raised);
+  --color-line: var(--bw-line);
+  --color-line-strong: var(--bw-line-strong);
+  --color-ink: var(--bw-ink);
+  --color-ink-2: var(--bw-ink-2);
+  --color-ink-3: var(--bw-ink-3);
+  --color-accent: var(--bw-accent);
+  --color-accent-strong: var(--bw-accent-strong);
+  --color-on-accent: var(--bw-on-accent);
+
+  --font-sans: var(--bw-font-sans);
+  --font-display: var(--bw-font-display);
+  --font-mono: ui-monospace, "Cascadia Code", "SF Mono", Consolas, monospace;
+
+  /* Fluent's radius scale. Tailwind's defaults are far rounder than anything
+     Microsoft ships, so the whole scale is pinned here: every rounded-lg /
+     -xl / -2xl already in the markup lands on Fluent's 8px card corner. */
+  --radius-xs: 2px;
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 8px;
+  --radius-xl: 8px;
+  --radius-2xl: 8px;
+  --radius-3xl: 12px;
+  --radius-4xl: 12px;
+  --radius-panel: 8px;
 
   --animate-marquee: marquee 46s linear infinite;
   --animate-shimmer: shimmer 2.4s ease-in-out infinite;
-  --animate-float: float 7s ease-in-out infinite;
 }
 
-@keyframes marquee {
-  from { transform: translateX(0); }
-  to   { transform: translateX(-50%); }
+/* --- Theme definitions --------------------------------------------------- */
+
+:root {
+  /* Segoe UI Variable is licensed with Windows and cannot be self-hosted, so
+     we ask for it where it exists and fall back to each platform's native UI
+     face. This is the exact stack microsoft.com serves. Display is the optical
+     size cut for headings; Text is the one for body copy. */
+  --bw-font-sans:
+    "Segoe UI Variable Text", "Segoe UI", segoeui, system-ui, -apple-system,
+    BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --bw-font-display:
+    "Segoe UI Variable Display", "Segoe UI", segoeui, system-ui, -apple-system,
+    BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
+
+  /* Decorative texture is off: Microsoft's surfaces are flat and unadorned.
+     The `grain` and `topo` utilities read these, so both go quiet at zero. */
+  --bw-grain: 0;
+  --bw-topo-alpha: 0%;
 }
 
-@keyframes shimmer {
-  0%, 100% { opacity: 0.35; }
-  50%      { opacity: 1; }
+/* Light — Microsoft's default, and the default when JS has not run. */
+:root,
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --bw-canvas: #ffffff;
+  --bw-surface: #ffffff;
+  --bw-raised: #f3f2f1;
+  --bw-line: #e1dfdd;
+  --bw-line-strong: #c8c6c4;
+  --bw-ink: #0e1726;
+  --bw-ink-2: #4a5260;
+  --bw-ink-3: #616161;
+  --bw-accent: #0067b8;
+  --bw-accent-strong: #005a9e;
+  --bw-on-accent: #ffffff;
+
+  /* Fluent elevation 8 — a soft ambient drop, never a coloured glow. */
+  --bw-shadow-panel: 0 3.2px 7.2px rgb(0 0 0 / 0.13), 0 0.6px 1.8px rgb(0 0 0 / 0.11);
 }
 
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50%      { transform: translateY(-10px); }
+/* Dark — matches the near-black bands microsoft.com uses for hero panels.
+   Actions invert to a light blue with dark text, which is how Fluent keeps
+   contrast on dark surfaces. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bw-canvas: #0e1726;
+  --bw-surface: #17253d;
+  --bw-raised: #1f3050;
+  --bw-line: #2a3a54;
+  --bw-line-strong: #3c4f6d;
+  --bw-ink: #ffffff;
+  --bw-ink-2: #c8d0dc;
+  --bw-ink-3: #97a3b5;
+  --bw-accent: #6cb8f6;
+  --bw-accent-strong: #a9d3f2;
+  --bw-on-accent: #0e1726;
+
+  --bw-shadow-panel: 0 3.2px 7.2px rgb(0 0 0 / 0.5), 0 0.6px 1.8px rgb(0 0 0 / 0.4);
+}
+
+/* No-JS fallback: honour the OS preference when no theme has been stamped. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    color-scheme: dark;
+
+    --bw-canvas: #0e1726;
+    --bw-surface: #17253d;
+    --bw-raised: #1f3050;
+    --bw-line: #2a3a54;
+    --bw-line-strong: #3c4f6d;
+    --bw-ink: #ffffff;
+    --bw-ink-2: #c8d0dc;
+    --bw-ink-3: #97a3b5;
+    --bw-accent: #6cb8f6;
+    --bw-accent-strong: #a9d3f2;
+    --bw-on-accent: #0e1726;
+
+    --bw-shadow-panel: 0 3.2px 7.2px rgb(0 0 0 / 0.5), 0 0.6px 1.8px rgb(0 0 0 / 0.4);
+  }
+}
+
+/* --- Icon tones ----------------------------------------------------------
+   Fluent System Icons are monochrome. Each icon is assigned a tone; the tile
+   derives its tint and ring from that single hue via color-mix, so adding a
+   tone means adding one line per theme. Hues are Fluent's shared colour ramp.
+   ------------------------------------------------------------------------- */
+
+[data-tone="azure"]   { --tone: #0078d4; }
+[data-tone="teal"]    { --tone: #038387; }
+[data-tone="green"]   { --tone: #107c10; }
+[data-tone="brass"]   { --tone: #0067b8; }
+[data-tone="amber"]   { --tone: #b8500f; }
+[data-tone="ember"]   { --tone: #a4262c; }
+[data-tone="berry"]   { --tone: #8764b8; }
+[data-tone="purple"]  { --tone: #5c2e91; }
+
+/* Dark surfaces need the lighter end of each Fluent ramp to hold contrast. */
+:root[data-theme="dark"] [data-tone="azure"]  { --tone: #6cb8f6; }
+:root[data-theme="dark"] [data-tone="teal"]   { --tone: #4fd2d2; }
+:root[data-theme="dark"] [data-tone="green"]  { --tone: #6bb700; }
+:root[data-theme="dark"] [data-tone="brass"]  { --tone: #a9d3f2; }
+:root[data-theme="dark"] [data-tone="amber"]  { --tone: #ff8c00; }
+:root[data-theme="dark"] [data-tone="ember"]  { --tone: #f1707b; }
+:root[data-theme="dark"] [data-tone="berry"]  { --tone: #c8a9ea; }
+:root[data-theme="dark"] [data-tone="purple"] { --tone: #b4a0ff; }
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) [data-tone="azure"]  { --tone: #6cb8f6; }
+  :root:not([data-theme]) [data-tone="teal"]   { --tone: #4fd2d2; }
+  :root:not([data-theme]) [data-tone="green"]  { --tone: #6bb700; }
+  :root:not([data-theme]) [data-tone="brass"]  { --tone: #a9d3f2; }
+  :root:not([data-theme]) [data-tone="amber"]  { --tone: #ff8c00; }
+  :root:not([data-theme]) [data-tone="ember"]  { --tone: #f1707b; }
+  :root:not([data-theme]) [data-tone="berry"]  { --tone: #c8a9ea; }
+  :root:not([data-theme]) [data-tone="purple"] { --tone: #b4a0ff; }
+}
+
+/* --- Cognitive substrate -------------------------------------------------
+   The instrument is a permanently dark surface in both themes — it is an
+   instrument, not a page region — so its accents come from the bright end of
+   each ramp rather than from the theme tokens, which would sink into the
+   background on a light page.
+
+   These mirror `INK` in src/components/webgl/substrate/topology.ts one for
+   one. The canvas accumulates those values in HDR and tone-maps them; these
+   are the same hues at display brightness, so a legend swatch and the records
+   it names read as the same colour. Change one, change both.
+   ------------------------------------------------------------------------- */
+
+[data-substrate] {
+  --sub-raw: #8a95a8;
+  --sub-context: #6cb8f6;
+  --sub-ground: #8c9bff;
+  --sub-verify: #40e0c0;
+  --sub-explain: #ffab47;
+  --sub-decided: #d2ecff;
+  --sub-reject: #ff707b;
 }
 
 /* ==========================================================================
    Base
    ========================================================================== */
-
-:root {
-  color-scheme: dark;
-  --grain-opacity: 0.035;
-}
 
 html {
   scroll-behavior: smooth;
@@ -90,33 +249,51 @@ html {
 }
 
 body {
-  background-color: var(--color-basin-950);
-  color: var(--color-parchment-100);
-  font-family: var(--font-sans);
+  background-color: var(--bw-canvas);
+  color: var(--bw-ink);
+  font-family: var(--bw-font-sans);
+  /* microsoft.com sets -0.48px on 16px body copy. The negative tracking is a
+     large part of why their text reads as theirs; keep it proportional. */
+  letter-spacing: -0.02em;
   overflow-x: clip;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Segoe UI Variable Display is the heading cut, set semibold and tighter.
+   microsoft.com runs its 40px H1 at weight 500 / -1px and its 18px card
+   headings at 600 / -0.45px — both land near -0.025em.
+
+   These sit in @layer base deliberately: unlayered rules outrank every
+   Tailwind utility, so a `font-normal` or `font-sans` class on a heading
+   would silently lose to them. */
+@layer base {
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--bw-font-display);
+    font-weight: 600;
+    letter-spacing: -0.025em;
+  }
 }
 
 ::selection {
-  background: color-mix(in oklab, var(--color-brass-500) 40%, transparent);
-  color: var(--color-parchment-50);
+  background: color-mix(in oklab, var(--bw-accent) 28%, transparent);
+  color: var(--bw-ink);
 }
 
-/* Focus ring that stays legible on both charcoal and parchment. */
+/* Fluent's focus indicator is a hard two-tone rectangle, not a soft ring. */
 :focus-visible {
-  outline: 2px solid var(--color-brass-400);
-  outline-offset: 3px;
-  border-radius: 4px;
+  outline: 2px solid var(--bw-ink);
+  outline-offset: 2px;
+  border-radius: 2px;
 }
 
-/* Custom scrollbar — subtle, matches the brass rails. */
-::-webkit-scrollbar { width: 11px; height: 11px; }
-::-webkit-scrollbar-track { background: var(--color-basin-900); }
+::-webkit-scrollbar { width: 12px; height: 12px; }
+::-webkit-scrollbar-track { background: var(--bw-canvas); }
 ::-webkit-scrollbar-thumb {
-  background: var(--color-basin-600);
+  background: var(--bw-line-strong);
   border-radius: 99px;
-  border: 3px solid var(--color-basin-900);
+  border: 3px solid var(--bw-canvas);
 }
-::-webkit-scrollbar-thumb:hover { background: var(--color-brass-700); }
+::-webkit-scrollbar-thumb:hover { background: var(--bw-ink-3); }
 
 /* ==========================================================================
    Utilities
@@ -129,52 +306,42 @@ body {
   max-width: 82rem;
 }
 
-/* Brass gradient text for headline accents. */
+/* Emphasis in a Microsoft headline is a flat colour change, never a gradient
+   fill. Kept under the old name so existing markup needs no edit. */
 @utility text-brass-gradient {
-  background-image: linear-gradient(
-    100deg,
-    var(--color-brass-200) 0%,
-    var(--color-brass-400) 32%,
-    var(--color-parchment-100) 50%,
-    var(--color-brass-400) 68%,
-    var(--color-brass-600) 100%
-  );
-  background-clip: text;
-  -webkit-background-clip: text;
-  color: transparent;
+  color: var(--bw-accent);
+  background-image: none;
+  background-clip: border-box;
+  -webkit-background-clip: border-box;
 }
 
-/* Hairline that fades at both ends, like an inlaid rail. */
 @utility rule-fade {
-  background-image: linear-gradient(
-    90deg,
-    transparent,
-    color-mix(in oklab, var(--color-brass-500) 45%, transparent),
-    transparent
-  );
+  background-color: var(--bw-line);
+  background-image: none;
 }
 
-/* Frosted panel used across cards. */
+/* Fluent card: opaque surface, hairline stroke, no blur, no translucency. */
 @utility panel {
-  background: color-mix(in oklab, var(--color-basin-850) 78%, transparent);
-  border: 1px solid color-mix(in oklab, var(--color-basin-600) 70%, transparent);
-  backdrop-filter: blur(14px);
+  background: var(--bw-surface);
+  border: 1px solid var(--bw-line);
   border-radius: var(--radius-panel);
 }
 
-/* Topographic contour backdrop — the basin the brand is named for. */
+/* Texture utilities are retained so existing markup keeps compiling, but both
+   render nothing: Microsoft's surfaces carry no grain and no contour wash.
+   `--bw-topo-alpha` and `--bw-grain` are pinned to zero above; setting either
+   to a non-zero value brings the old texture back. */
 @utility topo {
   background-image:
     repeating-radial-gradient(
       ellipse 62% 44% at 50% 46%,
-      color-mix(in oklab, var(--color-brass-500) 11%, transparent) 0px,
-      color-mix(in oklab, var(--color-brass-500) 11%, transparent) 1px,
+      color-mix(in oklab, var(--bw-accent) var(--bw-topo-alpha), transparent) 0px,
+      color-mix(in oklab, var(--bw-accent) var(--bw-topo-alpha), transparent) 1px,
       transparent 1px,
       transparent 26px
     );
 }
 
-/* Film grain, applied via ::after on dark sections. */
 @utility grain {
   position: relative;
 
@@ -183,20 +350,73 @@ body {
     position: absolute;
     inset: 0;
     pointer-events: none;
-    opacity: var(--grain-opacity);
+    opacity: var(--bw-grain);
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
   }
 }
 
-/* Hides scrollbars on horizontal rails without losing scroll. */
+/* Icon tile — the Fluent-style tinted container. */
+@utility icon-tile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: var(--radius-md);
+  color: var(--tone, var(--bw-accent));
+  background: color-mix(in oklab, var(--tone, var(--bw-accent)) 12%, transparent);
+  box-shadow: inset 0 0 0 1px
+    color-mix(in oklab, var(--tone, var(--bw-accent)) 22%, transparent);
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+
 @utility no-scrollbar {
   scrollbar-width: none;
   &::-webkit-scrollbar { display: none; }
 }
 
+/* Platform topology — the SVG fallback dims to match the active rail item.
+   Driven by a data attribute rather than props, so the diagram stays a server
+   component inside the client stage and degrades to "everything lit" when
+   JavaScript never runs.
+
+   The stage drops the attribute entirely when nothing is active, which keeps
+   both rules below at the same specificity (0,2,0). Qualifying the dim rule
+   instead — with :not(), say — would outweigh the re-light rule and grey out
+   the very layer being pointed at. */
+[data-topology-layer] {
+  transition: opacity 0.45s ease;
+}
+
+[data-topology-active] [data-topology-layer] {
+  opacity: 0.28;
+}
+
+[data-topology-active="0"] [data-topology-layer="0"],
+[data-topology-active="1"] [data-topology-layer="1"],
+[data-topology-active="2"] [data-topology-layer="2"],
+[data-topology-active="3"] [data-topology-layer="3"] {
+  opacity: 1;
+}
+
 /* ==========================================================================
    Motion preferences
    ========================================================================== */
+
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+@keyframes shimmer {
+  0%, 100% { opacity: 0.35; }
+  50%      { opacity: 1; }
+}
+
+/* Chapter copy in the substrate instrument replays this on every change, so a
+   new chapter reads as a new card rather than as text mutating in place. */
+@keyframes substrate-chapter-in {
+  from { opacity: 0; transform: translateY(6px); }
+}
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }

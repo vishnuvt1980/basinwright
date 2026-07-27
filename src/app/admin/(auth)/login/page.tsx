@@ -18,14 +18,14 @@ export default async function LoginPage({
 
       <div className="relative w-full max-w-sm">
         <div className="mb-9 flex flex-col items-center gap-3 text-center">
-          <svg viewBox="0 0 32 32" className="size-9" aria-hidden>
-            <circle cx="16" cy="16" r="13" fill="none" stroke="currentColor" strokeWidth="1.2" className="text-brass-600" />
-            <circle cx="16" cy="16" r="8.5" fill="none" stroke="currentColor" strokeWidth="0.7" className="text-brass-700" />
-            <path d="M16 3.5 L18.6 13.4 L16 16 L13.4 13.4 Z M16 28.5 L13.4 18.6 L16 16 L18.6 18.6 Z" className="fill-brass-400" />
-            <path d="M3.5 16 L13.4 13.4 L16 16 L13.4 18.6 Z M28.5 16 L18.6 18.6 L16 16 L18.6 13.4 Z" className="fill-brass-600" />
+          <svg viewBox="0 0 32 32" className="size-9 text-accent" aria-hidden>
+            <circle cx="16" cy="16" r="13" fill="none" stroke="currentColor" strokeWidth="1.2" />
+            <circle cx="16" cy="16" r="8.5" fill="none" stroke="currentColor" strokeWidth="0.7" opacity="0.6" />
+            <path d="M16 3.5 L18.6 13.4 L16 16 L13.4 13.4 Z M16 28.5 L13.4 18.6 L16 16 L18.6 18.6 Z" className="fill-accent-strong" />
+            <path d="M3.5 16 L13.4 13.4 L16 16 L13.4 18.6 Z M28.5 16 L18.6 18.6 L16 16 L18.6 13.4 Z" className="fill-accent" />
           </svg>
-          <h1 className="font-display text-2xl text-parchment-50">BasinWright CMS</h1>
-          <p className="text-sm text-basin-400">Sign in to manage site content.</p>
+          <h1 className="font-display text-2xl text-ink">BasinWright CMS</h1>
+          <p className="text-sm text-ink-3">Sign in to manage site content.</p>
         </div>
 
         <LoginForm next={next} />

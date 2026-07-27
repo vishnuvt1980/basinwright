@@ -1,14 +1,13 @@
 "use client";
 
 import { useFormStatus } from "react-dom";
-import { Loader2 } from "lucide-react";
 
-import { ICON_NAMES } from "@/components/icon";
+import { Icon, ICON_NAMES } from "@/components/icon";
 import { cn } from "@/components/ui/primitives";
 import type { ActionState } from "@/app/admin/actions";
 
 const control =
-  "w-full rounded-lg border border-basin-600/70 bg-basin-900/70 px-3.5 py-2.5 text-sm text-parchment-100 placeholder:text-basin-600 transition-colors focus:border-brass-500/70 focus:outline-none";
+  "w-full rounded-lg border border-line-strong bg-surface px-3.5 py-2.5 text-sm text-ink placeholder:text-ink-3 transition-colors focus:border-accent focus:outline-none";
 
 export function Label({
   children,
@@ -19,10 +18,10 @@ export function Label({
 }) {
   return (
     <span className="flex items-baseline justify-between gap-3">
-      <span className="text-xs uppercase tracking-[0.14em] text-basin-400">
+      <span className="text-xs uppercase tracking-[0.14em] text-ink-3">
         {children}
       </span>
-      {hint ? <span className="text-[0.7rem] text-basin-600">{hint}</span> : null}
+      {hint ? <span className="text-[0.7rem] text-ink-3">{hint}</span> : null}
     </span>
   );
 }
@@ -110,9 +109,9 @@ export function Toggle({
         type="checkbox"
         name={name}
         defaultChecked={defaultChecked}
-        className="size-4 accent-brass-500"
+        className="size-4 accent-[var(--bw-accent)]"
       />
-      <span className="text-sm text-basin-200">{label}</span>
+      <span className="text-sm text-ink-2">{label}</span>
     </label>
   );
 }
@@ -130,23 +129,24 @@ export function SubmitButton({
   const { pending } = useFormStatus();
 
   const styles = {
-    primary:
-      "bg-linear-to-b from-brass-300 to-brass-500 text-basin-950 hover:from-brass-200 hover:to-brass-400",
-    ghost: "border border-basin-600 text-basin-200 hover:border-basin-400",
-    danger: "border border-ember-500/40 text-ember-300 hover:bg-ember-500/10",
+    primary: "bg-accent text-on-accent hover:bg-accent-strong",
+    ghost: "border border-line-strong text-ink-2 hover:border-ink hover:text-ink",
+    danger:
+      "border border-[color-mix(in_oklab,var(--tone)_40%,transparent)] text-[var(--tone)] hover:bg-[color-mix(in_oklab,var(--tone)_12%,transparent)]",
   }[variant];
 
   return (
     <button
       type="submit"
       disabled={pending}
+      data-tone={variant === "danger" ? "ember" : undefined}
       className={cn(
         "inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-all disabled:opacity-50",
         styles,
         className,
       )}
     >
-      {pending ? <Loader2 className="size-4 animate-spin" aria-hidden /> : null}
+      {pending ? <Icon name="Spinner" className="size-4 animate-spin" /> : null}
       {children}
     </button>
   );
@@ -158,11 +158,10 @@ export function StatusMessage({ state }: { state: ActionState }) {
   return (
     <p
       role="status"
+      data-tone={state.status === "success" ? "green" : "ember"}
       className={cn(
-        "rounded-lg px-3.5 py-2.5 text-sm",
-        state.status === "success"
-          ? "bg-verdigris-500/10 text-verdigris-300"
-          : "bg-ember-500/10 text-ember-300",
+        "rounded-lg px-3.5 py-2.5 text-sm text-[var(--tone)]",
+        "bg-[color-mix(in_oklab,var(--tone)_12%,transparent)]",
       )}
     >
       {state.message}

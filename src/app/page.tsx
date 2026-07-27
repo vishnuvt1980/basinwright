@@ -24,7 +24,7 @@ export default async function HomePage() {
     <>
       <a
         href="#main"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-100 focus:rounded-full focus:bg-brass-400 focus:px-5 focus:py-2.5 focus:text-sm focus:text-basin-950"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-100 focus:rounded-full focus:bg-accent focus:px-5 focus:py-2.5 focus:text-sm focus:text-[var(--bw-on-accent)]"
       >
         Skip to content
       </a>

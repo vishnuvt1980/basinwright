@@ -20,8 +20,8 @@ export default async function SettingsPage() {
   return (
     <>
       <header>
-        <h1 className="font-display text-3xl text-parchment-50">Site settings</h1>
-        <p className="mt-2 text-sm text-basin-400">
+        <h1 className="font-display text-3xl text-ink">Site settings</h1>
+        <p className="mt-2 text-sm text-ink-3">
           Brand strings, footer copy, contact details and the chat assistant&rsquo;s
           persona.
         </p>

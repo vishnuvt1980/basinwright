@@ -1,15 +1,16 @@
 import Link from "next/link";
-import { ExternalLink, Inbox, LayoutList, LogOut, MessageSquare, Settings, SlidersHorizontal } from "lucide-react";
 
 import { logout } from "@/app/admin/auth-actions";
+import { Icon } from "@/components/icon";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { requireUser } from "@/lib/auth";
 
 const NAV = [
-  { href: "/admin", label: "Sections", icon: LayoutList },
-  { href: "/admin/settings", label: "Site settings", icon: Settings },
-  { href: "/admin/navigation", label: "Navigation", icon: SlidersHorizontal },
-  { href: "/admin/leads", label: "Leads", icon: Inbox },
-  { href: "/admin/chats", label: "Conversations", icon: MessageSquare },
+  { href: "/admin", label: "Sections", icon: "LayoutList" },
+  { href: "/admin/settings", label: "Site settings", icon: "Settings" },
+  { href: "/admin/navigation", label: "Navigation", icon: "SlidersHorizontal" },
+  { href: "/admin/leads", label: "Leads", icon: "Inbox" },
+  { href: "/admin/chats", label: "Conversations", icon: "MessageSquare" },
 ];
 
 export default async function AdminLayout({
@@ -22,49 +23,55 @@ export default async function AdminLayout({
 
   return (
     <div className="flex min-h-screen">
-      <aside className="hidden w-60 shrink-0 flex-col border-r border-basin-800 bg-basin-900/60 lg:flex">
-        <div className="flex h-16 items-center gap-2.5 border-b border-basin-800 px-6">
-          <svg viewBox="0 0 32 32" className="size-6" aria-hidden>
-            <circle cx="16" cy="16" r="13" fill="none" stroke="currentColor" strokeWidth="1.4" className="text-brass-600" />
-            <path d="M16 3.5 L18.6 13.4 L16 16 L13.4 13.4 Z M16 28.5 L13.4 18.6 L16 16 L18.6 18.6 Z" className="fill-brass-400" />
-            <path d="M3.5 16 L13.4 13.4 L16 16 L13.4 18.6 Z M28.5 16 L18.6 18.6 L16 16 L18.6 13.4 Z" className="fill-brass-600" />
+      <aside className="hidden w-60 shrink-0 flex-col border-r border-line bg-surface/60 lg:flex">
+        <div className="flex h-16 items-center gap-2.5 border-b border-line px-6">
+          <svg viewBox="0 0 32 32" className="size-6 text-accent" aria-hidden>
+            <circle cx="16" cy="16" r="13" fill="none" stroke="currentColor" strokeWidth="1.4" />
+            <path d="M16 3.5 L18.6 13.4 L16 16 L13.4 13.4 Z M16 28.5 L13.4 18.6 L16 16 L18.6 18.6 Z" className="fill-accent-strong" />
+            <path d="M3.5 16 L13.4 13.4 L16 16 L13.4 18.6 Z M28.5 16 L18.6 18.6 L16 16 L18.6 13.4 Z" className="fill-accent" />
           </svg>
-          <span className="font-display text-base text-parchment-50">CMS</span>
+          <span className="font-display text-base text-ink">CMS</span>
         </div>
 
         <nav className="flex flex-1 flex-col gap-1 p-3">
-          {NAV.map(({ href, label, icon: Glyph }) => (
+          {NAV.map((item) => (
             <Link
-              key={href}
-              href={href}
-              className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-basin-300 transition-colors hover:bg-basin-800 hover:text-parchment-50"
+              key={item.href}
+              href={item.href}
+              className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-ink-2 transition-colors hover:bg-raised hover:text-ink"
             >
-              <Glyph className="size-4" strokeWidth={1.6} aria-hidden />
-              {label}
+              <Icon name={item.icon} className="size-4" />
+              {item.label}
             </Link>
           ))}
 
           <Link
             href="/"
             target="_blank"
-            className="mt-2 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-basin-400 transition-colors hover:bg-basin-800 hover:text-brass-300"
+            className="mt-2 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-ink-3 transition-colors hover:bg-raised hover:text-accent"
           >
-            <ExternalLink className="size-4" strokeWidth={1.6} aria-hidden />
+            <Icon name="ExternalLink" className="size-4" />
             View site
           </Link>
         </nav>
 
-        <div className="border-t border-basin-800 p-3">
+        <div className="border-t border-line p-3">
           <div className="px-3 py-2">
-            <p className="truncate text-sm text-parchment-100">{user.name}</p>
-            <p className="truncate text-xs text-basin-500">{user.email}</p>
+            <p className="truncate text-sm text-ink">{user.name}</p>
+            <p className="truncate text-xs text-ink-3">{user.email}</p>
           </div>
+
+          <div className="px-3 pb-2">
+            <ThemeToggle />
+          </div>
+
           <form action={logout}>
             <button
               type="submit"
-              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-basin-400 transition-colors hover:bg-basin-800 hover:text-ember-300"
+              data-tone="ember"
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-ink-3 transition-colors hover:bg-raised hover:text-[var(--tone)]"
             >
-              <LogOut className="size-4" strokeWidth={1.6} aria-hidden />
+              <Icon name="LogOut" className="size-4" />
               Sign out
             </button>
           </form>
@@ -73,21 +80,26 @@ export default async function AdminLayout({
 
       <div className="min-w-0 flex-1">
         {/* Mobile nav */}
-        <div className="no-scrollbar flex gap-1 overflow-x-auto border-b border-basin-800 bg-basin-900/60 p-2 lg:hidden">
-          {NAV.map(({ href, label }) => (
+        <div className="no-scrollbar flex items-center gap-1 overflow-x-auto border-b border-line bg-surface/60 p-2 lg:hidden">
+          {NAV.map((item) => (
             <Link
-              key={href}
-              href={href}
-              className="shrink-0 rounded-lg px-3 py-2 text-sm text-basin-300 hover:bg-basin-800"
+              key={item.href}
+              href={item.href}
+              className="shrink-0 rounded-lg px-3 py-2 text-sm text-ink-2 hover:bg-raised hover:text-ink"
             >
-              {label}
+              {item.label}
             </Link>
           ))}
           <form action={logout} className="shrink-0">
-            <button type="submit" className="rounded-lg px-3 py-2 text-sm text-ember-300">
+            <button
+              type="submit"
+              data-tone="ember"
+              className="rounded-lg px-3 py-2 text-sm text-[var(--tone)]"
+            >
               Sign out
             </button>
           </form>
+          <ThemeToggle className="ml-auto shrink-0" />
         </div>
 
         <main className="mx-auto max-w-5xl px-6 py-10">{children}</main>

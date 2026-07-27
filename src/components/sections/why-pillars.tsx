@@ -3,8 +3,8 @@
 import { motion, useMotionValueEvent, useScroll } from "motion/react";
 import { useRef, useState } from "react";
 
-import { Icon } from "@/components/icon";
-import { SectionHeading, accent, cn } from "@/components/ui/primitives";
+import { IconTile, toneForAccent } from "@/components/icon";
+import { SectionHeading, cn } from "@/components/ui/primitives";
 import type { SectionWithEntries } from "@/lib/content";
 
 /// Scrollytelling: the left column pins while the numbered pillars advance,
@@ -28,10 +28,10 @@ export function WhyPillars({ section }: { section: SectionWithEntries }) {
   if (!pillars.length) return null;
 
   const current = pillars[active];
-  const tone = accent(current.accent);
+  const tone = toneForAccent(current.accent, current.title);
 
   return (
-    <section id="why" className="relative border-t border-basin-800/70 py-28 sm:py-36">
+    <section id="why" className="relative border-t border-line py-28 sm:py-36">
       <div className="container-bw">
         <SectionHeading
           eyebrow={section.eyebrow}
@@ -50,11 +50,11 @@ export function WhyPillars({ section }: { section: SectionWithEntries }) {
                     type="button"
                     onClick={() => setActive(i)}
                     aria-current={isActive}
-                    className="group relative flex w-full gap-6 border-l border-basin-700 py-9 pl-8 text-left transition-colors"
+                    className="group relative flex w-full gap-6 border-l border-line py-9 pl-8 text-left transition-colors"
                   >
                     {/* Progress rail */}
                     <motion.span
-                      className="absolute -left-px top-0 w-px bg-brass-400"
+                      className="absolute -left-px top-0 w-px bg-accent"
                       initial={false}
                       animate={{ height: isActive ? "100%" : "0%" }}
                       transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
@@ -63,7 +63,7 @@ export function WhyPillars({ section }: { section: SectionWithEntries }) {
                     <span
                       className={cn(
                         "shrink-0 font-mono text-xs transition-colors duration-500",
-                        isActive ? "text-brass-400" : "text-basin-500",
+                        isActive ? "text-accent" : "text-ink-3",
                       )}
                     >
                       {String(i + 1).padStart(2, "0")}
@@ -72,7 +72,7 @@ export function WhyPillars({ section }: { section: SectionWithEntries }) {
                       <h3
                         className={cn(
                           "font-display text-2xl transition-colors duration-500 sm:text-3xl",
-                          isActive ? "text-parchment-50" : "text-basin-400",
+                          isActive ? "text-ink" : "text-ink-3",
                         )}
                       >
                         {pillar.title}
@@ -80,13 +80,13 @@ export function WhyPillars({ section }: { section: SectionWithEntries }) {
                       <p
                         className={cn(
                           "mt-1.5 text-sm transition-colors duration-500",
-                          isActive ? "text-basin-300" : "text-basin-500",
+                          isActive ? "text-ink-2" : "text-ink-3",
                         )}
                       >
                         {pillar.subtitle}
                       </p>
                       <motion.p
-                        className="overflow-hidden text-sm leading-relaxed text-basin-400"
+                        className="overflow-hidden text-sm leading-relaxed text-ink-3"
                         initial={false}
                         animate={{
                           height: isActive ? "auto" : 0,
@@ -111,25 +111,21 @@ export function WhyPillars({ section }: { section: SectionWithEntries }) {
               initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+              data-tone={tone}
               className="panel topo relative overflow-hidden p-9 sm:p-11"
             >
               <div
-                className={cn(
-                  "pointer-events-none absolute inset-x-0 top-0 h-32 bg-linear-to-b to-transparent opacity-40",
-                  tone.bar,
-                )}
+                className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-[linear-gradient(to_bottom,color-mix(in_oklab,var(--tone)_22%,transparent),transparent)]"
                 aria-hidden
               />
 
               <div className="relative">
-                <span className="inline-flex size-14 items-center justify-center rounded-2xl border border-basin-600/70 bg-basin-800/80">
-                  <Icon name={current.icon} className={cn("size-7", tone.text)} />
-                </span>
+                <IconTile name={current.icon} tone={tone} size="lg" />
 
-                <h3 className="mt-7 font-display text-3xl text-parchment-50">
+                <h3 className="mt-7 font-display text-3xl text-ink">
                   {current.title}
                 </h3>
-                <p className="mt-3 text-pretty leading-relaxed text-basin-300">
+                <p className="mt-3 text-pretty leading-relaxed text-ink-2">
                   {current.body}
                 </p>
 
@@ -140,11 +136,10 @@ export function WhyPillars({ section }: { section: SectionWithEntries }) {
                       initial={{ opacity: 0, x: -8 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.4, delay: 0.1 + i * 0.045 }}
-                      className="flex items-center gap-2.5 text-sm text-basin-300"
+                      className="flex items-center gap-2.5 text-sm text-ink-2"
                     >
                       <span
-                        className={cn("size-1.5 shrink-0 rounded-full", tone.text)}
-                        style={{ backgroundColor: "currentColor" }}
+                        className="size-1.5 shrink-0 rounded-full bg-[var(--tone)]"
                         aria-hidden
                       />
                       {bullet}

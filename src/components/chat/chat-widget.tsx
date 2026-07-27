@@ -2,8 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { ArrowUp, Loader2, Sparkles, X } from "lucide-react";
 
+import { Icon } from "@/components/icon";
 import { cn } from "@/components/ui/primitives";
 
 type Message = { id: string; role: "user" | "assistant"; content: string };
@@ -141,8 +141,8 @@ export function ChatWidget({
         onClick={() => setOpen((v) => !v)}
         className={cn(
           "group fixed right-5 bottom-5 z-50 inline-flex items-center gap-2.5 rounded-full",
-          "border border-brass-600/50 bg-basin-900/90 py-3 pr-5 pl-4 backdrop-blur-xl",
-          "shadow-[0_20px_50px_-20px_rgba(0,0,0,0.9)] transition-colors hover:border-brass-500",
+          "border border-accent/50 bg-surface py-3 pr-5 pl-4 backdrop-blur-xl",
+          "shadow-[var(--bw-shadow-panel)] transition-colors hover:border-accent",
         )}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -151,11 +151,11 @@ export function ChatWidget({
         aria-controls="bw-chat-panel"
       >
         {open ? (
-          <X className="size-5 text-brass-300" />
+          <Icon name="Dismiss" className="size-5 text-accent" />
         ) : (
-          <Sparkles className="size-5 animate-shimmer text-brass-300" />
+          <Icon name="Sparkles" className="size-5 animate-shimmer text-accent" />
         )}
-        <span className="text-sm font-medium text-parchment-100">
+        <span className="text-sm font-medium text-ink">
           {open ? "Close" : "Ask BasinWright"}
         </span>
       </motion.button>
@@ -173,18 +173,18 @@ export function ChatWidget({
             className={cn(
               "fixed right-5 bottom-24 z-50 flex w-[min(26rem,calc(100vw-2.5rem))] flex-col",
               "h-[min(34rem,calc(100dvh-9rem))] overflow-hidden rounded-2xl",
-              "border border-basin-600/70 bg-basin-900/95 backdrop-blur-2xl",
-              "shadow-[0_40px_100px_-30px_rgba(0,0,0,0.95)]",
+              "border border-line-strong bg-surface",
+              "shadow-[var(--bw-shadow-panel)]",
             )}
           >
             {/* Header */}
-            <div className="flex items-center gap-3 border-b border-basin-700/70 px-5 py-4">
-              <span className="inline-flex size-8 items-center justify-center rounded-full border border-brass-600/50 bg-brass-500/10">
-                <Sparkles className="size-4 text-brass-300" />
+            <div className="flex items-center gap-3 border-b border-line px-5 py-4">
+              <span className="inline-flex size-8 items-center justify-center rounded-full border border-accent/50 bg-accent/10">
+                <Icon name="Sparkles" className="size-4 text-accent" />
               </span>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-parchment-50">{title}</p>
-                <p className="text-xs text-basin-400">
+                <p className="truncate text-sm font-medium text-ink">{title}</p>
+                <p className="text-xs text-ink-3">
                   {streaming ? "Thinking…" : "Grounded in this site's content"}
                 </p>
               </div>
@@ -194,14 +194,14 @@ export function ChatWidget({
             <div ref={scrollRef} className="no-scrollbar flex-1 overflow-y-auto px-5 py-5">
               {messages.length === 0 ? (
                 <div className="flex flex-col gap-5">
-                  <p className="text-sm leading-relaxed text-basin-300">{greeting}</p>
+                  <p className="text-sm leading-relaxed text-ink-2">{greeting}</p>
                   <div className="flex flex-col gap-2">
                     {suggestions.map((suggestion) => (
                       <button
                         key={suggestion}
                         type="button"
                         onClick={() => send(suggestion)}
-                        className="rounded-xl border border-basin-700 bg-basin-850/60 px-4 py-2.5 text-left text-sm text-basin-200 transition-colors hover:border-brass-600/60 hover:text-brass-200"
+                        className="rounded-xl border border-line bg-raised/60 px-4 py-2.5 text-left text-sm text-ink-2 transition-colors hover:border-accent/60 hover:text-accent"
                       >
                         {suggestion}
                       </button>
@@ -216,13 +216,13 @@ export function ChatWidget({
                       className={cn(
                         "max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed whitespace-pre-wrap",
                         message.role === "user"
-                          ? "self-end bg-brass-500/15 text-parchment-50"
-                          : "self-start bg-basin-800/80 text-basin-200",
+                          ? "self-end bg-accent/15 text-ink"
+                          : "self-start bg-raised text-ink-2",
                       )}
                     >
                       {message.content ||
                         (streaming ? (
-                          <Loader2 className="size-4 animate-spin text-basin-400" />
+                          <Icon name="Spinner" className="size-4 animate-spin text-ink-3" />
                         ) : null)}
                     </div>
                   ))}
@@ -230,7 +230,10 @@ export function ChatWidget({
               )}
 
               {error ? (
-                <p className="mt-4 rounded-xl border border-ember-400/40 bg-ember-500/10 px-4 py-3 text-sm text-ember-300">
+                <p
+                  data-tone="ember"
+                  className="mt-4 rounded-xl border border-[color-mix(in_oklab,var(--tone)_40%,transparent)] bg-[color-mix(in_oklab,var(--tone)_12%,transparent)] px-4 py-3 text-sm text-[var(--tone)]"
+                >
                   {error}
                 </p>
               ) : null}
@@ -238,13 +241,13 @@ export function ChatWidget({
 
             {/* Composer */}
             <form
-              className="border-t border-basin-700/70 p-3"
+              className="border-t border-line p-3"
               onSubmit={(e) => {
                 e.preventDefault();
                 send(input);
               }}
             >
-              <div className="flex items-end gap-2 rounded-xl border border-basin-600/70 bg-basin-850/80 p-2 focus-within:border-brass-600/60">
+              <div className="flex items-end gap-2 rounded-xl border border-line-strong bg-raised/70 p-2 focus-within:border-accent/60">
                 <textarea
                   ref={inputRef}
                   value={input}
@@ -258,18 +261,18 @@ export function ChatWidget({
                   rows={1}
                   placeholder="Ask about deployment, agents, GPUs…"
                   aria-label="Message"
-                  className="max-h-28 flex-1 resize-none bg-transparent px-2 py-1.5 text-sm text-parchment-100 placeholder:text-basin-500 focus:outline-none"
+                  className="max-h-28 flex-1 resize-none bg-transparent px-2 py-1.5 text-sm text-ink placeholder:text-ink-3 focus:outline-none"
                 />
                 <button
                   type="submit"
                   disabled={streaming || !input.trim()}
                   aria-label="Send message"
-                  className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-brass-500 text-basin-950 transition-colors hover:bg-brass-400 disabled:opacity-35"
+                  className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-accent text-on-accent transition-colors hover:bg-accent-strong disabled:opacity-35"
                 >
                   {streaming ? (
-                    <Loader2 className="size-4 animate-spin" />
+                    <Icon name="Spinner" className="size-4 animate-spin" />
                   ) : (
-                    <ArrowUp className="size-4" strokeWidth={2.5} />
+                    <Icon name="ArrowUp" className="size-4" />
                   )}
                 </button>
               </div>

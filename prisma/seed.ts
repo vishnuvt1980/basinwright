@@ -202,9 +202,130 @@ const sections: SectionSeed[] = [
     ],
   },
   {
+    // Entries are ordered bottom-of-stack first: entry 0 is the base layer the
+    // renderer draws lowest, entry 3 the top. Reordering them in /admin
+    // restacks the diagram.
+    key: "topology",
+    kind: SectionKind.PLATFORM_TOPOLOGY,
+    order: 4,
+    eyebrow: "Platform Topology",
+    title: "Four layers, one control plane",
+    subtitle:
+      "Silicon to system of record. Every layer is operated, governed and billed from the same place — which is what makes it a platform rather than a shortlist of vendors.",
+    body: "Requests travel up the stack; retrieved context and results settle back down. Nothing leaves the control plane on the way.",
+    entries: [
+      {
+        title: "GPU Compute",
+        subtitle: "The substrate",
+        body: "Accelerator clusters with multi-node interconnect, scheduled per workload across public, private and hybrid capacity.",
+        icon: "Cpu",
+        accent: "ember",
+        bullets: ["H100", "H200", "B200", "MI300X", "InfiniBand fabric"],
+      },
+      {
+        title: "Foundation Models",
+        subtitle: "The intelligence",
+        body: "Frontier and open-weight models behind one API, with routing, evaluation and fallback handled for you.",
+        icon: "Shapes",
+        accent: "brass",
+        bullets: [
+          "OpenAI",
+          "Anthropic",
+          "Meta",
+          "Mistral",
+          "Google",
+          "DeepSeek",
+          "Qwen",
+          "Cohere",
+        ],
+      },
+      {
+        title: "Agents & Orchestration",
+        subtitle: "The workforce",
+        body: "Agents that plan multi-step work, call your internal tools, hand off to one another and escalate when policy requires it.",
+        icon: "Bot",
+        accent: "verdigris",
+        bullets: ["Procurement", "Finance", "HR", "Legal", "Supply Chain", "IT Service"],
+      },
+      {
+        title: "Enterprise Systems",
+        subtitle: "The system of record",
+        body: "Governed connectors into the applications the business already runs on, so answers are grounded in live company data.",
+        icon: "Building2",
+        accent: "slate",
+        bullets: ["SAP", "Salesforce", "SharePoint", "Microsoft 365", "Oracle", "Snowflake"],
+      },
+    ],
+  },
+  {
+    // The chapters below are read in order by the substrate stage: entry 0
+    // drives the ingest emphasis, entry 4 the provenance trace. Copy is
+    // editable; the sequence is structural.
+    key: "substrate",
+    kind: SectionKind.COGNITIVE_SUBSTRATE,
+    order: 5,
+    eyebrow: "Cognitive Substrate",
+    title: "Watch enterprise data become a decision",
+    subtitle:
+      "A live simulation of the substrate underneath the platform. Every mark on the canvas is a record with its own state, quality and lineage — the picture is downstream of the simulation, not a shader with copy laid over it.",
+    body: "Scroll to move through the pipeline. Click a connected signal to inject a burst, or point at a case to trace the exact records that produced it.",
+    entries: [
+      {
+        title: "Everything arrives messy",
+        subtitle: "Ingest",
+        body: "Records land unnormalised, duplicated and unlinked, from systems that never agreed on a schema. They enter the substrate grey, because nothing has earned meaning yet. Colour here is not decoration — it is the quality of the record.",
+        icon: "Boxes",
+        accent: "slate",
+        bullets: ["Unnormalised", "Duplicated", "Unlinked", "Unknown quality"],
+      },
+      {
+        title: "Resolution is where meaning starts",
+        subtitle: "Cognitive Data Hub",
+        body: "The hub resolves entities, collapses duplicates into one governed record and decides what is fit to use. What fails the quality bar falls into quarantine — some records are remediated and released, others expire. A funnel with no rejects is not one anybody has run.",
+        icon: "Database",
+        accent: "brass",
+        bullets: [
+          "Entity resolution",
+          "Duplicate collapse",
+          "Quarantine & remediation",
+          "Policy applied once",
+        ],
+      },
+      {
+        title: "Three engines, running at once",
+        subtitle: "Ground · Verify · Explain",
+        body: "Cognitive RAG grounds the case in retrieved evidence, deterministic models verify it against real constraints, and LLM reasoning weighs the options and explains the call. Three concurrent lanes, not three sequential steps.",
+        icon: "Network",
+        accent: "verdigris",
+        bullets: ["Cognitive RAG", "Deterministic models", "LLM reasoning"],
+      },
+      {
+        title: "A case decides only when every lane is satisfied",
+        subtitle: "Decision layer",
+        body: "Evidence accrues per lane and nothing is decided early. The agent council then runs its skills over the assembled evidence — skills are interoperable, so a case checks out whichever it needs from whichever agent holds it. Confidence is computed, not asserted.",
+        icon: "Scale",
+        accent: "ember",
+        bullets: [
+          "Evidence quorum",
+          "Agent council",
+          "Computed confidence",
+          "Written to the ledger",
+        ],
+      },
+      {
+        title: "Every decision traces itself back",
+        subtitle: "Provenance",
+        body: "Point at any case and the exact records that produced it light up back through the graph while everything else drops away. Provenance is not a report you request afterwards — it is how the decision was assembled in the first place.",
+        icon: "Eye",
+        accent: "slate",
+        bullets: ["Record-level lineage", "Source attribution", "Replayable", "Audit-ready"],
+      },
+    ],
+  },
+  {
     key: "agents",
     kind: SectionKind.AGENTS,
-    order: 4,
+    order: 6,
     eyebrow: "BasinWright Agents",
     title: "Deploy a digital workforce that knows how your business runs",
     subtitle:
@@ -255,7 +376,7 @@ const sections: SectionSeed[] = [
   {
     key: "models",
     kind: SectionKind.MODELS,
-    order: 5,
+    order: 7,
     eyebrow: "AI Models",
     title: "Hundreds of enterprise-ready models, one integration",
     subtitle:
@@ -315,7 +436,7 @@ const sections: SectionSeed[] = [
   {
     key: "products",
     kind: SectionKind.PRODUCTS,
-    order: 6,
+    order: 8,
     eyebrow: "Products",
     title: "An ecosystem, not an endpoint",
     subtitle:
@@ -446,7 +567,7 @@ const sections: SectionSeed[] = [
   {
     key: "industries",
     kind: SectionKind.INDUSTRIES,
-    order: 7,
+    order: 9,
     eyebrow: "Industries",
     title: "Deployed where the stakes are highest",
     subtitle:
@@ -469,7 +590,7 @@ const sections: SectionSeed[] = [
   {
     key: "solutions",
     kind: SectionKind.SOLUTIONS,
-    order: 8,
+    order: 10,
     eyebrow: "Solutions",
     title: "Outcomes teams put into production first",
     entries: [
@@ -533,7 +654,7 @@ const sections: SectionSeed[] = [
   {
     key: "infrastructure",
     kind: SectionKind.INFRASTRUCTURE,
-    order: 9,
+    order: 11,
     eyebrow: "Infrastructure & Developers",
     title: "Meet your estate where it already is",
     subtitle:
@@ -564,7 +685,7 @@ const sections: SectionSeed[] = [
   {
     key: "pricing",
     kind: SectionKind.PRICING,
-    order: 10,
+    order: 12,
     eyebrow: "Pricing",
     title: "Start on a laptop. Scale to a sovereign estate.",
     entries: [
@@ -625,7 +746,7 @@ const sections: SectionSeed[] = [
   {
     key: "cta",
     kind: SectionKind.CTA,
-    order: 11,
+    order: 13,
     eyebrow: "Talk to us",
     title: "Building the Infrastructure for Enterprise Intelligence",
     subtitle:

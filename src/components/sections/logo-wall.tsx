@@ -9,14 +9,14 @@ export function LogoWall({ section }: { section: SectionWithEntries }) {
   const track = [...logos, ...logos];
 
   return (
-    <section className="relative border-y border-basin-800/80 bg-basin-900/40 py-14">
+    <section className="relative border-y border-line bg-surface/40 py-14">
       <div className="container-bw">
         <Reveal className="flex flex-col items-center gap-2 text-center">
-          <p className="text-[0.7rem] font-medium uppercase tracking-[0.22em] text-basin-400">
+          <p className="text-[0.7rem] font-medium uppercase tracking-[0.22em] text-ink-3">
             {section.eyebrow}
           </p>
           {section.title ? (
-            <p className="text-sm text-basin-300">{section.title}</p>
+            <p className="text-sm text-ink-2">{section.title}</p>
           ) : null}
         </Reveal>
       </div>
@@ -31,7 +31,7 @@ export function LogoWall({ section }: { section: SectionWithEntries }) {
               key={`${logo.id}-${i}`}
               // The duplicate half is decorative; hide it from assistive tech.
               aria-hidden={i >= logos.length}
-              className="shrink-0 whitespace-nowrap font-display text-xl text-basin-400 transition-colors duration-500 hover:text-brass-300"
+              className="shrink-0 whitespace-nowrap font-display text-xl text-ink-3 transition-colors duration-500 hover:text-accent"
             >
               {logo.title}
             </span>

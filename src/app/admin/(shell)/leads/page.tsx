@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import { Check, Circle } from "lucide-react";
 
 import { toggleLeadHandled } from "@/app/admin/actions";
+import { Icon } from "@/components/icon";
 import { db } from "@/lib/db";
 
 export const metadata: Metadata = { title: "Leads" };
@@ -18,14 +18,14 @@ export default async function LeadsPage() {
   return (
     <>
       <header>
-        <h1 className="font-display text-3xl text-parchment-50">Leads</h1>
-        <p className="mt-2 text-sm text-basin-400">
+        <h1 className="font-display text-3xl text-ink">Leads</h1>
+        <p className="mt-2 text-sm text-ink-3">
           Submissions from the &ldquo;Talk to an AI Architect&rdquo; form.
         </p>
       </header>
 
       {leads.length === 0 ? (
-        <p className="mt-9 rounded-xl border border-dashed border-basin-700 px-5 py-14 text-center text-sm text-basin-500">
+        <p className="mt-9 rounded-xl border border-dashed border-line px-5 py-14 text-center text-sm text-ink-3">
           No enquiries yet.
         </p>
       ) : (
@@ -33,31 +33,31 @@ export default async function LeadsPage() {
           {leads.map((lead) => (
             <li
               key={lead.id}
-              className="rounded-xl border border-basin-700/70 bg-basin-900/60 p-5"
+              className="rounded-xl border border-line bg-surface/60 p-5"
             >
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div className="min-w-0">
-                  <p className="font-medium text-parchment-100">
+                  <p className="font-medium text-ink">
                     {lead.name}
                     {lead.company ? (
-                      <span className="text-basin-400"> · {lead.company}</span>
+                      <span className="text-ink-3"> · {lead.company}</span>
                     ) : null}
                   </p>
                   <a
                     href={`mailto:${lead.email}`}
-                    className="text-sm text-brass-400 hover:text-brass-200"
+                    className="text-sm text-accent transition-colors hover:text-accent-strong"
                   >
                     {lead.email}
                   </a>
                   {lead.role ? (
-                    <p className="mt-0.5 text-xs text-basin-500">{lead.role}</p>
+                    <p className="mt-0.5 text-xs text-ink-3">{lead.role}</p>
                   ) : null}
                 </div>
 
                 <div className="flex items-center gap-4">
                   <time
                     dateTime={lead.createdAt.toISOString()}
-                    className="text-xs text-basin-500"
+                    className="text-xs text-ink-3"
                   >
                     {formatter.format(lead.createdAt)}
                   </time>
@@ -65,16 +65,17 @@ export default async function LeadsPage() {
                     <input type="hidden" name="id" value={lead.id} />
                     <button
                       type="submit"
+                      data-tone="green"
                       className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs transition-colors ${
                         lead.handled
-                          ? "border-verdigris-500/50 text-verdigris-300"
-                          : "border-basin-600 text-basin-400 hover:border-basin-400"
+                          ? "border-[color-mix(in_oklab,var(--tone)_50%,transparent)] text-[var(--tone)]"
+                          : "border-line-strong text-ink-3 hover:border-accent/60 hover:text-ink"
                       }`}
                     >
                       {lead.handled ? (
-                        <Check className="size-3.5" />
+                        <Icon name="Check" className="size-3.5" />
                       ) : (
-                        <Circle className="size-3.5" />
+                        <Icon name="Circle" className="size-3.5" />
                       )}
                       {lead.handled ? "Handled" : "Mark handled"}
                     </button>
@@ -83,7 +84,7 @@ export default async function LeadsPage() {
               </div>
 
               {lead.message ? (
-                <p className="mt-4 border-t border-basin-800 pt-4 text-sm leading-relaxed whitespace-pre-wrap text-basin-300">
+                <p className="mt-4 border-t border-line pt-4 text-sm leading-relaxed whitespace-pre-wrap text-ink-2">
                   {lead.message}
                 </p>
               ) : null}

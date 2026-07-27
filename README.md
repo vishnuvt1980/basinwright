@@ -87,7 +87,7 @@ src/
       auth-actions.ts         login / logout
   components/
     sections/                 one component per SectionKind
-    webgl/                    the topographic hero shader
+    webgl/                    hero shader, platform topology, cognitive substrate
     admin/                    CMS form primitives
   lib/
     content.ts   db.ts   ai.ts   auth.ts   session.ts
@@ -100,8 +100,82 @@ Derived from the brand image in `brand/` — a brass compass set into a topograp
 
 - **Brass** `#c9a227` — primary accent, the compass and inlaid rails
 - **Charcoal** `#08090b`–`#2f363f` — the marble ground
-- **Parchment** `#f4ecdb` — contour-map substrate, body text
+- **Parchment** `#fbf7ef` — contour-map substrate, the light theme's canvas
 - **Verdigris** `#3f7d72` / **Ember** `#b87333` — oxidised copper accents
+
+### Theming
+
+The site ships **light and dark themes** off one set of semantic tokens defined in
+`src/app/globals.css`. Components reference the semantic names, never the raw
+palette, so both themes stay in sync by construction:
+
+| Token | Use |
+|---|---|
+| `canvas` | page background |
+| `surface` / `raised` | cards, panels, hover states |
+| `line` / `line-strong` | hairlines, borders, control outlines |
+| `ink` / `ink-2` / `ink-3` | primary, secondary, tertiary text |
+| `accent` / `accent-strong` / `on-accent` | brass, and text that sits on it |
+
+So `bg-surface text-ink border-line` is correct in both themes; `bg-basin-900
+text-parchment-50` is not, and will be unreadable in light mode.
+
+Theme resolution: an inline script in `<head>` (`src/components/theme/theme-script.tsx`)
+stamps `data-theme` on `<html>` before first paint, so there is no flash. The
+`<ThemeToggle>` offers Light / System / Dark, persists to `localStorage`, and
+follows the OS while set to System. A `prefers-color-scheme` fallback in CSS covers
+the no-JS case. The WebGL hero observes `data-theme` and re-tints its contour
+shader, since brass tuned for charcoal washes out on parchment.
+
+All token pairs meet **WCAG AA** (4.5:1 for text, 3:1 for icon glyphs) in both themes.
+
+### Icons
+
+Icons are [Fluent System Icons](https://github.com/microsoft/fluentui-system-icons)
+(MIT). `scripts/generate-icons.mjs` extracts just the glyphs the site uses from
+`@fluentui/svg-icons` into `src/components/fluent-icons.generated.ts` — raw path
+data, no runtime.
+
+We deliberately do **not** use `@fluentui/react-icons`: those components are built
+on Griffel (runtime CSS-in-JS) and React hooks, which would force a client boundary
+on every server-rendered section that shows an icon and ship a second styling
+runtime alongside Tailwind.
+
+To add an icon, add it to the map in `scripts/generate-icons.mjs` and run:
+
+```bash
+npm run icons:generate
+```
+
+Fluent's glyphs are monochrome, so colour comes from a **tone system**. Each icon
+sits in a tinted tile whose tint, ring and glyph colour derive from one hue:
+
+```tsx
+<IconTile name="Cpu" />                        {/* stable tone hashed from the name */}
+<IconTile name="Cpu" tone="azure" size="lg" /> {/* explicit */}
+<IconTile name={e.icon} tone={toneForAccent(e.accent, e.title)} />
+```
+
+Tones are hashed from the icon name, so a concept keeps the same colour everywhere
+it appears and reordering a section never reshuffles the palette. Each of the eight
+tones has a light and a dark value; the tile derives everything else with
+`color-mix`.
+
+### Typography
+
+Body and UI text use the **Segoe UI** stack, matching microsoft.com. Segoe is
+licensed with Windows and **cannot be self-hosted**, so the stack uses it where it
+already exists and falls back to each platform's native UI face:
+
+```
+"Segoe UI Variable Text", "Segoe UI Variable", "Segoe UI", system-ui,
+-apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif
+```
+
+Only the display face (Instrument Serif, used for headings) is webfont-served, via
+`next/font`. If you ever need Segoe's exact metrics on every platform, vendor
+[Selawik](https://github.com/microsoft/Selawik) — Microsoft's OFL-licensed,
+metrically-compatible substitute.
 
 Motion is deliberate rather than decorative: the hero runs a GLSL contour-field shader that drifts toward the cursor, "Why BasinWright" is a scroll-driven narrative rail, and the product ecosystem stacks as pinned cards so the ecosystem reads as one descent rather than a grid.
 

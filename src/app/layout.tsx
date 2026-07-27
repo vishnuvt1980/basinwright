@@ -1,21 +1,13 @@
 import type { Metadata } from "next";
-import { Inter, Instrument_Serif } from "next/font/google";
 
+import { ThemeScript } from "@/components/theme/theme-script";
 import { getSettings } from "@/lib/content";
 import "./globals.css";
 
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-  display: "swap",
-});
-
-const display = Instrument_Serif({
-  variable: "--font-display",
-  subsets: ["latin"],
-  weight: "400",
-  display: "swap",
-});
+// Every face — body and display alike — comes from the Segoe UI Variable stack
+// defined in globals.css. Segoe ships with Windows and cannot be self-hosted, so
+// we ask for it where it exists and fall back to each platform's native UI face.
+// No webfont is loaded: Microsoft's own site does exactly this.
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSettings();
@@ -36,6 +28,13 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
+export const viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#0e1726" },
+  ],
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -45,11 +44,15 @@ export default function RootLayout({
     <html
       lang="en"
       data-scroll-behavior="smooth"
-      className={`${inter.variable} ${display.variable} h-full antialiased`}
+      className="h-full antialiased"
+      // The inline script stamps data-theme before paint; React must not warn
+      // about the attribute it did not render.
+      suppressHydrationWarning
     >
       <head>
+        <ThemeScript />
         {/*
-          Motion serialises its `initial` state into the SSR markup, so ~90
+          Motion serialises its `initial` state into the SSR markup, so many
           elements arrive with inline `opacity:0`. Without JS those never
           animate in and the page reads as blank — force the resolved state.
         */}

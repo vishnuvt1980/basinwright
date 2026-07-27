@@ -1,10 +1,13 @@
 "use client";
 
 import { useActionState } from "react";
-import { Loader2 } from "lucide-react";
 
 import { login, type LoginState } from "@/app/admin/auth-actions";
+import { Icon } from "@/components/icon";
 import { Button } from "@/components/ui/primitives";
+
+const control =
+  "rounded-xl border border-line-strong bg-surface px-4 py-3 text-sm text-ink transition-colors focus:border-accent focus:outline-none";
 
 const initialState: LoginState = {};
 
@@ -16,19 +19,19 @@ export function LoginForm({ next }: { next?: string }) {
       {next ? <input type="hidden" name="next" value={next} /> : null}
 
       <label className="flex flex-col gap-2">
-        <span className="text-xs uppercase tracking-[0.14em] text-basin-400">Email</span>
+        <span className="text-xs uppercase tracking-[0.14em] text-ink-3">Email</span>
         <input
           name="email"
           type="email"
           required
           autoComplete="username"
           autoFocus
-          className="rounded-xl border border-basin-600/70 bg-basin-900/70 px-4 py-3 text-sm text-parchment-100 focus:border-brass-500/70 focus:outline-none"
+          className={control}
         />
       </label>
 
       <label className="flex flex-col gap-2">
-        <span className="text-xs uppercase tracking-[0.14em] text-basin-400">
+        <span className="text-xs uppercase tracking-[0.14em] text-ink-3">
           Password
         </span>
         <input
@@ -36,12 +39,12 @@ export function LoginForm({ next }: { next?: string }) {
           type="password"
           required
           autoComplete="current-password"
-          className="rounded-xl border border-basin-600/70 bg-basin-900/70 px-4 py-3 text-sm text-parchment-100 focus:border-brass-500/70 focus:outline-none"
+          className={control}
         />
       </label>
 
       {state.error ? (
-        <p className="text-sm text-ember-300" role="alert">
+        <p data-tone="ember" className="text-sm text-[var(--tone)]" role="alert">
           {state.error}
         </p>
       ) : null}
@@ -49,7 +52,7 @@ export function LoginForm({ next }: { next?: string }) {
       <Button type="submit" disabled={pending} className="mt-1 w-full py-3">
         {pending ? (
           <>
-            <Loader2 className="size-4 animate-spin" aria-hidden />
+            <Icon name="Spinner" className="size-4 animate-spin" />
             Signing in…
           </>
         ) : (

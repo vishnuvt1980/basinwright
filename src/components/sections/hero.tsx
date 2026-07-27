@@ -3,7 +3,7 @@
 import { motion, useReducedMotion, useScroll, useTransform } from "motion/react";
 import { useRef } from "react";
 
-import { Icon } from "@/components/icon";
+import { IconTile } from "@/components/icon";
 import { ButtonLink, Eyebrow } from "@/components/ui/primitives";
 import { HeroCanvas } from "@/components/webgl/hero-canvas";
 import type { SectionWithEntries } from "@/lib/content";
@@ -37,7 +37,7 @@ export function Hero({ section }: { section: SectionWithEntries }) {
       <div className="topo pointer-events-none absolute inset-0 opacity-60" aria-hidden />
       <HeroCanvas />
       <div
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_50%_38%,transparent_0%,var(--color-basin-950)_78%)]"
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_50%_38%,transparent_0%,var(--bw-canvas)_78%)]"
         aria-hidden
       />
 
@@ -54,7 +54,9 @@ export function Hero({ section }: { section: SectionWithEntries }) {
             <Eyebrow>{section.eyebrow}</Eyebrow>
           </motion.div>
 
-          <h1 className="mt-8 font-display text-[2.6rem] leading-[1.06] tracking-tight text-parchment-50 sm:text-6xl lg:text-[4.6rem]">
+          {/* Microsoft's marketing H1 tops out around 40–52px; the old 4.6rem
+              setting is the giveaway of a generated landing page. */}
+          <h1 className="mt-6 font-display text-[2.25rem] leading-[1.15] text-ink sm:text-[2.75rem] lg:text-[3.25rem]">
             {lines.map((line, i) => (
               <span key={line} className="block overflow-hidden pb-1">
                 <motion.span
@@ -70,7 +72,7 @@ export function Hero({ section }: { section: SectionWithEntries }) {
           </h1>
 
           <motion.p
-            className="mt-8 max-w-3xl text-pretty text-lg leading-relaxed text-basin-300 sm:text-xl"
+            className="mt-8 max-w-3xl text-lg leading-relaxed text-pretty text-ink-2 sm:text-xl"
             initial={reduced ? false : { opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.5, ease: EASE }}
@@ -80,7 +82,7 @@ export function Hero({ section }: { section: SectionWithEntries }) {
 
           {section.body ? (
             <motion.p
-              className="mt-4 max-w-2xl text-pretty text-sm leading-relaxed text-basin-400"
+              className="mt-4 max-w-2xl text-sm leading-relaxed text-pretty text-ink-3"
               initial={reduced ? false : { opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.8, delay: 0.65, ease: EASE }}
@@ -113,7 +115,7 @@ export function Hero({ section }: { section: SectionWithEntries }) {
 
           {section.entries.length ? (
             <motion.dl
-              className="mt-20 grid w-full max-w-4xl grid-cols-2 gap-px overflow-hidden rounded-2xl border border-basin-700/60 bg-basin-700/40 lg:grid-cols-4"
+              className="mt-20 grid w-full max-w-4xl grid-cols-2 gap-px overflow-hidden rounded-2xl border border-line bg-line lg:grid-cols-4"
               initial={reduced ? false : { opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.9, delay: 0.95, ease: EASE }}
@@ -121,16 +123,11 @@ export function Hero({ section }: { section: SectionWithEntries }) {
               {section.entries.map((stat) => (
                 <div
                   key={stat.id}
-                  className="group flex flex-col items-center gap-1.5 bg-basin-900/80 px-5 py-7 backdrop-blur-sm transition-colors duration-500 hover:bg-basin-850"
+                  className="group flex flex-col items-center gap-3 bg-surface px-5 py-7 backdrop-blur-sm transition-colors duration-500 hover:bg-raised"
                 >
-                  <Icon
-                    name={stat.icon}
-                    className="size-4 text-brass-500/70 transition-colors duration-500 group-hover:text-brass-400"
-                  />
-                  <dd className="font-display text-3xl text-parchment-50">
-                    {stat.subtitle}
-                  </dd>
-                  <dt className="text-[0.7rem] uppercase tracking-[0.14em] text-basin-400">
+                  <IconTile name={stat.icon} size="sm" />
+                  <dd className="font-display text-3xl text-ink">{stat.subtitle}</dd>
+                  <dt className="text-[0.7rem] tracking-[0.14em] text-ink-3 uppercase">
                     {stat.title}
                   </dt>
                 </div>
@@ -147,9 +144,9 @@ export function Hero({ section }: { section: SectionWithEntries }) {
         animate={{ opacity: 1 }}
         transition={{ duration: 1, delay: 1.4 }}
       >
-        <div className="flex h-11 w-6 items-start justify-center rounded-full border border-basin-600/80 p-1.5">
+        <div className="flex h-11 w-6 items-start justify-center rounded-full border border-line-strong p-1.5">
           <motion.span
-            className="block h-2 w-1 rounded-full bg-brass-400"
+            className="block h-2 w-1 rounded-full bg-accent"
             animate={reduced ? undefined : { y: [0, 13, 0], opacity: [1, 0.2, 1] }}
             transition={{ duration: 2.1, repeat: Infinity, ease: "easeInOut" }}
           />

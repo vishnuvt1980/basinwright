@@ -1,4 +1,5 @@
 import { Agents } from "@/components/sections/agents";
+import { CognitiveSubstrate } from "@/components/sections/cognitive-substrate";
 import { Cta } from "@/components/sections/cta";
 import { Hero } from "@/components/sections/hero";
 import { Industries } from "@/components/sections/industries";
@@ -6,6 +7,7 @@ import { Infrastructure } from "@/components/sections/infrastructure";
 import { LogoWall } from "@/components/sections/logo-wall";
 import { Models } from "@/components/sections/models";
 import { PlatformGrid } from "@/components/sections/platform-grid";
+import { PlatformTopology } from "@/components/sections/platform-topology";
 import { Pricing } from "@/components/sections/pricing";
 import { Products } from "@/components/sections/products";
 import { Solutions } from "@/components/sections/solutions";
@@ -21,6 +23,8 @@ const RENDERERS = {
   LOGO_WALL: LogoWall,
   PLATFORM_GRID: PlatformGrid,
   WHY_PILLARS: WhyPillars,
+  PLATFORM_TOPOLOGY: PlatformTopology,
+  COGNITIVE_SUBSTRATE: CognitiveSubstrate,
   AGENTS: Agents,
   MODELS: Models,
   PRODUCTS: Products,
@@ -35,7 +39,7 @@ const RENDERERS = {
 
 function RichText({ section }: { section: SectionWithEntries }) {
   return (
-    <section className="border-t border-basin-800/70 py-24">
+    <section className="border-t border-line py-24">
       <div className="container-bw">
         <Reveal>
           <SectionHeading
@@ -44,7 +48,7 @@ function RichText({ section }: { section: SectionWithEntries }) {
             subtitle={section.subtitle}
           />
           {section.body ? (
-            <p className="mt-6 max-w-2xl leading-relaxed text-basin-300">
+            <p className="mt-6 max-w-2xl leading-relaxed text-ink-2">
               {section.body}
             </p>
           ) : null}

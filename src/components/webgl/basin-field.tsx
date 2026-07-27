@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 
@@ -22,9 +22,10 @@ const fragmentShader = /* glsl */ `
 
   uniform float uTime;
   uniform vec2  uPointer;
-  uniform vec3  uBrass;
-  uniform vec3  uVerdigris;
+  uniform vec3  uPrimary;
+  uniform vec3  uSecondary;
   uniform float uIntensity;
+  uniform float uWash;
 
   // Cheap value noise — enough texture to keep the rings from looking mechanical.
   float hash(vec2 p) {
@@ -75,20 +76,20 @@ const fragmentShader = /* glsl */ `
     // Fade contours out toward the edges so the plane never shows a seam.
     float vignette = smoothstep(1.32, 0.20, radial);
 
-    // Deeper ground reads brass; the rim oxidises toward verdigris.
-    vec3 tint = mix(uVerdigris, uBrass, smoothstep(0.85, 0.05, radial));
+    // Deeper ground reads primary; the rim oxidises toward the secondary hue.
+    vec3 tint = mix(uSecondary, uPrimary, smoothstep(0.85, 0.05, radial));
 
     float alpha = contour * vignette * uIntensity;
 
     // A faint wash in the basin floor gives the lines something to sit on.
-    float wash = exp(-3.4 * radial * radial) * 0.05;
+    float wash = exp(-3.4 * radial * radial) * uWash;
 
     gl_FragColor = vec4(tint, alpha + wash);
     if (gl_FragColor.a < 0.002) discard;
   }
 `;
 
-function Field({ intensity }: { intensity: number }) {
+function Field() {
   const material = useRef<THREE.ShaderMaterial>(null);
   const pointer = useRef(new THREE.Vector2(0, 0));
   const { viewport } = useThree();
@@ -97,12 +98,41 @@ function Field({ intensity }: { intensity: number }) {
     () => ({
       uTime: { value: 0 },
       uPointer: { value: new THREE.Vector2(0, 0) },
-      uBrass: { value: new THREE.Color("#c9a227") },
-      uVerdigris: { value: new THREE.Color("#3f7d72") },
-      uIntensity: { value: intensity },
+      uPrimary: { value: new THREE.Color("#0078d4") },
+      uSecondary: { value: new THREE.Color("#038387") },
+      uIntensity: { value: 1 },
+      uWash: { value: 0.05 },
     }),
-    [intensity],
+    [],
   );
+
+  // The shader draws over the page background, so the contour colours have to
+  // track the theme or they wash out against white.
+  useEffect(() => {
+    const root = document.documentElement;
+
+    const sync = () => {
+      const shader = material.current;
+      if (!shader) return;
+
+      const accent = getComputedStyle(root).getPropertyValue("--bw-accent").trim();
+      const light = root.dataset.theme === "light";
+
+      shader.uniforms.uPrimary.value.set(accent || "#0078d4");
+      shader.uniforms.uSecondary.value.set(light ? "#038387" : "#4fd2d2");
+
+      // On white the lines need more weight to read; on the dark band they
+      // would bloom if pushed that hard.
+      shader.uniforms.uIntensity.value = light ? 0.85 : 1;
+      shader.uniforms.uWash.value = light ? 0.04 : 0.05;
+    };
+
+    sync();
+
+    const observer = new MutationObserver(sync);
+    observer.observe(root, { attributes: true, attributeFilter: ["data-theme"] });
+    return () => observer.disconnect();
+  }, []);
 
   useFrame((state, delta) => {
     if (!material.current) return;
@@ -129,7 +159,7 @@ function Field({ intensity }: { intensity: number }) {
   );
 }
 
-export default function BasinField({ intensity = 1 }: { intensity?: number }) {
+export default function BasinField() {
   return (
     <Canvas
       className="size-full"
@@ -137,10 +167,8 @@ export default function BasinField({ intensity = 1 }: { intensity?: number }) {
       dpr={[1, 1.75]}
       gl={{ antialias: false, alpha: true, powerPreference: "high-performance" }}
       camera={{ position: [0, 0, 1], fov: 50 }}
-      // Only redraw while visible; saves battery when scrolled past.
-      frameloop="always"
     >
-      <Field intensity={intensity} />
+      <Field />
     </Canvas>
   );
 }
