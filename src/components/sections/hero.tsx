@@ -316,7 +316,11 @@ export function Hero({
                 transition={{ duration: 0.8, delay: 0.75, ease: EASE }}
               >
                 {section.ctaLabel && section.ctaHref ? (
-                  <ButtonLink href={section.ctaHref} withArrow className="px-7 py-3.5">
+                  <ButtonLink
+                    href={section.ctaHref}
+                    withArrow
+                    className="px-5 py-2.5 sm:px-7 sm:py-3.5"
+                  >
                     {section.ctaLabel}
                   </ButtonLink>
                 ) : null}
@@ -324,7 +328,7 @@ export function Hero({
                   <ButtonLink
                     href={section.ctaHref2}
                     variant="secondary"
-                    className="px-7 py-3.5"
+                    className="px-5 py-2.5 sm:px-7 sm:py-3.5"
                   >
                     {section.ctaLabel2}
                   </ButtonLink>

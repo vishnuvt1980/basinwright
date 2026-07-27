@@ -112,16 +112,21 @@ export function SiteHeader({ name, links }: { name: string; links: NavLink[] }) 
         </nav>
 
         <div className="flex items-center gap-3">
-          <ThemeToggle className="hidden sm:inline-flex" />
+          {/* Below `lg` the sheet carries the theme control and both calls to
+              action, so the bar keeps only the mark and the menu. `max-*:hidden`
+              rather than `hidden lg:inline-flex`: a plain `hidden` loses the
+              cascade to the `inline-flex` in the button base, which is what put
+              two wrapped buttons and a squashed menu in a 375px bar. */}
+          <ThemeToggle className="max-lg:hidden" />
 
           <ButtonLink
             href="#contact"
             variant="secondary"
-            className="hidden px-5 py-2.5 text-sm lg:inline-flex"
+            className="px-5 py-2.5 text-sm max-lg:hidden"
           >
             Talk to an Architect
           </ButtonLink>
-          <ButtonLink href="#contact" className="hidden px-5 py-2.5 text-sm sm:inline-flex">
+          <ButtonLink href="#contact" className="px-5 py-2.5 text-sm max-lg:hidden">
             Start Building
           </ButtonLink>
 
