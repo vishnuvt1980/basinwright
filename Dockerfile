@@ -38,20 +38,17 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 
-# Migrations and seed run from the container's start command, so the schema,
-# the migration history and the generated client all have to ship with it.
-COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
+# The query engine is the one thing tracing reliably misses — it is resolved at
+# runtime, not imported. Everything else this image runs is already inside
+# `.next/standalone`.
+#
+# The Prisma *CLI* deliberately does not ship here. It pulls a transitive tree
+# of its own (@prisma/config -> effect -> …) that cannot be cherry-picked
+# without breaking on the next upgrade, and a slim runtime is the whole point
+# of the standalone build. Migrations and the seed run from the `builder` stage
+# instead, as their own short-lived containers — see docker-compose.yml.
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/prisma ./node_modules/prisma
-# prisma/seed.ts imports only these two beyond the client.
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/bcryptjs ./node_modules/bcryptjs
-# tsx and its transitive deps, to run the TypeScript seed without a toolchain.
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/tsx ./node_modules/tsx
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/esbuild ./node_modules/esbuild
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@esbuild ./node_modules/@esbuild
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/get-tsconfig ./node_modules/get-tsconfig
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/resolve-pkg-maps ./node_modules/resolve-pkg-maps
 
 USER nextjs
 EXPOSE 3000

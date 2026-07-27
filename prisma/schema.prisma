@@ -38,6 +38,10 @@ model AdminUser {
 // ---------------------------------------------------------------------------
 
 /// The kind drives which React component renders the section.
+///
+/// The first block are the homepage's bespoke blocks; the second are the
+/// general-purpose blocks that build out the editorial pages (About, Careers,
+/// Trust Centre…) and can equally be dropped onto the homepage.
 enum SectionKind {
   HERO
   LOGO_WALL
@@ -55,6 +59,16 @@ enum SectionKind {
   STATS
   CTA
   RICH_TEXT
+
+  PAGE_HEADER
+  PROSE
+  FEATURE_GRID
+  STAT_BAND
+  TIMELINE
+  FAQ
+  LINK_LIST
+  DOC_LIST
+  CONTACT
 }
 
 model Section {
@@ -64,6 +78,10 @@ model Section {
   kind          SectionKind
   order         Int         @default(0)
   visible       Boolean     @default(true)
+
+  /// Slug of the `Page` this block belongs to. The homepage is "home" and is
+  /// not a `Page` row — it is the one page whose shell lives in code.
+  page          String      @default("home")
 
   eyebrow       String?
   title         String?
@@ -85,8 +103,31 @@ model Section {
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 
-  @@index([order])
+  @@index([page, order])
   @@map("sections")
+}
+
+/// The shell of an editorial page — everything above and around its blocks.
+/// Its body is `Section` rows carrying the same `page` slug.
+model Page {
+  id             String   @id @default(cuid())
+  /// URL slug, rendered at `/{slug}`. Reserved slugs (the library collections)
+  /// are rejected by the admin action.
+  slug           String   @unique
+  title          String
+  eyebrow        String?
+  subtitle       String?
+  published      Boolean  @default(true)
+  order          Int      @default(0)
+
+  seoTitle       String?
+  seoDescription String?
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([order])
+  @@map("pages")
 }
 
 model Entry {
@@ -117,6 +158,69 @@ model Entry {
   @@map("entries")
 }
 
+/// Which library collection a `Doc` belongs to. One enum value per index route
+/// — see COLLECTIONS in src/lib/library.ts, which owns the slug and the copy.
+enum DocKind {
+  BLOG
+  CASE_STUDY
+  WHITEPAPER
+  ARTICLE
+  NEWS
+  RESEARCH
+  RELEASE_NOTE
+}
+
+/// A single piece of long-form content: a post, a case study, a whitepaper, a
+/// learning article, a press item, a research note or a release entry. One
+/// model rather than seven because they differ in framing, not in shape.
+model Doc {
+  id             String   @id @default(cuid())
+  kind           DocKind
+  /// Unique across the whole library, so a slug never resolves to two pieces.
+  slug           String   @unique
+  title          String
+  subtitle       String?
+  /// Card copy and meta description fallback.
+  excerpt        String
+  /// Markdown — the subset in src/lib/markdown.tsx.
+  body           String
+
+  /// Free-text grouping shown as a filter chip on the index, e.g. "Governance".
+  category       String?
+  /// Sector label for case studies and industry pieces, e.g. "Banking".
+  industry       String?
+
+  author         String?
+  authorRole     String?
+  readMinutes    Int      @default(6)
+
+  featured       Boolean  @default(false)
+  published      Boolean  @default(true)
+  publishedAt    DateTime @default(now())
+
+  /// Release notes only — the version the entry describes, e.g. "2026.7".
+  version        String?
+  tags           String[] @default([])
+  /// Proof band on a case study: [{ label, value, caption }].
+  metrics        Json?
+
+  accent         String?
+  icon           String?
+  /// Behind the app subscription. The page shows a summary and sends the
+  /// reader to app.basinwright.com rather than serving the full text.
+  gated          Boolean  @default(false)
+
+  seoTitle       String?
+  seoDescription String?
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([kind, publishedAt])
+  @@index([published, publishedAt])
+  @@map("docs")
+}
+
 /// Site-wide strings (brand name, footer tagline, contact email, chat prompt…).
 model SiteSetting {
   id    String  @id @default(cuid())
@@ -142,7 +246,7 @@ model NavItem {
   parentId String?
   parent   NavItem?  @relation("NavChildren", fields: [parentId], references: [id], onDelete: Cascade)
   children NavItem[] @relation("NavChildren")
-  /// "header" | "footer"
+  /// "header" | "footer" | "legal" (the thin row beneath the footer columns)
   location String    @default("header")
   /// Footer column heading this link sits under.
   group    String?

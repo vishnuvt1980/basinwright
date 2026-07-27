@@ -268,8 +268,14 @@ cd /datadrive/basinwright && git pull
 docker compose up -d --build
 ```
 
-The web container runs `prisma migrate deploy` before `server.js`, so a commit
-that adds a migration needs nothing extra.
+`docker compose up -d --build` stays a single command: a `migrate` container
+runs `prisma migrate deploy` to completion and only then is `web` allowed to
+start, so a commit that adds a migration needs nothing extra.
+
+Migrations run from the **`builder`** stage, not the runtime image. The Prisma
+CLI drags in a transitive tree of its own (`@prisma/config` → `effect` → …)
+that cannot be cherry-picked into a standalone runner without breaking on the
+next upgrade — the runner carries only the query engine and what tracing found.
 
 ### The seed is destructive — do not wire it into startup
 

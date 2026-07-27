@@ -24,6 +24,24 @@ services:
       timeout: 5s
       retries: 10
 
+  # Migrations, as their own container from the `builder` stage — which has the
+  # whole toolchain, rather than the runtime image's traced subset. Runs to
+  # completion before `web` is allowed to start, so `docker compose up -d` stays
+  # a single command and a commit that adds a migration needs nothing extra.
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+    image: basinwright-builder:latest
+    restart: "no"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-basinwright}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-basinwright}?schema=public
+    command: npx prisma migrate deploy
+
   web:
     build:
       context: .
@@ -33,6 +51,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-basinwright}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-basinwright}?schema=public
       SESSION_SECRET: ${SESSION_SECRET:?SESSION_SECRET must be set in .env}
@@ -46,17 +66,22 @@ services:
       AI_TEMPERATURE: ${AI_TEMPERATURE:-0.4}
     ports:
       - "3001:3000"
-    # Migrations only. The seed is deliberately NOT run here: it replaces
+    # Nothing but the server. Migrations are the `migrate` service above, and
+    # the seed is deliberately not wired into startup at all: it replaces
     # sections, entries and navigation wholesale, so running it on every
     # restart would throw away everything edited in /admin since the last
     # deploy. Seed once, by hand, with the `seed` service below.
-    command: sh -c "node node_modules/prisma/build/index.js migrate deploy && node server.js"
+    command: node server.js
 
   # One-off, on demand: `docker compose --profile tools run --rm seed`.
   # Safe to re-run only when you intend to reset the CMS to the seed content.
   # The admin user is upserted rather than replaced, so it survives either way.
   seed:
-    image: basinwright-web:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+    image: basinwright-builder:latest
     depends_on:
       db:
         condition: service_healthy
@@ -66,7 +91,7 @@ services:
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
       ADMIN_NAME: ${ADMIN_NAME:-BasinWright Admin}
     profiles: ["tools"]
-    command: sh -c "node node_modules/tsx/dist/cli.mjs prisma/seed.ts"
+    command: npx tsx prisma/seed.ts
 
 volumes:
   db_data:
