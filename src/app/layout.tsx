@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 import { ThemeScript } from "@/components/theme/theme-script";
-import { getSettings } from "@/lib/content";
+import { getSettingsForMetadata } from "@/lib/content";
 import "./globals.css";
 
 // Every face — body and display alike — comes from the Segoe UI Variable stack
@@ -10,7 +10,7 @@ import "./globals.css";
 // No webfont is loaded: Microsoft's own site does exactly this.
 
 export async function generateMetadata(): Promise<Metadata> {
-  const settings = await getSettings();
+  const settings = await getSettingsForMetadata();
   const name = settings["site.name"] ?? "BasinWright";
   const tagline = settings["site.tagline"] ?? "Enterprise Intelligence as a Service";
 

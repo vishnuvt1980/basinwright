@@ -29,6 +29,23 @@ export const getSettings = cache(async (): Promise<Record<string, string>> => {
   return Object.fromEntries(rows.map((r) => [r.key, r.value]));
 });
 
+/// Settings for `generateMetadata` only, where a failed lookup must not be
+/// fatal. `/_not-found` is statically prerendered, so the root layout's
+/// metadata runs inside `next build` — in the Docker image build there is no
+/// database and not even a `DATABASE_URL`, and a strict read fails the build.
+/// Returning an empty map lets the caller's own `??` defaults stand, and at
+/// runtime turns a database blip into a default `<title>` rather than a 500 on
+/// every page. Everything that renders actual content keeps using
+/// `getSettings` and is still expected to fail loudly.
+export const getSettingsForMetadata = cache(async (): Promise<Record<string, string>> => {
+  try {
+    return await getSettings();
+  } catch (error) {
+    console.error("[content] settings unavailable for metadata, using defaults:", error);
+    return {};
+  }
+});
+
 export const getNav = cache(async (location: "header" | "footer") => {
   return db.navItem.findMany({
     where: { location, visible: true },
