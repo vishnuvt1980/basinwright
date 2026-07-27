@@ -1,0 +1,193 @@
+// BasinWright CMS — Postgres schema
+// The homepage is fully content-managed: every block on the page is a `Section`,
+// and every repeated card/logo/tier inside a block is an `Entry`.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Auth
+// ---------------------------------------------------------------------------
+
+enum Role {
+  ADMIN
+  EDITOR
+}
+
+model AdminUser {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  role         Role     @default(EDITOR)
+  lastLoginAt  DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("admin_users")
+}
+
+// ---------------------------------------------------------------------------
+// Content
+// ---------------------------------------------------------------------------
+
+/// The kind drives which React component renders the section.
+enum SectionKind {
+  HERO
+  LOGO_WALL
+  PLATFORM_GRID
+  WHY_PILLARS
+  AGENTS
+  MODELS
+  PRODUCTS
+  INDUSTRIES
+  SOLUTIONS
+  INFRASTRUCTURE
+  PRICING
+  STATS
+  CTA
+  RICH_TEXT
+}
+
+model Section {
+  id            String      @id @default(cuid())
+  /// Stable identifier used by the renderer, e.g. "hero", "products".
+  key           String      @unique
+  kind          SectionKind
+  order         Int         @default(0)
+  visible       Boolean     @default(true)
+
+  eyebrow       String?
+  title         String?
+  /// Hero renders each string as its own animated line.
+  headlineLines String[]    @default([])
+  subtitle      String?
+  body          String?
+
+  ctaLabel      String?
+  ctaHref       String?
+  ctaLabel2     String?
+  ctaHref2      String?
+
+  /// Free-form per-section options (background variant, columns, etc.).
+  meta          Json?
+
+  entries       Entry[]
+
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([order])
+  @@map("sections")
+}
+
+model Entry {
+  id        String   @id @default(cuid())
+  sectionId String
+  section   Section  @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  order     Int      @default(0)
+  visible   Boolean  @default(true)
+
+  title     String
+  subtitle  String?
+  body      String?
+  /// lucide-react icon name, e.g. "Cpu".
+  icon      String?
+  href      String?
+  badge     String?
+  /// Accent token: "brass" | "verdigris" | "slate" | "ember".
+  accent    String?
+  /// Feature lists, capability bullets, pricing line items.
+  bullets   String[] @default([])
+  meta      Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sectionId, order])
+  @@map("entries")
+}
+
+/// Site-wide strings (brand name, footer tagline, contact email, chat prompt…).
+model SiteSetting {
+  id    String  @id @default(cuid())
+  key   String  @unique
+  value String
+  label String
+  group String  @default("general")
+  /// "text" | "textarea" | "url" | "email"
+  type  String  @default("text")
+  order Int     @default(0)
+
+  @@index([group, order])
+  @@map("site_settings")
+}
+
+model NavItem {
+  id       String    @id @default(cuid())
+  label    String
+  href     String
+  order    Int       @default(0)
+  visible  Boolean   @default(true)
+  /// Null for top-level items; set for dropdown children.
+  parentId String?
+  parent   NavItem?  @relation("NavChildren", fields: [parentId], references: [id], onDelete: Cascade)
+  children NavItem[] @relation("NavChildren")
+  /// "header" | "footer"
+  location String    @default("header")
+  /// Footer column heading this link sits under.
+  group    String?
+
+  @@index([location, order])
+  @@map("nav_items")
+}
+
+// ---------------------------------------------------------------------------
+// Captured data
+// ---------------------------------------------------------------------------
+
+model Lead {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  company   String?
+  role      String?
+  interest  String?
+  message   String?
+  source    String   @default("website")
+  handled   Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@map("leads")
+}
+
+model ChatConversation {
+  id        String        @id @default(cuid())
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  messages  ChatMessage[]
+
+  @@index([createdAt])
+  @@map("chat_conversations")
+}
+
+model ChatMessage {
+  id             String           @id @default(cuid())
+  conversationId String
+  conversation   ChatConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  /// "user" | "assistant"
+  role           String
+  content        String
+  createdAt      DateTime         @default(now())
+
+  @@index([conversationId, createdAt])
+  @@map("chat_messages")
+}

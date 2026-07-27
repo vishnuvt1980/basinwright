@@ -1,26 +1,212 @@
 @import "tailwindcss";
 
+/* ==========================================================================
+   BasinWright design tokens
+   Palette drawn from the brand image: machined brass on charcoal marble,
+   parchment contour maps, oxidised verdigris inlay.
+   ========================================================================== */
+
+@theme {
+  /* Ground — charcoal marble */
+  --color-basin-950: #08090b;
+  --color-basin-900: #0d0f12;
+  --color-basin-850: #121519;
+  --color-basin-800: #171b20;
+  --color-basin-700: #21262d;
+  --color-basin-600: #2f363f;
+  --color-basin-500: #454e59;
+  --color-basin-400: #6b7480;
+  --color-basin-300: #949ca8;
+
+  /* Brass — the compass, the rails, the primary accent */
+  --color-brass-50: #fdf9ed;
+  --color-brass-100: #f8eec9;
+  --color-brass-200: #f0dd9c;
+  --color-brass-300: #e5c66a;
+  --color-brass-400: #d9ae43;
+  --color-brass-500: #c9a227;
+  --color-brass-600: #a8811d;
+  --color-brass-700: #7f611a;
+  --color-brass-800: #5b451a;
+  --color-brass-900: #3b2d14;
+
+  /* Parchment — the contour map substrate */
+  --color-parchment-50: #fbf7ef;
+  --color-parchment-100: #f4ecdb;
+  --color-parchment-200: #e9dcc0;
+  --color-parchment-300: #d9c69d;
+  --color-parchment-400: #c2a97a;
+
+  /* Verdigris — oxidised copper inlay */
+  --color-verdigris-300: #7fbdb1;
+  --color-verdigris-400: #5b9c90;
+  --color-verdigris-500: #3f7d72;
+  --color-verdigris-600: #2f6058;
+
+  /* Ember — warm copper */
+  --color-ember-300: #e0a06a;
+  --color-ember-400: #cf8348;
+  --color-ember-500: #b87333;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-display), ui-serif, Georgia, serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+
+  --radius-panel: 1.25rem;
+
+  --animate-marquee: marquee 46s linear infinite;
+  --animate-shimmer: shimmer 2.4s ease-in-out infinite;
+  --animate-float: float 7s ease-in-out infinite;
+}
+
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+@keyframes shimmer {
+  0%, 100% { opacity: 0.35; }
+  50%      { opacity: 1; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-10px); }
+}
+
+/* ==========================================================================
+   Base
+   ========================================================================== */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: dark;
+  --grain-opacity: 0.035;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-basin-950);
+  color: var(--color-parchment-100);
+  font-family: var(--font-sans);
+  overflow-x: clip;
+}
+
+::selection {
+  background: color-mix(in oklab, var(--color-brass-500) 40%, transparent);
+  color: var(--color-parchment-50);
+}
+
+/* Focus ring that stays legible on both charcoal and parchment. */
+:focus-visible {
+  outline: 2px solid var(--color-brass-400);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* Custom scrollbar — subtle, matches the brass rails. */
+::-webkit-scrollbar { width: 11px; height: 11px; }
+::-webkit-scrollbar-track { background: var(--color-basin-900); }
+::-webkit-scrollbar-thumb {
+  background: var(--color-basin-600);
+  border-radius: 99px;
+  border: 3px solid var(--color-basin-900);
+}
+::-webkit-scrollbar-thumb:hover { background: var(--color-brass-700); }
+
+/* ==========================================================================
+   Utilities
+   ========================================================================== */
+
+@utility container-bw {
+  width: 100%;
+  margin-inline: auto;
+  padding-inline: 1.5rem;
+  max-width: 82rem;
+}
+
+/* Brass gradient text for headline accents. */
+@utility text-brass-gradient {
+  background-image: linear-gradient(
+    100deg,
+    var(--color-brass-200) 0%,
+    var(--color-brass-400) 32%,
+    var(--color-parchment-100) 50%,
+    var(--color-brass-400) 68%,
+    var(--color-brass-600) 100%
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+/* Hairline that fades at both ends, like an inlaid rail. */
+@utility rule-fade {
+  background-image: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in oklab, var(--color-brass-500) 45%, transparent),
+    transparent
+  );
+}
+
+/* Frosted panel used across cards. */
+@utility panel {
+  background: color-mix(in oklab, var(--color-basin-850) 78%, transparent);
+  border: 1px solid color-mix(in oklab, var(--color-basin-600) 70%, transparent);
+  backdrop-filter: blur(14px);
+  border-radius: var(--radius-panel);
+}
+
+/* Topographic contour backdrop — the basin the brand is named for. */
+@utility topo {
+  background-image:
+    repeating-radial-gradient(
+      ellipse 62% 44% at 50% 46%,
+      color-mix(in oklab, var(--color-brass-500) 11%, transparent) 0px,
+      color-mix(in oklab, var(--color-brass-500) 11%, transparent) 1px,
+      transparent 1px,
+      transparent 26px
+    );
+}
+
+/* Film grain, applied via ::after on dark sections. */
+@utility grain {
+  position: relative;
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: var(--grain-opacity);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+}
+
+/* Hides scrollbars on horizontal rails without losing scroll. */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+}
+
+/* ==========================================================================
+   Motion preferences
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }
