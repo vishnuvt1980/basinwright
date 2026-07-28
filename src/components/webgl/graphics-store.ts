@@ -5,15 +5,22 @@ import { useSyncExternalStore } from "react";
 /**
  * The site-wide "immersive graphics" gate.
  *
- * Two independent inputs decide whether a WebGL layer mounts:
+ * Graphics are **on by default**. Detection is not asked whether this machine
+ * would be a good host for them; it is asked only whether it can host them at
+ * all. Three things can hold a layer back:
  *
- *   1. Capability detection — is this machine likely to hold a steady frame
- *      rate, and does the visitor's OS want motion at all?
- *   2. An explicit choice, persisted in `localStorage`.
+ *   1. Structure — no WebGL context, or no room to compose the scene in.
+ *   2. A disqualifying machine: a software rasteriser, data-saver mode, or a
+ *      GPU too small to hold the textures. These would not draw, they would
+ *      crawl.
+ *   3. The visitor's OS asking for reduced motion.
  *
- * The explicit choice wins in **both** directions: someone on a modest laptop
- * may force graphics on, someone on a workstation may force them off. Detection
- * only supplies the default.
+ * An explicit choice, persisted in `localStorage`, wins in **both** directions:
+ * someone on a modest laptop may force graphics on, someone on a workstation
+ * may force them off.
+ *
+ * Nothing here predicts frame rate — both scenes measure their own and step
+ * down or bow out, which is a truer answer than any probe.
  *
  * Two profiles come out of one detection pass, because the two scenes cost
  * very different things. The hero is a single full-bleed fragment shader and
@@ -53,9 +60,9 @@ type Capability = {
   /// Structural — no context, or no room to compose in. Not overridable.
   sceneSupported: boolean;
   heroSupported: boolean;
-  /// Scored — fast enough that we'd switch graphics on unprompted.
-  sceneCapable: boolean;
-  heroCapable: boolean;
+  /// False only on a machine that would draw these at single-digit frame
+  /// rates. Overridable: the visitor may still ask for them.
+  capable: boolean;
 };
 
 const REDUCED_MOTION = "(prefers-reduced-motion: reduce)";
@@ -77,21 +84,15 @@ const SOFTWARE_RENDERER =
 const SCENE_MIN_VIEWPORT = 1024;
 const HERO_MIN_VIEWPORT = 768;
 
-/// A GPU that cannot hold a 4K texture is not going to hold this scene.
+/// A GPU that cannot hold a 4K texture is not going to hold either scene.
 const MIN_TEXTURE_SIZE = 4096;
 
-/// Soft-signal total the scene has to clear to switch itself on.
-const SCENE_SCORE_THRESHOLD = 3;
-
 type ExtendedNavigator = Navigator & {
-  /// Chromium only — absent on Safari and Firefox, where absence must stay neutral.
-  deviceMemory?: number;
   connection?: { saveData?: boolean };
 };
 
 function probe(): Capability {
   const nav = navigator as ExtendedNavigator;
-  const cores = nav.hardwareConcurrency ?? 0;
   const width = window.innerWidth;
 
   let gl: WebGL2RenderingContext | WebGLRenderingContext | null = null;
@@ -105,72 +106,33 @@ function probe(): Capability {
     gl = null;
   }
 
-  const heroSupported = gl !== null && width >= HERO_MIN_VIEWPORT;
-  // The hero shader is fill-rate bound but geometrically trivial; a couple of
-  // real cores is the whole bar.
-  const heroCapable = cores === 0 || cores > 2;
-
   const base: Capability = {
-    heroSupported,
-    heroCapable,
-    sceneSupported: false,
-    sceneCapable: false,
+    heroSupported: gl !== null && width >= HERO_MIN_VIEWPORT,
+    sceneSupported: gl !== null && webgl2 && width >= SCENE_MIN_VIEWPORT,
+    capable: false,
   };
 
-  if (!gl || !webgl2 || width < SCENE_MIN_VIEWPORT) {
-    gl?.getExtension("WEBGL_lose_context")?.loseContext();
-    return base;
-  }
+  if (!gl) return base;
 
   try {
-    // Software rasterisers and data-saver mode are outright disqualifiers
-    // rather than negative scores — no amount of cores compensates.
+    // The disqualifiers. Nothing here is a score to be outweighed: each one
+    // means the frames would not arrive, whatever else the machine reports.
     const debug = gl.getExtension("WEBGL_debug_renderer_info");
     const renderer = debug
       ? String(gl.getParameter(debug.UNMASKED_RENDERER_WEBGL) ?? "")
       : "";
 
-    if (renderer && SOFTWARE_RENDERER.test(renderer)) {
-      return { ...base, sceneSupported: true };
-    }
-    if (nav.connection?.saveData === true) {
-      return { ...base, sceneSupported: true };
-    }
+    if (renderer && SOFTWARE_RENDERER.test(renderer)) return base;
+    if (nav.connection?.saveData === true) return base;
 
     const maxTexture = (gl.getParameter(gl.MAX_TEXTURE_SIZE) as number) ?? 0;
     const maxBuffer =
       (gl.getParameter(gl.MAX_RENDERBUFFER_SIZE) as number) ?? 0;
-    if (Math.min(maxTexture, maxBuffer) < MIN_TEXTURE_SIZE) {
-      return { ...base, sceneSupported: true };
-    }
+    if (Math.min(maxTexture, maxBuffer) < MIN_TEXTURE_SIZE) return base;
 
-    // Everything below is a soft signal. Unknown values score 0, so a browser
-    // withholding a metric is neither rewarded nor punished.
-    let score = 0;
-
-    if (cores >= 8) score += 2;
-    else if (cores >= 6) score += 1;
-    else if (cores > 0 && cores <= 4) score -= 2;
-
-    const memory = nav.deviceMemory;
-    if (memory !== undefined) {
-      if (memory >= 8) score += 2;
-      else if (memory >= 6) score += 1;
-      else if (memory <= 4) score -= 2;
-    }
-
-    if (maxTexture >= 16384) score += 2;
-    else if (maxTexture >= 8192) score += 1;
-
-    // A renderer string we could read that isn't a rasteriser is itself mild
-    // evidence of real hardware.
-    if (renderer) score += 1;
-
-    return {
-      ...base,
-      sceneSupported: true,
-      sceneCapable: score >= SCENE_SCORE_THRESHOLD,
-    };
+    // Real hardware. Everything it can structurally render, it renders — the
+    // frame-rate guards in the scenes themselves take it from here.
+    return { ...base, capable: true };
   } finally {
     // The probe context counts against the browser's per-page context budget,
     // so hand it back before the real canvases ask for one.
@@ -249,20 +211,21 @@ function resolve(): GraphicsState {
   // `*Supported` is structural and cannot be overridden: there is no context to
   // render into, or no room to render it in. Everything else can be.
   //
-  // Reduced motion disqualifies by default, but an explicit "on" is a
-  // deliberate, informed request — the topology scene honours it and composes
-  // statically rather than refusing outright. The hero has no static form, so
-  // reduced motion stays structural there.
+  // Absent a stored choice both layers run wherever they structurally fit:
+  // only a disqualifying machine or a request for reduced motion holds them
+  // back. An explicit "on" overrides both — the topology scene honours reduced
+  // motion by composing statically rather than refusing outright.
   const forced = choice === "on";
   const off = choice === "off";
 
-  const sceneEnabled =
-    !off && c.sceneSupported && (forced || (c.sceneCapable && !reducedMotion));
+  const byDefault = c.capable && !reducedMotion;
+
+  const sceneEnabled = !off && c.sceneSupported && (forced || byDefault);
 
   // The hero shader has no static form, so reduced motion rules it out
-  // outright rather than composing it still.
+  // outright rather than composing it still — there is nothing to force on.
   const heroEnabled =
-    !off && c.heroSupported && !reducedMotion && (forced || c.heroCapable);
+    !off && c.heroSupported && !reducedMotion && (forced || c.capable);
 
   return {
     choice,

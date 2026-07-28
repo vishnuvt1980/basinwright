@@ -12,6 +12,7 @@ import {
 } from "@/components/site/hash-nav";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { ButtonLink, cn } from "@/components/ui/primitives";
+import { GraphicsToggle } from "@/components/webgl/graphics-toggle";
 
 type NavLink = { id: string; label: string; href: string };
 
@@ -143,6 +144,7 @@ export function SiteHeader({ name, links }: { name: string; links: NavLink[] }) 
               rather than `hidden lg:inline-flex`: a plain `hidden` loses the
               cascade to the `inline-flex` in the button base, which is what put
               two wrapped buttons and a squashed menu in a 375px bar. */}
+          <GraphicsToggle variant="compact" className="max-lg:hidden" />
           <ThemeToggle className="max-lg:hidden" />
 
           <ButtonLink
@@ -236,9 +238,14 @@ export function SiteHeader({ name, links }: { name: string; links: NavLink[] }) 
                 </ButtonLink>
               </div>
 
-              <div className="mt-5 flex items-center justify-between border-t border-line pt-5">
-                <span className="text-sm text-ink-3">Theme</span>
-                <ThemeToggle />
+              <div className="mt-5 flex flex-col gap-4 border-t border-line pt-5">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-ink-3">Theme</span>
+                  <ThemeToggle />
+                </div>
+
+                {/* Labelled by its own text, so it takes the row on its own. */}
+                <GraphicsToggle className="self-start" />
               </div>
             </div>
           </motion.nav>

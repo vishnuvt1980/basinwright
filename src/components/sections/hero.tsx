@@ -16,7 +16,6 @@ import { substrateChapters } from "@/components/sections/substrate-chapters";
 import { SubstrateNarrative } from "@/components/sections/substrate-narrative";
 import { useIsDark } from "@/components/theme/use-dark";
 import { ButtonLink, Eyebrow, cn } from "@/components/ui/primitives";
-import { GraphicsToggle } from "@/components/webgl/graphics-toggle";
 import { useGraphics } from "@/components/webgl/graphics-store";
 import { HeroCanvas } from "@/components/webgl/hero-canvas";
 import type { Verdict } from "@/components/webgl/substrate/engine";
@@ -370,10 +369,6 @@ export function Hero({
             <SubstrateNarrative chapters={chapters} />
           </div>
         ) : null}
-
-        <div className="mt-10 flex justify-end">
-          <GraphicsToggle />
-        </div>
       </div>
     </section>
   );

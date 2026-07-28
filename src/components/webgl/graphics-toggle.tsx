@@ -1,5 +1,6 @@
 "use client";
 
+import { Icon } from "@/components/icon";
 import { cn } from "@/components/ui/primitives";
 import { setGraphicsChoice, useGraphics } from "@/components/webgl/graphics-store";
 
@@ -9,8 +10,18 @@ import { setGraphicsChoice, useGraphics } from "@/components/webgl/graphics-stor
  * It stays mounted when graphics are off — hiding the control would leave the
  * visitor no way back — and it writes an explicit choice rather than returning
  * to "auto", because once someone has touched it the decision is theirs.
+ *
+ * One instance governs the whole site, so it lives in the header: `compact` is
+ * the glyph that sits beside the theme control in the bar, `pill` the labelled
+ * switch the mobile sheet has room for.
  */
-export function GraphicsToggle({ className }: { className?: string }) {
+export function GraphicsToggle({
+  className,
+  variant = "pill",
+}: {
+  className?: string;
+  variant?: "pill" | "compact";
+}) {
   const { sceneEnabled, heroEnabled, supported } = useGraphics();
 
   // Nothing to offer on a machine that cannot render either layer. This is
@@ -19,6 +30,38 @@ export function GraphicsToggle({ className }: { className?: string }) {
   if (!supported) return null;
 
   const on = sceneEnabled || heroEnabled;
+  const label = `Immersive graphics: ${on ? "On" : "Off"}`;
+
+  if (variant === "compact") {
+    return (
+      <button
+        type="button"
+        aria-pressed={on}
+        aria-label={label}
+        title={label}
+        onClick={() => setGraphicsChoice(on ? "off" : "on")}
+        className={cn(
+          "inline-flex size-9 items-center justify-center rounded-full border backdrop-blur-sm transition-colors duration-300",
+          on
+            ? "border-accent/40 bg-accent/10 text-accent"
+            : "border-line bg-surface/70 text-ink-3 hover:border-line-strong hover:text-ink-2",
+          className,
+        )}
+      >
+        {/* One mark in both states, struck through when off — the same glyph
+            in a different colour reads as decoration, not as a state. */}
+        <span className="relative inline-flex size-4 items-center justify-center">
+          <Icon name="Sparkles" className="size-4" />
+          {on ? null : (
+            <span
+              aria-hidden
+              className="absolute h-[1.5px] w-[1.35rem] -rotate-45 rounded-full bg-current"
+            />
+          )}
+        </span>
+      </button>
+    );
+  }
 
   return (
     <button

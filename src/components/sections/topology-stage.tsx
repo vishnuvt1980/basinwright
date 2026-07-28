@@ -14,7 +14,6 @@ import {
 import { IconTile } from "@/components/icon";
 import type { TopologyLayer } from "@/components/sections/topology-layers";
 import { Chip, cn } from "@/components/ui/primitives";
-import { GraphicsToggle } from "@/components/webgl/graphics-toggle";
 import { useGraphics } from "@/components/webgl/graphics-store";
 import type { FpsVerdict, Quality } from "@/components/webgl/platform-scene";
 
@@ -229,12 +228,6 @@ export function TopologyStage({
           ) : (
             <p className="text-sm leading-relaxed text-ink-3">{caption}</p>
           )}
-        </div>
-
-        {/* Reserved at the widths where the toggle can appear, so it never
-            shifts anything when it mounts after hydration. */}
-        <div className="mt-6 lg:min-h-9">
-          <GraphicsToggle />
         </div>
       </div>
 
