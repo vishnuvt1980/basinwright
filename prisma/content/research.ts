@@ -3,169 +3,167 @@ import { DocKind } from "@prisma/client";
 import type { DocSeed } from "./types";
 
 /* ---------------------------------------------------------------------------
-   Research notes. Applied rather than academic: everything here was measured
-   on real customer estates, with the method and the caveats stated.
+   Engineering notes.
+
+   These were written as research results — "measured across 1.4 million
+   production decisions on four customer estates", "seven estates over fourteen
+   weeks". We have no such estates and ran no such studies, so the numbers went
+   and the mechanisms stayed.
+
+   What each note now does: explain why a design choice was made, state the
+   mechanism it depends on, and set out the measurement that would confirm or
+   kill it. Where a figure appears it is either cited to public literature or
+   marked as an assumption we have not yet tested.
+
+   The collection carries a standing disclosure to that effect — see
+   COLLECTIONS in src/lib/library.ts.
+
+   If we ever do run these studies, the results belong here, clearly dated and
+   with the method stated. Until then this is design rationale, and it says so.
 --------------------------------------------------------------------------- */
 
 export const research: DocSeed[] = [
   {
     kind: DocKind.RESEARCH,
     slug: "quorum-decisioning-evidence-lanes",
-    title: "Evidence quorum reduces confident errors by 61%",
+    title: "Why we require an evidence quorum rather than a confidence score",
     subtitle:
-      "Measuring what happens when a decision requires agreement across independent lanes rather than a single model's confidence.",
+      "Self-reported confidence is a property of the model's output distribution. It cannot encode what was never retrieved.",
     excerpt:
-      "We compared single-model confidence thresholds against three-lane evidence quorum across 1.4 million production decisions. The interesting result was not the accuracy change.",
+      "The design bet: independent lanes fail in independent ways, so requiring agreement collapses the confident-error class at the cost of a few more escalations.",
     category: "Decisioning",
     author: "Hana Sato",
     authorRole: "Lead Researcher, Applied Evaluation",
-    readMinutes: 9,
+    readMinutes: 8,
     featured: true,
     publishedAt: "2026-07-10",
     tags: ["Decisioning", "Evaluation", "Confidence"],
     icon: "Scale",
     accent: "verdigris",
     seoDescription:
-      "Research on evidence quorum decisioning: requiring agreement across independent lanes cut confident errors by 61% across 1.4M production decisions.",
-    body: `## What we tested
+      "Why BasinWright requires agreement across independent evidence lanes rather than a single confidence threshold, and the measurement that would test it.",
+    body: `## The choice
 
-Two configurations, run in parallel on the same production traffic across four customer estates in financial services and insurance.
+Two ways to decide whether an automated system may act without a human.
 
-**Configuration A — single-lane confidence.** One reasoning model over assembled context, with an automation threshold on its self-reported confidence.
+**Single-lane confidence.** One reasoning model over assembled context, with an automation threshold on its self-reported confidence.
 
-**Configuration B — three-lane quorum.** Retrieval grounding, deterministic constraint checks, and reasoning, each producing an independent assessment. Automation requires agreement across lanes; disagreement routes to a human.
+**Evidence quorum.** Retrieval grounding, deterministic constraint checks and reasoning, each producing an independent assessment. Automation requires agreement; disagreement routes to a human.
 
-1.4 million decisions over eleven weeks. Ground truth from eventual outcome where available, and from blind human re-work on a 4% sample where not.
-
-## Headline result
-
-Overall accuracy was close: 94.1% for A against 95.6% for B. A 1.5 point difference is real but would not by itself justify the additional complexity.
-
-The result that matters is the **error distribution**.
-
-| Outcome class | Config A | Config B | Change |
-| --- | --- | --- | --- |
-| Correct, automated | 88.2% | 86.9% | −1.3 pts |
-| Correct, escalated | 5.9% | 8.7% | +2.8 pts |
-| Incorrect, escalated | 2.1% | 3.2% | +1.1 pts |
-| **Incorrect, automated** | **3.8%** | **1.2%** | **−68%** |
-
-Configuration B automates slightly less and escalates more. In exchange, the errors it makes autonomously — the ones nobody catches until a customer complains or an auditor asks — fall by roughly two thirds.
-
-Weighted by the customers' own cost rankings, confident errors fell 61% against a 1.3 point reduction in automation rate.
+The platform defaults to the second for consequential decisions. This note is why, and what would have to be true for that to be wrong.
 
 ## Why single-lane confidence fails the way it does
 
-Self-reported confidence is a property of the model's output distribution, not of the evidence. A model given a coherent but incomplete context will produce a confident, coherent, incomplete answer. Nothing in the confidence signal encodes *what was not retrieved*.
+Self-reported confidence is a property of the model's output distribution, not of the evidence. A model given a coherent but *incomplete* context will produce a confident, coherent, incomplete answer. Nothing in the confidence signal encodes what was not retrieved.
 
-Quorum works because the lanes fail differently. Retrieval failure looks like weak grounding scores. A constraint violation is deterministic and does not care how fluent the reasoning is. Reasoning failure shows up as disagreement with the other two.
+That is not a calibration problem to be tuned away. It is structural: the signal is computed over the tokens the model produced, and the missing evidence never became tokens.
 
-Confident errors require all three lanes to fail simultaneously, and their failure modes are close to independent.
+## The mechanism quorum relies on
 
-## The deterministic lane does most of the work
+Quorum works — if it works — because the lanes fail *differently*:
 
-Ablating each lane in turn:
+- Retrieval failure shows up as weak grounding scores.
+- A constraint violation is deterministic and does not care how fluent the reasoning is.
+- Reasoning failure shows up as disagreement with the other two.
 
-- Removing **deterministic checks** returned confident errors to 3.1% — most of the gap.
-- Removing **grounding** returned them to 2.4%.
-- Removing **reasoning** hurt overall accuracy substantially but had modest effect on confident errors.
+A confident error then requires all three to fail simultaneously. The whole bet rests on those failure modes being close to independent, and that is the assumption most worth attacking. If retrieval and reasoning share an upstream cause — the same stale corpus, say — they are correlated and the quorum buys less than it appears to.
 
-The non-negotiable checks — limits, entitlements, coverage, eligibility, hours — are cheap, uninteresting, and responsible for most of the benefit. This is not a satisfying finding and it has held in every estate we have measured it in.
+## What we expect, and what would falsify it
 
-## Caveats
+We expect quorum to **automate slightly less** and **escalate more**, in exchange for a large reduction in the errors that get made autonomously and are caught late.
 
-Four estates, two sectors, and both with well-developed deterministic rule sets already available to encode. Domains with fewer hard constraints should expect a smaller effect.
+That trade only looks good if the second effect dominates. The measurement that decides it, which any estate can run in shadow mode:
 
-Ground truth on the non-outcome-bearing portion comes from blind human re-work, which has its own error rate. We did not attempt to correct for it, and it plausibly compresses the difference between configurations rather than exaggerating it.
+| Outcome class | What it costs |
+| --- | --- |
+| Correct, automated | The win |
+| Correct, escalated | Cheap — a human's time |
+| Incorrect, escalated | Cheap — the human catches it |
+| **Incorrect, automated** | Expensive, and found late |
 
-## What we changed
+Run both configurations on the same traffic. If the reduction in the fourth row does not outweigh the loss in the first row on the estate's own cost weighting, single-lane is the right answer there and we would say so.
 
-Evidence quorum is now the default configuration for consequential decisions on the platform, with single-lane operation available where the decision is genuinely low-consequence and the latency budget is tight.
+## The unglamorous part
 
-The escalation increase is real and customers should plan for it. Two of the four estates initially treated the higher escalation rate as a regression to be tuned away. Both reversed that position after reviewing what was in the escalated population.`,
+Our expectation is that the **deterministic lane** does most of the work — limits, entitlements, coverage, eligibility, hours-of-service. Cheap, uninteresting checks that are not learned and not negotiable.
+
+That is not a satisfying claim for an AI platform to make, which is one reason to state it plainly. The ablation that would test it: remove each lane in turn and watch the confident-error rate. If removing the deterministic checks moves it most, the boring lane is the load-bearing one.
+
+## What this means in practice
+
+Quorum is the default for consequential decisions and single-lane operation is available where the decision is genuinely low-consequence and the latency budget is tight.
+
+Expect the escalation rate to rise when you switch. Two teams we have talked this through with assumed that was a regression to be tuned away. It is the mechanism working — and the population that lands in the escalation queue is the thing to go and read before deciding otherwise.`,
   },
 
   {
     kind: DocKind.RESEARCH,
     slug: "drift-detection-in-governed-corpora",
-    title: "Detecting drift before accuracy moves",
+    title: "Watching the corpus instead of waiting for accuracy to move",
     subtitle:
-      "Corpus composition shifts weeks before downstream accuracy does. Watching the corpus buys the lead time.",
+      "Accuracy monitoring is retrospective by construction. Corpus-level signals are the only ones available earlier.",
     excerpt:
-      "Accuracy monitoring tells you a model has already degraded. We looked at whether corpus-level signals predict it, and by how long.",
+      "By the time an accuracy metric moves enough to alert, the model has been making worse decisions for as long as it took the signal to accumulate. Sometimes a quarter.",
     category: "Monitoring",
     author: "Aisha Rahman",
     authorRole: "Principal Data Scientist",
-    readMinutes: 8,
+    readMinutes: 7,
     publishedAt: "2026-06-15",
     tags: ["Drift", "Monitoring", "Data", "Operations"],
     icon: "Activity",
     accent: "amber",
     seoDescription:
-      "Research on drift detection in governed corpora: corpus composition signals predicted accuracy degradation by a median of 23 days across six estates.",
+      "Why BasinWright monitors corpus composition and quarantine reason mix as leading drift indicators, and how to validate them on your own estate.",
     body: `## The problem with accuracy monitoring
 
-Accuracy monitoring is retrospective by construction. By the time a metric moves enough to trigger an alert, the model has been making worse decisions for as long as it took the signal to accumulate — typically weeks, and longer where ground truth arrives late.
+Accuracy monitoring is retrospective by construction. By the time a metric moves enough to trigger an alert, the model has been making worse decisions for as long as it took the signal to accumulate.
 
-For a claims model where outcomes settle over ninety days, accuracy-based alerting can be a quarter behind reality.
+For a claims model where outcomes settle over ninety days, accuracy-based alerting can be a quarter behind reality. That is not a tuning problem. Ground truth simply does not exist yet.
 
-We tested whether signals available at the data layer predict it earlier.
+So the question is whether anything available *earlier* carries signal.
 
-## Method
+## The candidates, and why each might work
 
-Six estates, eighteen months of history, across insurance, banking, manufacturing and healthcare. For each, we reconstructed a weekly time series of corpus-level signals and compared their movement against the eventual accuracy degradation events the estates had recorded.
+**Quarantine reason mix.** Not the rate — the rate is usually stable and uninformative — but the *distribution of reasons*. The mechanism: an upstream system changing its behaviour shows up first as a different mix of why records fail the quality bar, before any of it reaches a model. This is the signal we weight most heavily, and it is the one with the clearest causal story.
 
-Signals tracked:
+**Retrieval abstention rate.** Rising abstention means the corpus no longer covers what is being asked. It should precede accuracy loss because a system's first response to a coverage gap is to decline, and only later to answer badly from weak evidence.
 
-- **Composition shift** — distribution over source systems, document types and entity classes
-- **Quarantine rate and reason mix** — what is failing the quality bar and why
-- **Retrieval characteristics** — score distributions, abstention rate, result-set overlap
-- **Vocabulary novelty** — proportion of terms absent from the training corpus
-- **Entity churn** — rate of new entities and re-resolutions of existing ones
+**Vocabulary novelty.** The proportion of terms absent from the training corpus. Should work in domains with real terminology churn — new products, new regulations — and be flat and noisy in stable ones. Expect it to be useless more often than not.
 
-## Result
+**Composition shift.** Distribution over source systems, document types and entity classes. Genuinely hard to separate from seasonality without a long baseline, so expect false alarms.
 
-Corpus signals moved a median of **23 days** before accuracy degradation became detectable, with an interquartile range of 11 to 41 days.
+**Entity churn.** The rate of new entities and re-resolutions. We expect this to be weak as a leading indicator and excellent for diagnosis after the fact.
 
-Ranked by usefulness:
+## What we do not know
 
-**1. Quarantine reason mix (not rate).** The strongest single predictor. The total rate is stable and uninformative; the *reason* distribution shifting is a reliable early signal that an upstream system has changed. Fourteen of nineteen degradation events were preceded by a reason-mix shift.
+We have not established how much lead time these actually buy. That requires a history of degradation events with corpus signals reconstructed alongside them, and it has to be done per estate — the answer will differ by domain, by how fast the upstream systems change, and by how long ground truth takes to arrive.
 
-**2. Retrieval abstention rate.** Rising abstention means the corpus no longer covers what is being asked. It precedes accuracy loss because the system's first response to a coverage gap is to decline, and only later to answer badly from weak evidence.
+Any estate running this platform can produce that history, and it is worth doing deliberately rather than discovering after an incident.
 
-**3. Vocabulary novelty.** Effective in domains with real terminology churn — new products, new regulations, new failure modes. Near-useless in stable domains, where it is flat and noisy.
+## How to validate it on your own estate
 
-**4. Composition shift.** Useful but noisy. Genuine seasonality is hard to separate from real shift without a long baseline.
+1. Record all five signals weekly from go-live. They are cheap and you cannot reconstruct them later.
+2. Log every degradation event with a date, including the ones caught by complaint rather than by monitoring.
+3. After a handful of events, look backwards: which signals moved first, and by how long.
+4. Weight your alerting on what actually led, not on this list.
 
-**5. Entity churn.** Weakest as a leading indicator, though excellent for diagnosis after the fact.
+## What we ship, and why it is conservative
 
-## False positives
+The platform tracks all five, weighted toward quarantine reason mix and abstention, and routes them as a **review** trigger rather than an incident.
 
-Composition shift and vocabulary novelty produced substantial false alarms — 30–40% of alerts led to no measurable degradation. Quarantine reason mix was cleaner, at roughly 15%.
+The recommended response is deliberately boring: run the evaluation suite. If it clears, log the signal and continue. If it does not, you have found a degradation before the accuracy metric would have shown it.
 
-For an alert that triggers a review rather than a rollback, that rate is acceptable. It would not be acceptable for automated intervention, and we do not recommend automated retraining on these signals.
-
-## What we deployed
-
-The platform now tracks all five, weighted toward the first two, with alerts routed to the estate's owning team as a *review* trigger rather than an incident.
-
-The recommended response is boring: run the evaluation suite. If it clears, log the signal and continue. If it does not, you have found a degradation weeks before the accuracy metric would have shown it.
-
-## Caveats
-
-Nineteen degradation events across six estates is a small sample for the per-signal rankings, and the relative ordering should be treated as directional. The 23-day median is more robust than the ranking.
-
-We could not test whether acting on early signals improves outcomes — that would require withholding the signal from a control group, which none of the estates were willing to do, reasonably.`,
+We do not recommend automated retraining on these signals, and we do not ship it. Composition shift and vocabulary novelty are noisy enough that automated intervention would fire on seasonality — and a retrain triggered by noise is a worse outcome than the drift it was chasing.`,
   },
 
   {
     kind: DocKind.RESEARCH,
     slug: "small-models-on-domain-tasks",
-    title: "Small models match frontier models on 71% of enterprise tasks",
+    title: "When a small tuned model is the right answer",
     subtitle:
-      "Where domain tuning closes the gap, where it does not, and the cost consequence.",
+      "Narrow and repeated favours a tuned small model. Composition and generality do not. Most enterprise volume is the first kind.",
     excerpt:
-      "We evaluated tuned sub-8B models against frontier models on 340 real enterprise tasks. The pattern in what they cannot do is more useful than the headline.",
+      "The largest available model is the default and it is usually the wrong one — not because it performs badly, but because it is doing work well within its capability at many times the cost.",
     category: "Models",
     author: "Hana Sato",
     authorRole: "Lead Researcher, Applied Evaluation",
@@ -175,78 +173,69 @@ We could not test whether acting on early signals improves outcomes — that wou
     icon: "Shapes",
     accent: "purple",
     seoDescription:
-      "Research comparing domain-tuned sub-8B models with frontier models on 340 enterprise tasks: parity on 71%, with a clear pattern in the remaining 29%.",
-    body: `## Method
+      "Which enterprise tasks suit a domain-tuned small model, which need a frontier model, and how to run the comparison on your own workload.",
+    body: `## The claim we are making
 
-340 tasks drawn from production workloads across eleven customer estates, categorised by task type rather than by industry. For each, a frontier model with careful prompting was compared against a sub-8B open-weight model tuned on 500–5,000 domain examples.
+Small domain-tuned models are strong where a task is **narrow and repeated**, and weak where it requires **composition or generality**.
 
-Grading used each estate's own rubrics, by their own domain owners, blind to which system produced the output.
+Stated that abstractly it is not controversial. What makes it operationally interesting is how much enterprise work falls into the first category: extraction, classification, templated generation, routing — high volume, well defined, repeated thousands of times a day.
 
-"Parity" means the tuned small model scored within one standard error of the frontier model on that estate's rubric.
+On that traffic a frontier model is doing work well within its capability, at many times the cost and latency of something that would do it just as well.
 
-## Result
+## Where we would expect parity, and why
 
-Parity on 71% of tasks. The distribution by task type is where the useful information is.
+**Likely parity** — the task has a fixed output shape and a bounded input distribution, so tuning has something stable to learn:
 
-**Parity, consistently:**
+- Structured extraction from domain documents
+- Classification into a defined taxonomy
+- Format-constrained generation
+- Summarisation against a fixed template
+- Routing and triage
 
-- Structured extraction from domain documents — 94% of tasks
-- Classification into a defined taxonomy — 91%
-- Format-constrained generation — 89%
-- Summarisation against a fixed template — 84%
-- Routing and triage — 82%
+**Likely not** — the task requires knowledge or composition that was never in the tuning distribution:
 
-**Mixed:**
+- Multi-step reasoning over several documents
+- Anything needing general world knowledge outside the domain
+- Novel task framing not seen in tuning
+- Long-context synthesis
 
-- Open-ended summarisation — 61%
-- Question answering over retrieved context — 58%
+**Genuinely uncertain**: open-ended summarisation, and question answering over retrieved context. These sit on the boundary and we would not predict them without testing.
 
-**Frontier models clearly ahead:**
+We have not evaluated agentic tool-use and would expect it to fall closer to the multi-step reasoning category.
 
-- Multi-step reasoning over several documents — 22%
-- Tasks requiring general world knowledge outside the domain — 19%
-- Novel task framing not seen in tuning — 14%
-- Long-context synthesis beyond 32k — 11%
+## The approach we would use
 
-## The pattern
+Distillation, rather than tuning on curated or synthetic examples: run the frontier model in production for a period, capture inputs and outputs with human corrections, and tune the small model on that corpus.
 
-Small tuned models are strong where the task is *narrow and repeated* and weak where it requires *composition or generality*.
+The reason is mechanical rather than clever. The training distribution ends up being exactly the production distribution, including the awkward cases that a curated set quietly omits.
 
-That is not a surprising finding stated abstractly. What is useful is how much enterprise work falls into the first category. Most of what these estates actually do all day is extraction, classification and templated generation — high volume, well defined, and repeated thousands of times.
+The sequence: run frontier, accumulate, distil, route, escalate.
 
-The frontier model is doing work well within its capability on the majority of requests, at roughly twenty times the cost.
+## How to test it on your own workload
 
-## Cost consequence
+Do not take the categories above on trust — the boundary moves with every model generation, and it will differ on your data.
 
-Across the eleven estates, routing the parity-eligible task types to tuned small models and escalating the rest reduced serving cost by 58–74%, with a median of 66%.
+1. Take a hundred real examples per task type, drawn from production rather than constructed.
+2. Score both systems against **your** rubric, graded by **your** domain owners, blind to which system produced which output.
+3. Define parity as within one standard error on that rubric, and decide the threshold before you look.
+4. Route the task types that reach parity; escalate the rest on uncertainty and on rarity.
+5. Keep a small forced-escalation sample so you can see the gap you are accepting.
 
-Latency improved substantially as a side effect: median time to first token fell by more than half, which matters for interactive paths and does not show up in a cost model.
+## The caveat that matters most
 
-## Distillation was the most effective route
+"Small model" is a moving target. The parity boundary has moved with every open-weight generation and will move again, in the direction of more tasks being served well by less compute.
 
-Of the tuning approaches tried, the most reliable was distillation: use the frontier model in production for a period, capture inputs and outputs with human corrections, and tune the small model on that corpus.
-
-This works because the training distribution is exactly the production distribution, including the awkward cases. Tuning on synthetic or curated examples underperformed it in every estate where we could compare.
-
-The practical sequence: run frontier, accumulate, distil, route, escalate.
-
-## Caveats
-
-Sub-8B is a moving target and this evaluation was run against one generation of open-weight models. The parity boundary has moved once during our own measurement window and will move again.
-
-Tasks were drawn from estates that had already reached production, which biases toward tasks that are well specified. Earlier-stage workloads with unstable requirements should expect worse results from a tuned model, because the tuning target keeps moving.
-
-We did not evaluate agentic tool-use, which we would expect to fall closer to the multi-step reasoning category.`,
+That argues for building the *routing* rather than picking a model: a route that resolves a capability class can absorb the next generation as a config change. A model name in application code cannot.`,
   },
 
   {
     kind: DocKind.RESEARCH,
     slug: "retrieval-under-entity-ambiguity",
-    title: "Entity scoping beats every retrieval improvement we tested",
+    title: "Why entity scoping is the retrieval decision that matters",
     subtitle:
-      "Better embeddings, hybrid search and re-ranking all helped. None of them helped as much as knowing who the question was about.",
+      "Better embeddings, hybrid search and re-ranking all make retrieval better at finding similar content. Entity ambiguity is not a similarity problem.",
     excerpt:
-      "We ablated six retrieval improvements against a controlled ambiguity benchmark. Entity scoping outperformed the other five combined.",
+      "The wrong customer's records are genuinely, correctly similar. A better retriever finds them more reliably — which is the opposite of what you wanted.",
     category: "Retrieval",
     author: "Priya Raghunathan",
     authorRole: "Principal Architect, Enterprise Intelligence",
@@ -256,78 +245,61 @@ We did not evaluate agentic tool-use, which we would expect to fall closer to th
     icon: "Search",
     accent: "brass",
     seoDescription:
-      "Research on retrieval under entity ambiguity: entity scoping outperformed better embeddings, hybrid search, re-ranking and larger context combined.",
-    body: `## The benchmark
+      "Why entity scoping matters more than embedding quality or re-ranking for enterprise retrieval, and how to build a benchmark that exposes the difference.",
+    body: `## The failure this is about
 
-We built a controlled benchmark from three customer estates, holding out questions where the correct answer depends on resolving which entity is being asked about.
+Two customers with the same surname at the same address. A supplier under a parent name and a trading name. A patient with records under a maiden name. An asset re-registered after a transfer.
 
-These are not exotic. They are the ordinary case: two customers with the same surname at the same address, a supplier that appears under a parent and a trading name, a patient with records under a maiden name, an asset re-registered after a transfer.
+These are not exotic cases. They are the ordinary condition of enterprise data, and they produce a specific failure: an answer that blends facts about two different entities without indicating it has done so.
 
-1,900 questions with verified answers, and a corpus containing the confusable entities by construction.
+That answer is fluent. It looks right. It is the failure that gets programmes cancelled, because it is the one an executive notices personally.
 
-## Configurations
+## Why better retrieval does not fix it
 
-Baseline: dense retrieval, fixed-size chunking, top-5, no re-ranking, no scoping.
+The usual retrieval improvements — a stronger embedding model, structure-aware chunking, hybrid dense-plus-lexical search, cross-encoder re-ranking — all make the system better at finding *similar* content.
 
-Then, additively:
+Entity ambiguity is not a similarity problem. The wrong customer's records are genuinely, correctly similar to the query. A better retriever finds them **more** reliably.
 
-1. Better embedding model
-2. Structure-aware chunking
-3. Hybrid dense + lexical retrieval
-4. Cross-encoder re-ranking
-5. Larger context (top-20 instead of top-5)
-6. **Entity scoping** — restrict retrieval to the resolved entity's records
+The information needed to exclude them is not in the text at all. It is the fact that these records belong to a different resolved entity — which exists only if something upstream resolved entities in the first place.
 
-## Result
+## The design consequence
 
-Answer accuracy on the ambiguity benchmark:
+Retrieval is scoped to the resolved entity before similarity is considered at all. Scope first, rank second.
 
-| Configuration | Accuracy | Δ from baseline |
-| --- | --- | --- |
-| Baseline | 51.2% | — |
-| + better embeddings | 56.8% | +5.6 |
-| + structure-aware chunking | 61.4% | +10.2 |
-| + hybrid retrieval | 66.1% | +14.9 |
-| + re-ranking | 70.3% | +19.1 |
-| + larger context | 68.9% | +17.7 |
-| **+ entity scoping (alone, on baseline)** | **88.7%** | **+37.5** |
-| All six combined | 93.4% | +42.2 |
+This changes the question from "what is similar" to "what is similar *within this entity's records*", and no amount of retriever quality substitutes for it.
 
-Entity scoping applied to the otherwise-unimproved baseline beat all five other improvements stacked together.
+The uncomfortable implication: the retrieval improvement we expect to matter most is not a retrieval investment. It is a data-layer one, and it has a hard prerequisite — a resolved entity graph. Estates without one cannot apply this at all, which is itself the finding.
 
-Note the larger-context row: increasing top-k from 5 to 20 *reduced* accuracy relative to re-ranking alone. More context on an ambiguous corpus means more confusable material competing for attention.
+## Larger context windows make it worse, not better
 
-## Why the gap is this large
+Worth stating separately because the instinct runs the other way. Increasing top-k on an ambiguous corpus pulls in *more* confusable material competing for attention. Retrieve broadly, re-rank, and pass few.
 
-The other five improvements make retrieval better at finding *similar* content. Entity ambiguity is not a similarity problem — the wrong customer's records are genuinely, correctly similar. A better retriever finds them more reliably.
+## How to test this properly
 
-Scoping changes the question from "what is similar" to "what is similar *within this entity's records*". No amount of retriever quality substitutes for that, because the information needed is not in the text.
+A general question set will not show the effect — entity ambiguity is rare in aggregate and dominant in the cases that matter. Build the benchmark adversarially:
 
-## The blended-answer failure
+1. Find real confusable entities in your own data: shared names, parent/subsidiary pairs, pre- and post-merger records, changed identifiers.
+2. Write questions whose correct answer depends on resolving *which* entity is meant.
+3. Verify the answers by hand. This is slow and there is no shortcut.
+4. Measure two things separately: answer accuracy, and **blended-answer rate** — responses combining facts about two entities without flagging it.
 
-We separately measured the failure mode that concerns customers most: an answer that combines facts about two different entities without indicating it has done so.
+The second number is the one to watch. An answer that is merely wrong gets caught. A blended answer is confidently wrong and does not look wrong.
 
-Baseline produced blended answers on 14.2% of ambiguity questions. With all five non-scoping improvements: 9.8%. With entity scoping: 0.9%.
+## What we are not claiming
 
-Better retrieval reduced blending by about a third. Scoping close to eliminated it. That difference matters more than the accuracy numbers, because a blended answer is confidently wrong and does not look wrong.
+We have not run this benchmark at scale across production estates, and the relative contribution of each retrieval improvement will depend heavily on how ambiguous a given corpus is.
 
-## Caveats
-
-This benchmark is deliberately adversarial. On a general question set where entity ambiguity is rare, the gap between configurations is much smaller, and the other improvements are worth having.
-
-The point is not that embeddings and re-ranking do not matter. It is that they cannot fix this, and this is the failure that gets programmes cancelled.
-
-Entity scoping also has a hard prerequisite: a resolved entity graph. Estates without one cannot apply this result, which is the actual finding — the retrieval improvement with the largest effect is a data layer investment, not a retrieval one.`,
+What we are claiming is the mechanism: scoping addresses a failure that ranking cannot, because the discriminating information is not in the text. That argument stands on its own, and the benchmark above is how you would check it on your data rather than take our word for it.`,
   },
 
   {
     kind: DocKind.RESEARCH,
     slug: "cost-aware-routing-in-production",
-    title: "Cost-aware routing: what it saves and what it costs you",
+    title: "Cost-aware routing, and the failure mode it introduces",
     subtitle:
-      "Routing on predicted difficulty saved 44% of serving spend and introduced a failure mode worth knowing about.",
+      "Escalation-based routing saves real money and creates a class of error that is invisible in aggregate metrics.",
     excerpt:
-      "Escalation-based routing works. It also creates a class of error that is invisible in aggregate metrics, and we think that is under-discussed.",
+      "Under-escalation does not distribute randomly. It concentrates exactly where the small model is confidently wrong — a systematic population, not noise.",
     category: "Platform",
     author: "Daniel Okonkwo",
     authorRole: "Head of Platform Engineering",
@@ -337,45 +309,43 @@ Entity scoping also has a hard prerequisite: a resolved entity graph. Estates wi
     icon: "Network",
     accent: "azure",
     seoDescription:
-      "Production measurements of cost-aware model routing: 44% serving cost reduction, and the silent-downgrade failure mode it introduces.",
-    body: `## Configuration
+      "How escalation-based model routing works, the under-escalation failure mode it introduces, and the control sample that makes it visible.",
+    body: `## The configuration
 
-Requests are first served by a small tuned model. An escalation decision — based on the small model's own uncertainty, retrieval grounding scores and task-type priors — sends a subset to a frontier model.
+Requests are served first by a small tuned model. An escalation decision — based on the small model's uncertainty, retrieval grounding scores and task-type priors — sends a subset to a frontier model.
 
-Measured across seven estates over fourteen weeks, roughly 4.2 million requests.
+The saving is real and arrives quickly, because the majority path becomes the cheap one. Median latency improves for the same reason. P99 gets slightly worse, since escalated requests pay for both models.
 
-## What it saved
-
-Serving cost fell 44% at the median, with a range of 31% to 68% depending on how much of the estate's traffic fell into the narrow-and-repeated category.
-
-Escalation rates ranged from 12% to 34%. The estates with the lowest escalation rates were not the ones with the best routers — they were the ones with the most homogeneous workloads.
-
-Median latency improved by 40%, since the majority path is now the fast one. P99 got slightly worse, because escalated requests pay for both models.
+That much is arithmetic. The part worth writing down is what it costs you that does not show up in a dashboard.
 
 ## The failure mode
 
-Here is the part we think is under-discussed.
+Escalation decisions have two error types.
 
-Escalation decisions have two error types. **Over-escalation** sends an easy request to the expensive model: costs money, harms nothing. **Under-escalation** keeps a hard request on the small model, which answers it — plausibly, fluently, and worse.
+**Over-escalation** sends an easy request to the expensive model. It costs money and harms nothing.
 
-Under-escalation is invisible in aggregate metrics. Overall accuracy barely moves, because under-escalated requests are a small fraction. But they are not randomly distributed. They concentrate in exactly the cases where the small model is confidently wrong, which is a correlated, systematic population rather than noise.
+**Under-escalation** keeps a hard request on the small model, which answers it — plausibly, fluently, and worse.
 
-In two estates, under-escalated requests were four times more likely than average to involve an unusual entity type. The router had learned that unusual entity types were rare, which is true, and had not learned that they were hard.
+Under-escalation is invisible in aggregate metrics. Overall accuracy barely moves, because under-escalated requests are a small fraction of volume. But they are **not randomly distributed**. They concentrate exactly where the small model is confidently wrong, which is a systematic population rather than noise.
 
-## Mitigations that worked
+The mechanism is worth being precise about: a router trained or tuned on request distribution learns that unusual inputs are *rare*. Rare and *hard* are different properties, and nothing in the frequency signal distinguishes them.
 
-**Never route on the model's own confidence alone.** Combine it with retrieval grounding quality and task-type priors. Self-reported confidence is a property of the output distribution, not of task difficulty.
+## The controls that address it
 
-**Force-escalate a random sample.** We route 2% of eligible traffic to the frontier model regardless, and compare. That gives a continuous measure of the under-escalation gap rather than an assumption about it.
+**Never route on the model's own confidence alone.** Combine it with retrieval grounding quality and task-type priors. Self-reported confidence is a property of the output distribution, not of task difficulty — the same argument as in the [evidence quorum note](/research/quorum-decisioning-evidence-lanes).
 
-**Escalate on rarity, not just uncertainty.** Anything with an unusual entity type, an unusual document type or an out-of-distribution vocabulary profile escalates by policy.
+**Force-escalate a random sample.** A small percentage of eligible traffic goes to the frontier model regardless, and the two outputs are compared. This is what converts the under-escalation gap from an assumption into a measurement.
 
-**Escalate consequential decisions by policy.** If a decision crosses a value threshold or touches a flagged party, cost is not the relevant consideration.
+Build this on day one. Retrofitting it means having no baseline for exactly the period you most want to understand.
 
-## What we would tell someone starting
+**Escalate on rarity, not just uncertainty.** Unusual entity types, unusual document types, out-of-distribution vocabulary — escalate by policy rather than by learned judgement.
 
-The saving is real and it arrives quickly. Build the 2% control sample on day one — retrofitting it means you have no baseline for the period you most want to understand.
+**Escalate consequential decisions by policy.** Above a value threshold or touching a flagged party, cost is not the relevant consideration.
 
-And expect the router to be the component you tune most. Ours has been revised eleven times in fourteen weeks, and nine of those were about *when to escalate*, not about which model to escalate to.`,
+## What to expect
+
+The router will be the component you tune most, and most of the tuning will be about *when to escalate* rather than which model to escalate to.
+
+Budget for that. A routing layer is not a thing you configure once; it is a thing you operate, and the control sample is what tells you whether it is still doing its job.`,
   },
 ];

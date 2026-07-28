@@ -162,7 +162,9 @@ model Entry {
 /// — see COLLECTIONS in src/lib/library.ts, which owns the slug and the copy.
 enum DocKind {
   BLOG
-  CASE_STUDY
+  /// Worked designs, not customer stories — see prisma/content/reference-deployments.ts.
+  /// Named CASE_STUDY once; renamed because the name itself was the claim.
+  REFERENCE
   WHITEPAPER
   ARTICLE
   NEWS

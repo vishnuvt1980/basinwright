@@ -15,6 +15,19 @@ const nextConfig: NextConfig = {
     // Next 16 restricts quality values to this list.
     qualities: [75, 90],
   },
+  async redirects() {
+    return [
+      // /case-studies was live briefly before the collection was renamed to
+      // /reference-deployments. The index redirects; the individual documents
+      // deliberately do not, because their slugs were named after customers we
+      // do not have and those URLs should die rather than be kept alive.
+      {
+        source: "/case-studies",
+        destination: "/reference-deployments",
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

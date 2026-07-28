@@ -1,5 +1,5 @@
 import { blog } from "./blog";
-import { caseStudies } from "./case-studies";
+import { referenceDeployments } from "./reference-deployments";
 import { learning } from "./learning";
 import { news } from "./news";
 import { releaseNotes } from "./release-notes";
@@ -14,7 +14,7 @@ export type { DocSeed, EntrySeed, PageSeed, SectionSeed } from "./types";
 /// Everything in the library, in one list. Ordering here is irrelevant — every
 /// index sorts by `publishedAt` descending.
 export const allDocs: DocSeed[] = [
-  ...caseStudies,
+  ...referenceDeployments,
   ...whitepapers,
   ...blog,
   ...learning,

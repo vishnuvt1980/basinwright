@@ -70,7 +70,7 @@ Rather than a table per block type, every page is modelled generically so one ed
 - **`Section`** — one per block. `kind` (an enum) selects the React component that renders it; `order` and `visible` control composition; `page` is the slug it belongs to. The homepage is `"home"`.
 - **`Entry`** — the repeated items inside a section: capability cards, agents, product tiers, FAQ pairs, link rows. Carries `title`, `body`, `icon`, `bullets[]`, `accent`, and so on.
 - **`Page`** — the shell of an editorial page: slug, heading, subtitle, SEO, published. Its body is the `Section` rows carrying the same slug. The homepage has no `Page` row — its shell lives in code.
-- **`Doc`** — the content library. One model behind seven collections (`DocKind`): case studies, whitepapers, blog, learning articles, research, news and release notes. `body` is Markdown.
+- **`Doc`** — the content library. One model behind seven collections (`DocKind`): reference deployments, whitepapers, blog, learning articles, engineering notes, news and release notes. `body` is Markdown. A collection can carry a `notice` — a standing disclosure rendered above its index and above every document in it, so it cannot be edited away one piece at a time.
 - **`SiteSetting`** — global strings, grouped and typed for form rendering.
 - **`NavItem`** — header links, footer columns and the legal row (`location`).
 - **`Lead`** / **`ChatConversation`** — captured from the site. A `Lead` also carries the substrate console configuration the visitor built, if they built one — see below.
@@ -83,7 +83,7 @@ Two dynamic segments serve everything below the homepage:
 
 | Route | Serves |
 | --- | --- |
-| `/[slug]` | a library collection index (`/blog`, `/case-studies`, …) or, failing that, a `Page` |
+| `/[slug]` | a library collection index (`/blog`, `/reference-deployments`, …) or, failing that, a `Page` |
 | `/[slug]/[doc]` | one library document |
 
 Collections win, so their slugs are reserved — `isReservedSlug` stops the admin creating a page that would be shadowed by one. Static routes (`/admin`, `/api`) still take precedence over both.
@@ -336,8 +336,13 @@ docker compose --profile tools run --rm seed
 ### Still to do
 
 - [ ] Replace the placeholder customer logos and hero statistics — they are illustrative
-- [ ] The seeded library, case studies and legal pages are written as realistic examples,
-      not as approved copy. Legal in particular needs counsel before it is treated as
-      binding.
+- [ ] The legal pages are written as realistic examples, not as approved copy. Both say so
+      at the top and need counsel before being treated as binding.
+- [ ] **No customer or certification claims anywhere.** The site launched with invented
+      customers, outcome metrics, certifications and scale figures; all of it was removed
+      (see `/news/correcting-this-site`). Reference deployments are worked designs and say
+      so, engineering notes are mechanisms rather than results, and the Trust Centre states
+      plainly that no certification is held. Keep it that way: add a customer name only
+      when there is a customer, and a number only when it has been measured.
 - [ ] Stand up `app.basinwright.com` — every developer link and the gated whitepaper CTA
       point at it, and it does not exist yet

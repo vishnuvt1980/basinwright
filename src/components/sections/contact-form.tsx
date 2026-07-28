@@ -174,7 +174,7 @@ export function ContactForm() {
           label="Organisation"
           name="company"
           autoComplete="organization"
-          placeholder="Meridian Bank"
+          placeholder="Your company"
           defaultValue={config?.company ?? ""}
           error={state.fieldErrors?.company}
         />

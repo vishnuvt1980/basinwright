@@ -61,14 +61,14 @@ export const footerNav: {
       { label: "Partners", href: "/partners" },
       { label: "Careers", href: "/careers" },
       { label: "News", href: "/news" },
-      { label: "Research", href: "/research" },
+      { label: "Engineering Notes", href: "/research" },
       { label: "Contact", href: "/#contact" },
     ],
   },
   {
     group: "Resources",
     items: [
-      { label: "Case Studies", href: "/case-studies" },
+      { label: "Reference Deployments", href: "/reference-deployments" },
       { label: "Whitepapers", href: "/whitepapers" },
       { label: "Learning Centre", href: "/learn" },
       { label: "Blog", href: "/blog" },

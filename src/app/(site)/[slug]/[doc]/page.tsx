@@ -28,7 +28,10 @@ const SCHEMA_TYPE: Record<DocKind, string> = {
   [DocKind.RELEASE_NOTE]: "TechArticle",
   [DocKind.ARTICLE]: "TechArticle",
   [DocKind.WHITEPAPER]: "TechArticle",
-  [DocKind.CASE_STUDY]: "Article",
+  // Reference deployments are worked designs rather than reports of work done,
+  // so TechArticle rather than Article — the type an answer engine reads as
+  // documentation instead of as a customer story.
+  [DocKind.REFERENCE]: "TechArticle",
   [DocKind.BLOG]: "BlogPosting",
 };
 

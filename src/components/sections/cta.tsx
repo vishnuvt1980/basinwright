@@ -26,16 +26,20 @@ export function Cta({ section }: { section: SectionWithEntries }) {
               {section.subtitle}
             </p>
 
-            <div className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-3 text-sm text-ink-3">
-              {["Deployed in 38 regions", "99.99% uptime SLA", "SOC 2 · ISO 27001"].map(
-                (proof) => (
-                  <span key={proof} className="flex items-center gap-2">
+            {/* These were hardcoded traction claims — region count, uptime SLA,
+                certifications — none of which we hold yet. They come from the
+                section's own bullets now, so what stands here is editable in
+                /admin and answerable by whoever put it there. */}
+            {section.entries.length ? (
+              <div className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-3 text-sm text-ink-3">
+                {section.entries.map((entry) => (
+                  <span key={entry.id} className="flex items-center gap-2">
                     <span className="size-1 rounded-full bg-accent" aria-hidden />
-                    {proof}
+                    {entry.title}
                   </span>
-                ),
-              )}
-            </div>
+                ))}
+              </div>
+            ) : null}
           </Reveal>
 
           <Reveal delay={0.12}>

@@ -109,7 +109,7 @@ Around all four sits the operating model — runbooks, rotas, clearances and the
 
 Sovereignty is not free and the honest numbers matter more than the architecture.
 
-Expect a capability gap against hosted frontier models at deployment, narrowing over time as domain training compounds. Expect compute costs 30–60% above an elastic public-cloud equivalent, because you are buying peak rather than renting it. Expect the operating model to be the longest lead item — clearances and capability transfer take longer than hardware.
+Expect a capability gap against hosted frontier models at deployment, narrowing over time as domain training compounds. Expect compute costs materially above an elastic public-cloud equivalent, because you are buying peak rather than renting it — model it against your own utilisation before committing to a figure. Expect the operating model to be the longest lead item — clearances and capability transfer take longer than hardware.
 
 Against that: the estate keeps working, it improves on your own data, and nobody else decides when it stops.
 
@@ -223,7 +223,7 @@ The mistake is treating an agent as an AI problem and routing it to a model risk
     subtitle:
       "Why enterprise AI programmes stall at the data layer, and what a governed record actually requires.",
     excerpt:
-      "Every failed enterprise AI programme we have reviewed failed in the same place. Not the model — the moment two systems disagreed about who the customer was.",
+      "Enterprise AI programmes rarely stall on the model. They stall the moment two systems disagree about who the customer is.",
     category: "Data",
     author: "Priya Raghunathan",
     authorRole: "Principal Architect, Enterprise Intelligence",
@@ -236,9 +236,9 @@ The mistake is treating an agent as an AI problem and routing it to a model risk
       "Why enterprise AI stalls at entity resolution, and what a governed record requires: survivorship, quarantine, lineage and a quality bar with real rejects.",
     body: `## Summary
 
-We have reviewed a large number of stalled enterprise AI programmes. The stall almost never happens where the organisation expected. It is rarely the model, rarely the infrastructure, and rarely the use case.
+Enterprise AI programmes stall in a place the organisation rarely expects. It is seldom the model, seldom the infrastructure, and seldom the use case.
 
-It happens at the point where the system has to answer a question about an entity that exists differently in four systems, and cannot.
+It is the point where the system has to answer a question about an entity that exists differently in four systems, and cannot.
 
 This paper is about that layer: what a governed record is, why survivorship rules are a business decision rather than a technical one, why quarantine is a feature, and why lineage has to be at record level to be worth anything.
 
@@ -266,13 +266,13 @@ When two sources disagree about an attribute, something must decide which wins. 
 
 Which system is authoritative for a customer's legal name? For their address? For their risk classification? The answers differ by attribute, by jurisdiction, and sometimes by product line, and they are the business's answers to give.
 
-Programmes that let engineering pick survivorship rules — usually "most recently updated wins" — produce records that are internally consistent and wrong in ways nobody detects for months.
+Letting engineering pick survivorship rules — usually "most recently updated wins" — produces records that are internally consistent and wrong in ways nobody detects for months.
 
 ### A quality bar with real rejects
 
 A record that cannot be resolved with adequate confidence must not enter the decision path. It goes to quarantine: held, flagged, and routed for remediation.
 
-Organisations resist this. A quarantine rate of 3–6% reads as a defect in the pipeline. It is the opposite. A pipeline with no rejects is one that has silently decided to guess, and the guesses do not announce themselves.
+Organisations resist this. Any visible quarantine rate reads as a defect in the pipeline. It is the opposite: a pipeline with no rejects is one that has silently decided to guess, and the guesses do not announce themselves.
 
 Quarantine needs three things to work: a remediation path with an owner, an expiry policy for records nobody will ever fix, and visible metrics — because an unwatched quarantine becomes a landfill within a quarter.
 
@@ -301,7 +301,7 @@ The sequencing consequence is real. Programmes that start with the model and rea
 5. **Capture lineage from the first record.** Retrofitting is not possible.
 6. **Only then build on top of it.**
 
-Every step here is deferrable and every deferral compounds. The organisations that get to production fastest are, consistently, the ones that spent longest here first.`,
+Every step here is deferrable and every deferral compounds. The order matters more than the pace: the work deferred here is the work that determines whether anything above it can be defended.`,
   },
 
   {
@@ -420,7 +420,7 @@ This paper builds the full stack, including four cost lines that reliably appear
 
 **Serving compute.** Tokens in, tokens out, at the model's rate — or, on dedicated capacity, the accelerator hours you have reserved.
 
-The first structural decision is between the two. Serverless pricing is linear in usage and excellent at low and spiky volume. Dedicated capacity is fixed and cheaper per unit above a crossover point that, in our deployments, tends to sit between 30% and 45% sustained utilisation.
+The first structural decision is between the two. Serverless pricing is linear in usage and excellent at low and spiky volume. Dedicated capacity is fixed and cheaper per unit above a crossover point — plausibly somewhere around a third to a half of sustained utilisation, though that is a figure to derive from your own pricing rather than to inherit.
 
 The mistake is choosing once. Most estates should run both: dedicated capacity sized to the reliable base load, serverless absorbing the peak.
 
@@ -436,7 +436,7 @@ Index maintenance is the part that surprises people. A corpus that changes daily
 
 Running a real evaluation suite against a candidate version costs compute, and running it against every candidate — including the ones you reject — costs more.
 
-Firms with mature evaluation practice spend 8–15% of their serving compute on evaluation. Firms that spend nothing on evaluation are not saving money; they are deferring an incident.
+Budget for evaluation as a standing line rather than a project cost. A firm that spends nothing on evaluation is not saving money; it is deferring an incident.
 
 ### Retraining
 
@@ -475,7 +475,7 @@ Once you have it, the conversation changes. "Inference is expensive" becomes "th
 In roughly this order:
 
 1. **Right-sizing the model.** The largest available model is the default and it is usually wrong. Most enterprise tasks are served well by a substantially smaller domain-tuned model, at a fraction of the cost and latency.
-2. **Caching.** Enterprise query distributions are far more repetitive than people expect. Semantic caching on stable corpora routinely removes 20–40% of load.
+2. **Caching.** Enterprise query distributions are far more repetitive than people expect, and semantic caching on a stable corpus can remove a large share of load. Measure your own repeat rate before sizing the benefit.
 3. **Routing.** Send the easy majority to a small model and escalate on uncertainty. This is where cost-aware routing earns its complexity.
 4. **Scheduling the trough.** Filling idle dedicated capacity with batch and evaluation work.
 5. **Prompt discipline.** Context windows are billed. Retrieval that returns twelve documents when four would do is a cost line disguised as thoroughness.`,

@@ -200,7 +200,7 @@ Reserved capacity, yours, billed by the hour whether used or not.
 
 ## The crossover
 
-Dedicated becomes cheaper above a sustained utilisation that, in our deployments, sits between 30% and 45%.
+Dedicated becomes cheaper above some sustained utilisation — plausibly around a third to a half, though the exact point falls out of your own pricing and commitment length rather than out of a rule of thumb.
 
 Two things people get wrong:
 
@@ -460,7 +460,7 @@ Ask the risk owner:
 
 **Localisation** costs the elasticity of a global estate: you cannot burst into another region during a spike, and you may need a dedicated deployment per jurisdiction.
 
-**Sovereignty** costs the most — a capability gap against hosted frontier models, compute priced at peak rather than rented, and an operating model with local staffing and capability transfer. Expect 30–60% above an elastic equivalent.
+**Sovereignty** costs the most — a capability gap against hosted frontier models, compute priced at peak rather than rented, and an operating model with local staffing and capability transfer. Model the premium against your own utilisation rather than against a published multiple.
 
 Buying sovereignty when you needed localisation is one of the more expensive mistakes available in this market. Buying residency when you needed sovereignty is the cheaper mistake that surfaces at the worst possible moment.
 

@@ -337,7 +337,7 @@ export default function SubstrateConfigurator({
               onChange={(company) =>
                 setConfig((current) => ({ ...current, company }))
               }
-              placeholder="Meridian Energy"
+              placeholder="Your organisation"
               note="Names the last node on the board — the one that owns what comes out."
             />
             <Select

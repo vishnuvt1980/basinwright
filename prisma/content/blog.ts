@@ -24,11 +24,11 @@ export const blog: DocSeed[] = [
     accent: "brass",
     seoDescription:
       "Enterprise RAG pilots rarely fail on model quality. They fail at entity resolution, chunking that ignores structure, and retrieval with no scope.",
-    body: `I have now sat in a version of the same meeting about thirty times.
+    body: `There is a version of the same meeting that happens in every organisation trying this.
 
 The pilot demoed beautifully in March. It is July, it is not in production, and the room is discussing whether to try a different model. It is almost never the model.
 
-Here is what actually happened, in the order it usually happens.
+Here is what tends to have happened, in the order it usually happens.
 
 ## The pilot had a curated corpus
 
@@ -131,9 +131,9 @@ That is not a technical finding, and no platform fixes it. But it does explain w
   {
     kind: DocKind.BLOG,
     slug: "what-we-learned-running-agents-in-production",
-    title: "Eighteen months of agents in production: what we got wrong",
+    title: "Designing agents that hold up: what we build in from the start",
     excerpt:
-      "Tool design mattered more than model choice. Approval queues rotted. And the escalation rate we wanted to drive down turned out to be worth protecting.",
+      "Tool contracts matter more than model choice, approval queues decay on a schedule, and the escalation rate everyone wants to drive down is worth protecting.",
     category: "Engineering",
     author: "Rory Chen",
     authorRole: "Staff Engineer, Agent Runtime",
@@ -144,27 +144,29 @@ That is not a technical finding, and no platform fixes it. But it does explain w
     icon: "Bot",
     accent: "slate",
     seoDescription:
-      "Lessons from eighteen months of running enterprise AI agents in production: tool contract design, approval queue decay and why escalation rate is a floor.",
-    body: `We have had agents doing real work in customer estates for about eighteen months now — calling tools, changing state in systems of record, occasionally moving money. Here is what we would tell ourselves at the start.
+      "How we design enterprise AI agents: tool contract design, why approval queues decay, and why escalation rate is a floor to protect rather than a target.",
+    body: `*We are early: this is the design we build to and the reasoning behind it, not a retrospective on a fleet of live deployments.*
 
-## Tool design mattered more than model choice
+An agent with tool access changes state in systems of record. It moves money, alters entitlements, cancels services. Here is what we consider settled about building one, and why.
 
-We spent the first quarter arguing about models. We should have spent it on tool contracts.
+## Tool design matters more than model choice
+
+The easy quarter to waste is the one spent arguing about models. The contracts are where the behaviour actually comes from.
 
 An agent's competence is bounded by the tools it has. A tool that takes fifteen loosely-typed parameters and returns an untyped blob will produce bad behaviour from any model. A tool with three typed parameters, a clear name, an explicit failure mode and a docstring written for a reader who has never seen the system will produce good behaviour from a surprisingly small one.
 
-Specific things that helped:
+Specific things that make the difference:
 
 - **One tool, one verb.** "Manage subscription" became four tools. Error rates on each dropped sharply.
 - **Return what changed, not just success.** An agent that sees the resulting state can verify its own work.
 - **Make failures explicit and typed.** "Insufficient permission" and "record not found" need different recoveries. A generic error string means the agent guesses.
-- **Never expose a general-purpose escape hatch.** The "run arbitrary query" tool we added for flexibility was used for exactly the wrong things and we removed it.
+- **Never expose a general-purpose escape hatch.** A "run arbitrary query" tool added for flexibility will be used for exactly the things you did not want, and it destroys the property that makes the agent governable — that someone can read the tool register and enumerate what it can do.
 
 ## Approval queues rot, quietly
 
-Our early designs put a human in front of a lot of actions. It felt responsible.
+The responsible-looking design puts a human in front of a lot of actions. It degrades on a predictable schedule: volume outruns attention, reviewers start batch-approving, and median review time falls below the time it takes to read the case. The control stays on the org chart and stops existing in practice.
 
-Within about ten weeks, every one of those queues had degraded the same way. Volume outran attention, reviewers started batch-approving, and the median review time fell below the time it takes to read the case. The control was still on the org chart and had stopped existing in practice.
+This is well documented in every other domain that has automated a review function, and there is no reason to expect agents to be the exception.
 
 What works instead: put humans where their judgement changes the outcome — the policy boundary, disagreement between evidence lanes, vulnerable parties — and add a **blind random sample** of the autonomous population re-worked independently.
 
@@ -176,7 +178,7 @@ Everyone's first instinct, including ours, is to drive escalation down. It looks
 
 Watch what happens when you succeed. The agent becomes reluctant to hand over, which means it handles cases it should not, which means the failures move from "handed to a human unnecessarily" — cheap — to "resolved incorrectly with confidence" — expensive and slow to detect.
 
-One customer treats their 9.4% escalation rate as a floor to protect. When it drifts down, they investigate. That has caught two regressions we would otherwise have found from complaints.
+So we treat the escalation rate as a floor to protect rather than a target to beat. When it drifts down, that is the thing to investigate, not the thing to celebrate.
 
 ## Memory needs a retention policy, on day one
 
@@ -184,19 +186,19 @@ Agents accumulate context. Left alone, an agent will carry a customer's irritate
 
 Decide what persists, for how long, and what is scoped to a single interaction. Then decide who can see it, because agent memory is personal data and it will be subject to access requests.
 
-We got this wrong once and the fix was a data project, not a config change.
+Decide it before launch. Retrofitting a retention policy onto accumulated agent memory is a data project, not a config change.
 
 ## Traces are the product
 
-We built tracing for debugging. It has turned out to be, by some distance, the most-used part of the system.
+Tracing gets built for debugging and turns out to be the most-used part of the system.
 
-Compliance uses it to answer regulators. Operations uses it to work out why a class of case behaves oddly. Product uses it to find friction. And the traces are the highest-quality training data our customers have, because every one of them is a real decision with real evidence and a known outcome.
+Compliance answers regulators from it. Operations works out why a class of case behaves oddly. Product finds friction. And the traces are the highest-quality training data the organisation has, because every one is a real decision with real evidence and a known outcome.
 
 Build the trace store first, retain it like a transaction record, and make it queryable by people who are not engineers.
 
-## The thing we still get wrong
+## The estimate everyone gets wrong
 
-Estimating how long the integration work will take. We are consistently optimistic about connecting to systems of record, and it is consistently the critical path. The model is a weekend. The connector to the thirty-year-old policy administration system is a quarter.`,
+How long the integration work takes. Optimism about connecting to systems of record is close to universal, and it is consistently the critical path. The model is a weekend. The connector to the thirty-year-old policy administration system is a quarter.`,
   },
 
   {
@@ -287,7 +289,7 @@ Here is the shape that works.
 
 Reserved capacity is cheaper per unit above some utilisation. Below it, serverless wins.
 
-In our deployments that crossover sits between 30% and 45% sustained utilisation, depending on the accelerator and the commitment length. The important word is *sustained*. Peak utilisation is the number people quote and it is the wrong one — a cluster that hits 90% for two hours and 5% for twenty-two is a 12% cluster.
+We would expect that crossover somewhere around a third to a half of sustained utilisation, depending on the accelerator and the commitment length — but treat that as a starting hypothesis to check against your own pricing rather than as a number to plan on. The important word is *sustained*. Peak utilisation is the number people quote and it is the wrong one — a cluster that hits 90% for two hours and 5% for twenty-two is a 12% cluster.
 
 Measure sustained utilisation over a fortnight before committing to anything.
 
@@ -366,7 +368,7 @@ A reject rate of zero means one of two things: your data is perfect, or your qua
 
 We have never seen the first. Enterprise data comes from systems built over decades by teams that never agreed on a schema, migrated twice, and merged with an acquisition. A pipeline that finds nothing wrong with it is not looking.
 
-Typical healthy rates in our deployments run 3–6%, higher in the first months and settling as remediation catches up with the backlog.
+Expect a non-trivial rate, higher in the first months and settling as remediation catches up with the backlog. What the steady-state number should be depends entirely on your source systems — the useful comparison is against your own trend, not against someone else's benchmark.
 
 ## How quarantine goes wrong
 
@@ -447,7 +449,7 @@ Sample rates of 1–5% are typical. Resist reducing the rate when agreement is h
 
 Where humans do review, the case must arrive assembled: the evidence, the lineage, comparable prior decisions, what the system concluded and why, and what happens next under each option.
 
-If reviewing means opening four other systems, the review will be shallow regardless of intent. Most of the eleven-minute review times we have measured were nine minutes of retrieval and two minutes of judgement.
+If reviewing means opening four other systems, the review will be shallow regardless of intent. Time a handful of your own reviews and split them into retrieval and judgement — in most operations the first number dwarfs the second, and it is the one you can remove.
 
 ## Give reviewers somewhere to put disagreement
 

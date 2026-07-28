@@ -33,30 +33,22 @@ const sections: SectionSeed[] = [
     ctaHref: "#contact",
     ctaLabel2: "Talk to an AI Architect",
     ctaHref2: "#contact",
+    // The hero's four tiles used to carry traction figures — models served,
+    // uptime, regions, GPU hours. We are early and had none of them, so they
+    // now describe what the platform *is*. A capability is checkable; a
+    // fabricated count is not.
     entries: [
-      { title: "Foundation models served", subtitle: "400+", icon: "Boxes" },
-      { title: "Inference uptime SLA", subtitle: "99.99%", icon: "Activity" },
-      { title: "Deployment regions", subtitle: "38", icon: "Globe" },
-      { title: "GPU hours delivered", subtitle: "12M+", icon: "Cpu" },
+      { title: "Model access", subtitle: "Frontier & open-weight", icon: "Boxes" },
+      { title: "Deployment", subtitle: "Your tenancy, your region", icon: "Globe" },
+      { title: "Ownership", subtitle: "Weights, data, decisions", icon: "Lock" },
+      { title: "Compute", subtitle: "Serverless to multi-node", icon: "Cpu" },
     ],
   },
-  {
-    key: "logos",
-    kind: SectionKind.LOGO_WALL,
-    order: 2,
-    eyebrow: "Trusted by Enterprise",
-    title: "Running in production inside regulated organisations",
-    entries: [
-      { title: "Meridian Bank" },
-      { title: "Halcyon Health" },
-      { title: "Northwind Energy" },
-      { title: "Arcadia Telecom" },
-      { title: "Sovereign Digital" },
-      { title: "Kestrel Defence" },
-      { title: "Lumen Manufacturing" },
-      { title: "Orbit Logistics" },
-    ],
-  },
+  // A "Trusted by Enterprise" logo wall stood here with eight invented
+  // customers. There is no anonymised version of that section worth having —
+  // the whole point of a logo wall is the names — so it is gone rather than
+  // softened. The LOGO_WALL block type remains available in /admin for when
+  // there are real logos to put in it.
   {
     key: "platform",
     kind: SectionKind.PLATFORM_GRID,
@@ -741,7 +733,7 @@ const sections: SectionSeed[] = [
           "Private cloud & VPC peering",
           "SSO, audit and policy",
           "Committed GPU capacity",
-          "99.99% uptime SLA",
+          "Availability terms agreed per estate",
           "Named architect",
         ],
       },
@@ -753,7 +745,7 @@ const sections: SectionSeed[] = [
         bullets: [
           "Air-gapped deployment",
           "In-country residency",
-          "Cleared personnel",
+          "Cleared personnel where required",
           "Bespoke model estate",
         ],
       },
@@ -771,6 +763,13 @@ const sections: SectionSeed[] = [
     ctaHref: "#contact",
     ctaLabel2: "Book a Demo",
     ctaHref2: "#contact",
+    // The proof line beside the contact form. Positions we can defend, not
+    // counts we cannot — see the note in components/sections/cta.tsx.
+    entries: [
+      { title: "Runs in your tenancy" },
+      { title: "You own the weights" },
+      { title: "Exit terms agreed up front" },
+    ],
   },
 ];
 

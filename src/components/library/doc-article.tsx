@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Doc } from "@prisma/client";
 
 import { Icon } from "@/components/icon";
+import { CollectionNotice } from "@/components/library/collection-notice";
 import { DocGrid, DocRows } from "@/components/library/doc-card";
 import { PageHero } from "@/components/site/page-hero";
 import { ButtonLink, cn } from "@/components/ui/primitives";
@@ -137,6 +138,10 @@ export function DocArticle({
       <div className="container-bw py-14 sm:py-20">
         <div className="grid gap-14 lg:grid-cols-[minmax(0,44rem)_1fr] lg:gap-20">
           <div className="min-w-0">
+            {/* Above the body, not below it — a disclosure a reader meets after
+                the argument has already landed is not a disclosure. */}
+            <CollectionNotice notice={collection.notice} className="mb-10" />
+
             <Markdown content={doc.body} />
 
             {doc.gated ? <PortalCta appUrl={appUrl} /> : null}

@@ -22,21 +22,22 @@ export const pages: PageSeed[] = [
     title: "The library",
     eyebrow: "Resources",
     subtitle:
-      "Case studies, whitepapers, research and explainers — written by the people who built and run these estates.",
+      "Worked designs, whitepapers, engineering notes and explainers — the reasoning behind the platform, and how we would build on it.",
     seoDescription:
-      "BasinWright resources: enterprise AI case studies, whitepapers, applied research, learning articles, news and platform release notes.",
+      "BasinWright resources: reference deployments, whitepapers, engineering notes, learning articles and platform release notes.",
     order: 5,
     sections: [
       {
         key: "resources-cases",
         kind: SectionKind.DOC_LIST,
         order: 0,
-        eyebrow: "Case studies",
-        title: "What these estates look like in production",
-        subtitle: "The estate before, what was actually wrong, and what changed once it ran.",
-        ctaLabel: "All case studies",
-        ctaHref: "/case-studies",
-        meta: { collection: "case-studies", limit: 3 },
+        eyebrow: "Reference deployments",
+        title: "How we would build it, and why",
+        subtitle:
+          "Worked designs rather than customer stories — the problem shape, the architecture, and what we would measure afterwards.",
+        ctaLabel: "All reference deployments",
+        ctaHref: "/reference-deployments",
+        meta: { collection: "reference-deployments", limit: 3 },
       },
       {
         key: "resources-whitepapers",
@@ -52,10 +53,10 @@ export const pages: PageSeed[] = [
         key: "resources-research",
         kind: SectionKind.DOC_LIST,
         order: 2,
-        eyebrow: "Research",
-        title: "Measured on real estates",
-        subtitle: "Applied rather than academic, with the method and the caveats stated.",
-        ctaLabel: "All research",
+        eyebrow: "Engineering notes",
+        title: "Why the platform works the way it does",
+        subtitle: "Mechanisms and the measurements that would test them, with the assumptions stated.",
+        ctaLabel: "All engineering notes",
         ctaHref: "/research",
         meta: { collection: "research", limit: 3 },
       },
@@ -131,17 +132,20 @@ We still do the hard part. We build it, we deploy it, and we watch it every hour
 A customer who could leave next quarter and does not is telling you something real. A customer who cannot leave is telling you nothing at all.`,
       },
       {
-        key: "about-stats",
-        kind: SectionKind.STAT_BAND,
+        // This was a "by the numbers" band — regions, models served, uptime,
+        // GPU hours. We are early and had none of those numbers, so it is now
+        // a statement of where we are. A company that publishes its stage is
+        // easier to trust than one that publishes someone else's metrics.
+        key: "about-stage",
+        kind: SectionKind.PROSE,
         order: 1,
-        eyebrow: "By the numbers",
-        title: "Where the platform runs today",
-        entries: [
-          { title: "Operating regions", subtitle: "38", body: "Including nine sovereign estates" },
-          { title: "Foundation models served", subtitle: "400+", body: "Frontier and open-weight" },
-          { title: "Inference uptime", subtitle: "99.99%", body: "Contracted SLA, enterprise tier" },
-          { title: "GPU hours delivered", subtitle: "12M+", body: "Training and serving combined" },
-        ],
+        eyebrow: "Where we are",
+        title: "Early, and saying so",
+        body: `BasinWright is a startup. We do not have a wall of customer logos, a region count, or a case study with a percentage on it, and this site used to imply otherwise — so we took those claims down rather than soften them.
+
+What we do have is a platform, a clear position on who should own an AI estate, and a set of designs we can defend in detail. The [reference deployments](/reference-deployments) are worked designs rather than customer stories, and they say so at the top of every page. The [whitepapers](/whitepapers) and [engineering notes](/research) are arguments and mechanisms, not results.
+
+If you are evaluating us, the honest summary is this: judge the thinking and the architecture, ask us hard questions about the parts that are not built yet, and hold us to the exit terms rather than to a reference call we cannot yet give you.`,
       },
       {
         key: "about-how",
@@ -187,37 +191,40 @@ A customer who could leave next quarter and does not is telling you something re
         kind: SectionKind.TIMELINE,
         order: 3,
         eyebrow: "History",
-        title: "How we got here",
+        // A dated company history with customer milestones stood here. None of
+        // it had happened. What replaces it is the argument itself, which is
+        // the thing a reader is actually trying to evaluate.
+        title: "What we think, in order",
         entries: [
           {
-            badge: "2021",
-            title: "Founded around a data problem",
-            body: "BasinWright started as an entity resolution practice for regulated data estates. The AI work arrived because customers kept asking why their models could not tell two customers apart.",
+            badge: "01",
+            title: "The data layer decides everything above it",
+            body: "Entity resolution, survivorship rules and lineage before any model work. It does not demo, and it is the difference between a decision you can defend and one you cannot.",
           },
           {
-            badge: "2022",
-            title: "First governed decision estate",
-            body: "A commercial insurer put claims triage into production on a governed record with record-level lineage. The architecture that came out of it is still the spine of the platform.",
+            badge: "02",
+            title: "The decision is the unit of work",
+            body: "Not the alert, the ticket or the document. Once a decision is a first-class object with its evidence attached, audit becomes a query and your own history becomes training data.",
           },
           {
-            badge: "2023",
-            title: "The platform, and the ownership position",
-            body: "The control plane, model catalogue and agent runtime shipped as one product — with contractual artefact ownership written in from the first customer.",
+            badge: "03",
+            title: "Evidence quorum beats a confidence score",
+            body: "Retrieval, deterministic constraint checks and reasoning, each independent, agreeing before anything consequential happens. Self-reported confidence is a property of the output, not of the evidence.",
           },
           {
-            badge: "2024",
-            title: "Sovereign programme",
-            body: "The first fully air-gapped national estate, with cleared personnel, in-country weights and a dated capability transfer plan.",
+            badge: "04",
+            title: "A gate that has never failed a release is not a gate",
+            body: "The evaluation suite belongs to the risk owner, not to the team shipping the model, and blocking a promotion has to be a normal outcome rather than an incident.",
           },
           {
-            badge: "2025",
-            title: "Agents in production",
-            body: "Agents with real tool access, scoped permissions and policy gates authored by risk functions. Traces turned out to be the most-used part of the system.",
+            badge: "05",
+            title: "Oversight has to survive volume",
+            body: "Approval queues degrade into rubber stamps on a predictable schedule. Put humans at the policy boundary and on a blind sample, and measure whether the control is still real in month eighteen.",
           },
           {
-            badge: "2026",
-            title: "38 regions, nine sovereign estates",
-            body: "ISO/IEC 42001 certified, Marketplace generally available, and evidence quorum the default for consequential decisions.",
+            badge: "06",
+            title: "You should be able to leave",
+            body: "Weights, corpora, evaluation suites, pipeline definitions and decision history are yours, available continuously rather than on termination. A customer who could leave and does not is telling you something real.",
           },
         ],
       },
@@ -255,10 +262,10 @@ A customer who could leave next quarter and does not is telling you something re
             icon: "ShieldCheck",
           },
           {
-            title: "Newsroom",
-            subtitle: "Regions, certifications and product milestones",
-            href: "/news",
-            icon: "Newspaper",
+            title: "Reference deployments",
+            subtitle: "Worked designs for the problems we are built for",
+            href: "/reference-deployments",
+            icon: "Building2",
           },
         ],
       },
@@ -346,15 +353,16 @@ So accreditation involves assessed work on a reference estate rather than a cert
         ],
       },
       {
-        key: "partners-stats",
-        kind: SectionKind.STAT_BAND,
+        // A stat band with partner, engineer and listing counts stood here.
+        // The programme is new and had none of them.
+        key: "partners-stage",
+        kind: SectionKind.PROSE,
         order: 2,
-        entries: [
-          { title: "Accredited partners", subtitle: "41", body: "Across 14 countries" },
-          { title: "Certified engineers", subtitle: "380+", body: "Architect and engineer levels" },
-          { title: "Marketplace listings", subtitle: "140+", body: "Models, agents, connectors, suites" },
-          { title: "Joint reference architectures", subtitle: "22", body: "Published and release-tested" },
-        ],
+        eyebrow: "Where the programme is",
+        title: "New, and looking for the first few",
+        body: `The programme is open and the cohorts are small. We are not going to quote a partner count, because the honest one is low and a low number stated plainly is worth more to you than a padded one.
+
+What that means practically: the first partners get disproportionate access. Joint delivery on early engagements is not a perk we are advertising, it is how we intend to work while the accreditation material is still being proven against real projects. Expect us to be in the room.`,
       },
       {
         key: "partners-faq",
@@ -406,9 +414,9 @@ So accreditation involves assessed work on a reference estate rather than a cert
         key: "partners-cases",
         kind: SectionKind.DOC_LIST,
         order: 5,
-        eyebrow: "Delivered",
-        title: "What partner-delivered work looks like",
-        meta: { collection: "case-studies", limit: 3 },
+        eyebrow: "The work",
+        title: "What a delivered estate looks like",
+        meta: { collection: "reference-deployments", limit: 3 },
       },
     ],
   },
@@ -421,7 +429,7 @@ So accreditation involves assessed work on a reference estate rather than a cert
     subtitle:
       "Entity resolution over thirty-year-old systems of record. Evaluation suites that can stop a release. Agents with real authority. Estates that have to keep running when we are not there.",
     seoDescription:
-      "Careers at BasinWright — platform engineering, data engineering, applied evaluation, delivery and sovereign programmes across 14 countries.",
+      "Careers at BasinWright — platform engineering, data engineering, applied evaluation, delivery and sovereign programmes.",
     order: 2,
     sections: [
       {
@@ -463,7 +471,7 @@ The engagements are long, the systems are real, and the consequences are visible
           },
           {
             title: "On-call that is staffed properly",
-            body: "We run estates for regulated customers, so there is a rota. It is compensated, it is capped, and the follow-the-sun coverage is real rather than aspirational.",
+            body: "We intend to run estates for regulated customers, which means a rota. It is compensated and it is capped. We are small enough that cover is a real constraint rather than a solved problem, and we would rather say so than describe a follow-the-sun rota we do not yet have.",
             icon: "Activity",
             accent: "ember",
           },
@@ -510,7 +518,7 @@ The engagements are long, the systems are real, and the consequences are visible
             title: "Applied Evaluation Researcher",
             subtitle: "London · Remote (UK)",
             badge: "Research",
-            body: "Failure-weighted evaluation suites, rubric design, and measurement on live customer estates rather than benchmarks.",
+            body: "Failure-weighted evaluation suites, rubric design, and measurement against real workloads rather than public benchmarks.",
             href: "mailto:careers@basinwright.com?subject=Applied%20Evaluation%20Researcher",
             icon: "Microscope",
           },
@@ -621,11 +629,11 @@ The engagements are long, the systems are real, and the consequences are visible
         entries: [
           {
             title: "Production incident",
-            subtitle: "Any severity, 24×7",
+            subtitle: "Any severity",
             body: "Raise through the console or the on-call number in your runbook. Severity 1 pages the duty engineer immediately and opens a bridge.",
             icon: "ShieldAlert",
             accent: "ember",
-            bullets: ["24×7 on all paid tiers", "Bridge within 15 minutes on Sev 1", "Named incident commander"],
+            bullets: ["Named incident commander", "Written post-incident review", "Cover agreed per engagement"],
           },
           {
             title: "Technical support",
@@ -661,16 +669,18 @@ The engagements are long, the systems are real, and the consequences are visible
         title: "What each level means and what we commit to",
         body: `Severity is set by impact, not by how the ticket is worded. If you believe a case is mis-classified, say so on the ticket and it is re-triaged — we would rather over-classify than argue.
 
-| Severity | Definition | First response | Update cadence |
-| --- | --- | --- | --- |
-| Sev 1 | Production decision path unavailable or producing incorrect outcomes | 15 minutes, 24×7 | Every 30 minutes |
-| Sev 2 | Significant degradation with a workaround, or a single workload down | 1 hour, 24×7 | Every 2 hours |
-| Sev 3 | Component impaired, no material business impact | Next business day | Daily |
-| Sev 4 | Question, guidance, or feature request | 2 business days | As progressed |
+| Severity | Definition |
+| --- | --- |
+| Sev 1 | Production decision path unavailable, or producing incorrect outcomes |
+| Sev 2 | Significant degradation with a workaround, or a single workload down |
+| Sev 3 | Component impaired, no material business impact |
+| Sev 4 | Question, guidance, or feature request |
 
-Response targets are contractual on Professional, Enterprise and Sovereign tiers. Starter is community-supported with best-effort response.
+**On response times.** This page previously published a table of contractual response targets across every tier. We are a small team and we are not going to publish a 24×7 commitment we cannot yet staff.
 
-Every Sev 1 receives a written post-incident review within five business days, including the trace evidence, the contributing causes and the actions taken. These are shared with the customer whether or not they ask.`,
+What we will do is agree response and escalation terms in writing as part of an engagement, sized to what the estate actually needs and to what we can actually honour. If round-the-clock cover is a hard requirement for you, raise it in the first conversation rather than the contract review — it is a real constraint on us today and you should know that before you invest time.
+
+Every Sev 1 receives a written post-incident review including the trace evidence, the contributing causes and the actions taken. That one is not tier-dependent and is shared whether or not you ask.`,
       },
       {
         key: "support-selfserve",
@@ -742,7 +752,7 @@ Every Sev 1 receives a written post-incident review within five business days, i
           },
           {
             title: "Can we get support in our own language and time zone?",
-            body: "Regional coverage is available in English across all regions, and in local language in nine. Follow-the-sun on-call is included on Enterprise and Sovereign tiers. Sovereign estates with cleared-personnel requirements are supported by the on-site team.",
+            body: "Support is in English today. We are a small team in a small number of time zones, so cover outside them is agreed per engagement rather than offered as standard — ask before you assume it. Sovereign estates with cleared-personnel requirements are supported by the on-site team for that programme.",
           },
         ],
       },
@@ -766,7 +776,7 @@ Every Sev 1 receives a written post-incident review within five business days, i
     subtitle:
       "Certifications, the security position, subprocessors, and the documents your risk function will ask for.",
     seoDescription:
-      "BasinWright Trust Centre: ISO/IEC 42001, ISO 27001, SOC 2 Type II, the security architecture, subprocessors and data handling position.",
+      "BasinWright Trust Centre: the security controls we actually operate, our certification status, subprocessors and data handling position.",
     order: 4,
     sections: [
       {
@@ -784,71 +794,74 @@ Encryption is applied in transit and at rest throughout. Bring-your-own-key is a
 The one thing we ask risk functions to look at closely is retention. Trace records are retained to match the underlying business record — often years, not the shorter default that log infrastructure assumes — because that is what makes a decision defensible eighteen months later. Retention periods are configurable and set by the customer.`,
       },
       {
-        key: "trust-certs",
-        kind: SectionKind.FEATURE_GRID,
+        // This was a grid of certifications marked "Certified". We hold none
+        // of them yet. Stating a certification you do not have is the single
+        // most damaging thing on a page like this: it is checkable, and the
+        // person checking is the one deciding whether to buy.
+        key: "trust-certifications",
+        kind: SectionKind.PROSE,
         order: 1,
         eyebrow: "Certifications",
-        title: "What we hold",
-        entries: [
-          {
-            title: "ISO/IEC 42001",
-            subtitle: "AI management system",
-            body: "Model lifecycle governance, evaluation and promotion gating, impact assessment, human oversight and incident handling.",
-            icon: "ShieldCheck",
-            accent: "verdigris",
-            bullets: ["Certified", "Annual surveillance"],
-          },
-          {
-            title: "ISO/IEC 27001",
-            subtitle: "Information security",
-            body: "The information security management system covering the platform, the delivery organisation and corporate systems.",
-            icon: "Lock",
-            accent: "brass",
-            bullets: ["Certified", "Annual surveillance"],
-          },
-          {
-            title: "SOC 2 Type II",
-            subtitle: "Security, availability, confidentiality",
-            body: "Annual report covering the trust services criteria, available under NDA through your named architect.",
-            icon: "FileText",
-            accent: "slate",
-            bullets: ["Annual", "Available under NDA"],
-          },
-          {
-            title: "ISO/IEC 27017 & 27018",
-            subtitle: "Cloud security and personal data",
-            body: "Cloud-specific security controls and the protection of personally identifiable information in cloud processing.",
-            icon: "Cloud",
-            accent: "azure",
-            bullets: ["Certified", "Both standards"],
-          },
-          {
-            title: "GDPR & UK GDPR",
-            subtitle: "Data protection",
-            body: "Standard DPA with SCCs where required, documented subprocessors, and data subject request handling with defined timelines.",
-            icon: "Scale",
-            accent: "verdigris",
-            bullets: ["DPA available", "SCCs", "DSR process"],
-          },
-          {
-            title: "Sector attestations",
-            subtitle: "Where applicable",
-            body: "Healthcare, financial services and public sector attestations vary by region and are confirmed per engagement rather than claimed generally.",
-            icon: "Landmark",
-            accent: "ember",
-            bullets: ["Per region", "Confirmed per engagement"],
-          },
-        ],
+        title: "What we hold today: nothing yet",
+        body: `BasinWright holds no third-party security or AI-management certifications at the time of writing. Not ISO/IEC 27001, not ISO/IEC 42001, not SOC 2. An earlier version of this page said otherwise; that was wrong and it has been corrected.
+
+We are telling you this on the page where a risk function looks first, rather than letting it surface in a questionnaire, because the second version costs you a week and costs us the deal.
+
+**Where we are.** The controls below are implemented and can be evidenced. The formal audit programme is planned rather than complete, and we will not put a date on it here until it is booked — a projected certification date is the same category of claim as a projected certification.
+
+**What that means for you.** If your procurement process requires a current SOC 2 or ISO 27001 certificate as a gate, we do not pass it today. Say so early and we will not waste your time. If your process allows a control-level review with contractual commitments, that we can do properly, and the [Terms](/terms) and DPA are the place those commitments get written down.`,
       },
       {
-        key: "trust-stats",
-        kind: SectionKind.STAT_BAND,
+        key: "trust-controls",
+        kind: SectionKind.FEATURE_GRID,
         order: 2,
+        eyebrow: "Controls",
+        title: "What is actually implemented",
+        subtitle:
+          "Each of these can be demonstrated in an assessment. None of them is a certification, and we are not presenting them as one.",
         entries: [
-          { title: "Uptime SLA", subtitle: "99.99%", body: "Enterprise and Sovereign tiers" },
-          { title: "Sev 1 first response", subtitle: "15 min", body: "24×7, contractual" },
-          { title: "Penetration tests", subtitle: "2× yearly", body: "Independent, summary available" },
-          { title: "Subprocessors", subtitle: "Published", body: "With 30 days notice of change" },
+          {
+            title: "Encryption and key control",
+            body: "In transit and at rest throughout. Bring-your-own-key is supported, which means a customer can lock us out of their own data unilaterally.",
+            icon: "Lock",
+            accent: "brass",
+            bullets: ["TLS in transit", "Encrypted at rest", "BYOK supported"],
+          },
+          {
+            title: "Tenancy and isolation",
+            body: "Estates deploy into the customer's own tenancy by default. Where a shared serving path is used, workloads are logically isolated and dedicated deployment is available.",
+            icon: "Building2",
+            accent: "verdigris",
+            bullets: ["Customer tenancy", "Dedicated endpoints", "Air-gapped option"],
+          },
+          {
+            title: "Access and break-glass",
+            body: "Role-based access with logged administrative actions. Our own access to a customer estate requires customer approval, is time-bound, and is written to the customer's own trace store.",
+            icon: "ShieldCheck",
+            accent: "slate",
+            bullets: ["RBAC", "Customer-approved", "Time-bound", "Logged where you can see it"],
+          },
+          {
+            title: "Training data position",
+            body: "Customer data trains the customer's models and nothing else. It is not pooled across customers and there is no arrangement under which it could be.",
+            icon: "Database",
+            accent: "azure",
+            bullets: ["No cross-customer pooling", "No third-party training"],
+          },
+          {
+            title: "Residency enforcement",
+            body: "Routing enforces residency per request from attributes on the request. A route carrying a localisation constraint fails rather than falling back to a non-compliant endpoint.",
+            icon: "Globe",
+            accent: "verdigris",
+            bullets: ["Per-request", "Fails closed"],
+          },
+          {
+            title: "Audit trail",
+            body: "Every decision carries its trigger, evidence with record-level lineage, model versions, policy gate and outcome, retained to match the underlying business record.",
+            icon: "Activity",
+            accent: "ember",
+            bullets: ["Queryable", "Audit pack export", "Customer-set retention"],
+          },
         ],
       },
       {
@@ -879,16 +892,10 @@ The one thing we ask risk functions to look at closely is retention. Trace recor
             icon: "Shield",
           },
           {
-            title: "SOC 2 Type II report",
-            subtitle: "Current annual report · under NDA",
-            href: "https://app.basinwright.com/trust/soc2",
+            title: "Security questionnaires",
+            subtitle: "CAIQ, SIG and most bespoke bank formats · completed on request",
+            href: "/#contact",
             icon: "FileText",
-          },
-          {
-            title: "Penetration test summary",
-            subtitle: "Most recent independent test · under NDA",
-            href: "https://app.basinwright.com/trust/pentest",
-            icon: "ShieldAlert",
           },
           {
             title: "Privacy Statement",
@@ -1007,7 +1014,7 @@ To exercise a right, write to privacy@basinwright.com. We respond within one mon
 
 ## Security
 
-Encryption in transit and at rest, role-based access control, logged administrative access, independent penetration testing twice yearly, and an information security management system certified to ISO/IEC 27001. More detail is in the [Trust Centre](/trust).
+Encryption in transit and at rest, role-based access control, and logged administrative access. We hold no third-party security certification at the time of writing — the [Trust Centre](/trust) sets out exactly which controls are implemented and where the audit programme stands.
 
 ## Changes
 

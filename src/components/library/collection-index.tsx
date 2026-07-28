@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { CollectionNotice } from "@/components/library/collection-notice";
 import { DocFeature, DocGrid, DocRows } from "@/components/library/doc-card";
 import { PageHero } from "@/components/site/page-hero";
 import { cn } from "@/components/ui/primitives";
@@ -95,6 +96,8 @@ export function CollectionIndex({
         title={collection.title}
         subtitle={collection.blurb}
       >
+        <CollectionNotice notice={collection.notice} className="mt-8" />
+
         {categories.length > 1 ? (
           <CategoryFilter
             collection={collection}

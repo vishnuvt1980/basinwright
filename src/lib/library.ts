@@ -31,20 +31,27 @@ export type Collection = {
   accent: string;
   /// Release notes read better as a stacked list than as a card grid.
   layout: "cards" | "list";
+  /// A standing disclosure, rendered above the index and above every document
+  /// in the collection. It lives here rather than in each document's body so
+  /// it cannot be edited away one piece at a time — which is the only way a
+  /// disclosure of this kind stays true.
+  notice?: string;
 };
 
 export const COLLECTIONS: Collection[] = [
   {
-    slug: "case-studies",
-    kind: DocKind.CASE_STUDY,
-    label: "Case studies",
-    singular: "Case study",
-    title: "What these estates look like in production",
+    slug: "reference-deployments",
+    kind: DocKind.REFERENCE,
+    label: "Reference deployments",
+    singular: "Reference deployment",
+    title: "How we would build it, and why",
     blurb:
-      "The estate before, what was actually wrong, what we deployed and what changed once it ran. Numbers included, caveats included.",
+      "A problem shape, the design we would propose for it, and what we would expect to be measured afterwards.",
     icon: "Building2",
     accent: "brass",
     layout: "cards",
+    notice:
+      "These are worked designs, not customer stories. BasinWright is early and has no case studies to publish — so there are no outcome figures here, because an outcome figure with no customer behind it is exactly the claim we are avoiding.",
   },
   {
     slug: "whitepapers",
@@ -65,7 +72,7 @@ export const COLLECTIONS: Collection[] = [
     singular: "Post",
     title: "From the people doing the work",
     blurb:
-      "Shorter and more opinionated. What we got wrong, what we changed, and what we would tell ourselves at the start.",
+      "Shorter and more opinionated. What we are building, what we have changed our minds about, and the reasoning behind both.",
     icon: "MessageSquare",
     accent: "slate",
     layout: "cards",
@@ -85,22 +92,24 @@ export const COLLECTIONS: Collection[] = [
   {
     slug: "research",
     kind: DocKind.RESEARCH,
-    label: "Research",
-    singular: "Research note",
-    title: "Measured on real estates",
+    label: "Engineering notes",
+    singular: "Engineering note",
+    title: "Why the platform works the way it does",
     blurb:
-      "Applied rather than academic. Everything here was measured on production traffic, with the method and the caveats stated.",
+      "The mechanisms behind the design decisions, and what we would have to measure to know whether each one holds.",
     icon: "Microscope",
     accent: "purple",
     layout: "cards",
+    notice:
+      "These explain mechanisms and set out what we would measure — they are not published results. Where a number appears it is either from public literature and cited, or an explicitly stated assumption.",
   },
   {
     slug: "news",
     kind: DocKind.NEWS,
     label: "Newsroom",
     singular: "News",
-    title: "Regions, certifications and milestones",
-    blurb: "The company record — short, factual and dated.",
+    title: "What we have shipped",
+    blurb: "Short, factual and dated. Empty stretches are honest ones.",
     icon: "Newspaper",
     accent: "amber",
     layout: "cards",
