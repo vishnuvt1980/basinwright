@@ -29,6 +29,64 @@ const rand = (a: number, b: number) => a + Math.random() * (b - a);
 const pick = <T>(arr: readonly T[]): T => arr[(Math.random() * arr.length) | 0];
 const ease = (t: number) => t * t * (3 - 2 * t);
 
+/* -------------------------------------------------------------------------- */
+/* The flow                                                                   */
+/* -------------------------------------------------------------------------- */
+
+/* One field of directions, shared by every record on the board.
+
+   The point is coherence. A record used to bow along an arc drawn for it alone,
+   which at two thousand marks reads as spray: no two neighbours agree on which
+   way the world is leaning, so nothing gathers. Sampling a single continuous
+   field instead means records crossing the same patch of world are pushed the
+   same way, and traffic bundles into strands the eye can follow.
+
+   Two octaves of sine — one axis-aligned, one diagonal — drifting against each
+   other at different rates, so there is no period to lock onto. Cheap enough to
+   evaluate per record per frame, which is the only reason it can be shared. */
+
+/// Radians of turn per world unit. The world is 100 across, so the near octave
+/// takes about two and a half turns to cross it and the far one about six:
+/// broad currents with detail inside them, rather than uniform churn.
+const FLOW_NEAR = 0.024;
+const FLOW_FAR = 0.062;
+
+/// The field's own clock, against the simulation's seconds. Slow, deliberately:
+/// this is weather over the board, not turbulence in it.
+const FLOW_CLOCK = 0.36;
+
+function flowAngle(x: number, y: number, time: number): number {
+  const t = time * FLOW_CLOCK;
+  const near =
+    Math.sin(x * FLOW_NEAR + t * 0.6) + Math.cos(y * FLOW_NEAR - t * 0.4);
+  const far =
+    Math.sin((x + y) * FLOW_FAR - t * 0.5) +
+    Math.cos((x - y) * FLOW_FAR + t * 0.3);
+  return (near + far) * 1.35;
+}
+
+/**
+ * How the flow is allowed to move a record: a damped mass on a spring, driven
+ * along whichever streamline the record is standing in.
+ *
+ * The spring is the part that matters. A record owes its arrival to the
+ * simulation — a decision has to reach the decision layer, and it has to reach
+ * it on the leg that says so — and free advection would carry it wherever the
+ * field liked. Tethering the excursion means the field decides the *shape* of
+ * the journey while the simulation keeps the destination.
+ *
+ * Push over tether sets how far a record can be carried off its line: about
+ * three world units here, against the ±7 of the old per-record arc. This is the
+ * dial between "flowing" and "chaotic" and it does not have much room — at four
+ * units the excursions started crossing each other far enough from the lattice
+ * that the board stopped reading as traffic between named nodes. Damping is
+ * just under critical, so a record leans into a turn and settles rather than
+ * ringing through it.
+ */
+const FLOW_PUSH = 9;
+const FLOW_TETHER = 3;
+const FLOW_DRAG = 3.1;
+
 /// Where a record currently is in the pipeline. Doubles as the key the
 /// narrative uses to decide whether this record is part of what the copy is
 /// currently describing.
@@ -79,6 +137,12 @@ export type Record_ = {
   size: number;
   /// Heading, kept aligned to travel.
   ang: number;
+  /// How far the flow has carried this record off the line it owes its
+  /// destination, and how fast that excursion is currently moving.
+  fx: number;
+  fy: number;
+  fvx: number;
+  fvy: number;
   seed: number;
   spin: number;
   orbitR: number;
@@ -224,8 +288,17 @@ export class Field {
       trust: rand(0.05, 0.32),
       mess: rand(0.55, 1),
       dup: caseId ? false : Math.random() < 0.17,
-      size: caseId ? rand(0.3, 0.4) : rand(0.1, 0.17),
+      /* A record belonging to a tracked case is still the heavier mark, but
+         only just. At two and a half times the ambient size it was a lozenge
+         rather than a stroke, and the trail buffer turned every one of them
+         into a broad wash. What makes a tracked record legible is its alpha and
+         its halo, both of which it keeps. */
+      size: caseId ? rand(0.17, 0.22) : rand(0.1, 0.17),
       ang: 0,
+      fx: 0,
+      fy: 0,
+      fvx: 0,
+      fvy: 0,
       seed: rand(0, TAU),
       spin: rand(-1.4, 1.4),
       // varied dwell radii: an annulus, not a blob
@@ -237,7 +310,12 @@ export class Field {
       ay: src.y,
       bx: HUB.x + rand(-2.6, 2.6),
       by: HUB.y + rand(-2.6, 2.6),
-      arc: rand(-7, 7),
+      /* A residual bow, and nothing more. This used to be the whole character
+         of a record's path, which is exactly why the board read as spray: every
+         record leaned a different way for no reason anyone could see. Now it
+         only keeps two records on the same leg off the same line, and the flow
+         they share is what shapes the journey. */
+      arc: rand(-3, 3),
       speed: 1 / rand(2.6, 4.4),
       dead: false,
     };
@@ -277,6 +355,10 @@ export class Field {
         e.t = 1;
         this.#arrive(e, arrivals);
       }
+      // Sampled where the record actually is — including last frame's
+      // excursion — so a record that has drifted into a different current
+      // follows that current, and strands hold together instead of unravelling.
+      this.#drift(e, dt, time);
       this.#place(e, time);
       this.#aim(e, px, py);
 
@@ -293,6 +375,23 @@ export class Field {
     return arrivals;
   }
 
+  /**
+   * Advances this record's excursion from the line it is travelling.
+   *
+   * Integrated rather than read straight off the field, which is what turns a
+   * direction into a path: the record carries momentum through a turn, so its
+   * trail curves instead of kinking frame to frame.
+   */
+  #drift(e: Record_, dt: number, time: number) {
+    const ang = flowAngle(e.x, e.y, time);
+    e.fvx +=
+      (Math.cos(ang) * FLOW_PUSH - FLOW_DRAG * e.fvx - FLOW_TETHER * e.fx) * dt;
+    e.fvy +=
+      (Math.sin(ang) * FLOW_PUSH - FLOW_DRAG * e.fvy - FLOW_TETHER * e.fy) * dt;
+    e.fx += e.fvx * dt;
+    e.fy += e.fvy * dt;
+  }
+
   /** Position along the current leg: an arced path plus quality-scaled noise. */
   #place(e: Record_, time: number) {
     const k = ease(e.t);
@@ -302,6 +401,14 @@ export class Field {
     const bow = Math.sin(k * Math.PI) * e.arc;
     e.x = e.ax + dx * k - (dy / len) * bow;
     e.y = e.ay + dy * k + (dx / len) * bow;
+
+    // The flow, gated to nothing at both ends of the leg. A record may wander
+    // as far as the current takes it in between, but it leaves the node it left
+    // and reaches the node it owes — the picture is still a claim about where
+    // data goes, and the flow is only how it gets there.
+    const carry = Math.sin(k * Math.PI);
+    e.x += e.fx * carry;
+    e.y += e.fy * carry;
 
     // messy records shake; the shake is what the hub takes away
     const m = e.mess;
@@ -352,7 +459,7 @@ export class Field {
 
       if (e.trust < 0.1 && !e.priority) {
         this.stats.quarantined++;
-        this.#retarget(e, QUARANTINE, "quarantine", rand(-4, 4), 1 / rand(1.6, 2.6));
+        this.#retarget(e, QUARANTINE, "quarantine", rand(-1.7, 1.7), 1 / rand(1.6, 2.6));
         e.ink = solid("reject");
         return;
       }
@@ -373,7 +480,7 @@ export class Field {
       // allowed to silently evaporate.
       if (e.caseId || Math.random() < 0.45) {
         this.stats.remediated++;
-        this.#retarget(e, HUB, "remediate", rand(-5, 5), 1 / rand(2, 3));
+        this.#retarget(e, HUB, "remediate", rand(-2.2, 2.2), 1 / rand(2, 3));
         e.trust = rand(0.4, 0.6);
         e.ink = blend("reject", "context", 0.5);
       } else {
@@ -416,7 +523,7 @@ export class Field {
       // the line and becomes something the customer holds — which is the last
       // thing this picture has to say, so it is the one hop that is drawn
       // rather than assumed.
-      this.#retarget(e, OWNERSHIP, "own", rand(-3, 3), 1 / rand(1.4, 2.2));
+      this.#retarget(e, OWNERSHIP, "own", rand(-1.3, 1.3), 1 / rand(1.4, 2.2));
       e.ink = blend("decided", "own", 0.55);
       return;
     }
@@ -440,11 +547,11 @@ export class Field {
   #advance(e: Record_) {
     if (e.leg === "ingest" || e.leg === "remediate") {
       // Fan out: every case works all three engines at the same time.
-      this.#retarget(e, ENGINES[e.lane], "engine", rand(-6, 6), 1 / rand(1.8, 3));
+      this.#retarget(e, ENGINES[e.lane], "engine", rand(-2.6, 2.6), 1 / rand(1.8, 3));
       return;
     }
     if (e.leg === "engine") {
-      this.#retarget(e, DECISION, "deliver", rand(-4, 4), 1 / rand(1.6, 2.6));
+      this.#retarget(e, DECISION, "deliver", rand(-1.7, 1.7), 1 / rand(1.6, 2.6));
       e.ink = blend(ENGINES[e.lane].ink, "decided", 0.55);
       return;
     }

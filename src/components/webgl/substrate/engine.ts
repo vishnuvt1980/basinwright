@@ -189,6 +189,52 @@ const MAX_SIZE_BOOST = 2;
 /// How quickly the narrative emphasis eases between chapters.
 const EMPHASIS_RATE = 3.5;
 
+/**
+ * How fast the accumulation buffer forgets, per second.
+ *
+ * This is trail length: a record's ribbon is roughly its speed over this
+ * number, so lowering it draws a longer stroke behind every mark. Now that
+ * records follow a shared flow field rather than their own arcs, the strokes
+ * curve together — which is only legible if they are long enough to see the
+ * curve in.
+ *
+ * The cost is brightness, and `FLUX_GAIN` is what pays it back — which is why
+ * the two are written next to each other and have to move together. Past
+ * roughly 1.0 accumulated, marks clip and the colour-is-meaning read is gone.
+ *
+ * The gain is not the reciprocal of the decay ratio, though the arithmetic
+ * invites it. That reciprocal is the equilibrium of a mark repainting the
+ * *same* pixel, and these marks move: at record speeds the head outruns its own
+ * ink within a frame or two, so most of the extra exposure lands in the tail
+ * rather than under the head. Compensating in full drains the board — measured
+ * against the previous decay, it read as half-empty. This is tuned by eye
+ * instead.
+ *
+ * It sits above 1 because `MAX_MARK` took area away from every heavy mark, and
+ * a thin stroke lays down proportionally less ink than a fat one. The weight
+ * has to come back as brightness or the board goes ghostly: what is wanted is a
+ * fine line that is definitely there, not a faint smudge.
+ */
+const TRAIL_DECAY = 6.5;
+const FLUX_GAIN = 1.15;
+
+/**
+ * Ceiling on how wide any one mark may be drawn, in world units before the
+ * small-stage boost.
+ *
+ * Everything on this board is meant to read as a fine stroke. A mark much past
+ * this stops being a stroke and becomes a blob — and a blob dragged along a
+ * curved trail smears into a broad wash, which is what made the field look
+ * chaotic rather than flowing. Size is not what tells a tracked case apart from
+ * the ambient roar; alpha and glow are, and they carry the distinction without
+ * putting a lozenge on the screen.
+ *
+ * Applied centrally in `glyph` rather than at each call site, so no future
+ * caller can reintroduce a fat mark by accident. It scales with `sizeBoost` for
+ * the same reason the sizes themselves do — see `REFERENCE_SCALE`.
+ */
+const MAX_MARK = 0.3;
+
 /// Seconds each auto-traced case holds the provenance spotlight.
 const AUTO_TRACE_LIFE = 4;
 
@@ -342,7 +388,8 @@ export function createSubstrate({
     const o = ic * 10;
     instanceData[o] = x;
     instanceData[o + 1] = y;
-    instanceData[o + 2] = size;
+    // The one place a mark's width is decided — see MAX_MARK.
+    instanceData[o + 2] = Math.min(size, MAX_MARK * sizeBoost);
     instanceData[o + 3] = rot;
     instanceData[o + 4] = shape;
     instanceData[o + 5] = glow;
@@ -643,38 +690,44 @@ export function createSubstrate({
     for (const e of field.items) {
       const tracked = e.caseId !== null;
       const isFocus = tracked && e.caseId === focus;
-      // Levels are set against the trail equilibrium, which is roughly
-      // ink-per-frame / fade — about 7x here. Ambient traffic is the roar a
-      // tracked case lives inside; it must never out-shout the case itself.
-      // Held just under saturation: past ~1.0 accumulated the marks clip and
-      // the colour-is-meaning read is lost.
-      let alpha = tracked ? 0.45 : 0.11 + e.trust * 0.13;
+      // Levels are set against the trail equilibrium — see TRAIL_DECAY, which
+      // FLUX_GAIN is here to compensate. Ambient traffic is the roar a tracked
+      // case lives inside; it must never out-shout the case itself.
+      let alpha = (tracked ? 0.45 : 0.11 + e.trust * 0.13) * FLUX_GAIN;
       if (focus !== null && !isFocus) alpha *= 0.16;
       alpha *= emphasis[legGroup(e.leg)];
-      const size = e.size * (isFocus ? 1.8 : 1) * (0.85 + e.trust * 0.4);
+      // A focused record is picked out by weight and halo, not by girth: it
+      // used to swell 1.8x, which on a curved trail painted a broad wash across
+      // the board instead of a bright thread through it.
+      const size = e.size * (isFocus ? 1.2 : 1) * (0.85 + e.trust * 0.4);
       glyph(
         e.x,
         e.y,
         size * sizeBoost,
         e.ang,
         e.shape,
-        0.25 + e.trust * 0.6 + (isFocus ? 1.0 : 0),
+        0.22 + e.trust * 0.42 + (isFocus ? 0.55 : 0),
         inkOf(e.ink),
         alpha,
       );
     }
 
+    /* Event markers, not fireworks. These grew to nearly two world units and
+       were the largest thing on the board by a wide margin — a soft disc that
+       the trail buffer then dragged into a smear. A flash now opens barely
+       wider than the record that caused it and gets its emphasis from being
+       brief and bright. */
     for (const f of field.flashes) {
       const k = 1 - f.life;
       glyph(
         f.x,
         f.y,
-        0.5 + k * 2.4 * f.strength,
+        (0.15 + k * 0.28 * f.strength) * sizeBoost,
         0,
         0,
-        1.4,
+        0.8,
         pal[f.ink],
-        f.life * f.life * 0.2 * f.strength * emphasis[f.group],
+        f.life * f.life * 0.2 * FLUX_GAIN * f.strength * emphasis[f.group],
       );
     }
 
@@ -711,9 +764,7 @@ export function createSubstrate({
       overlayFrom: trailInstances,
       overlayCount: ic - trailInstances,
       lineVerts: lc,
-      // A mark aligned to its own heading repaints its own trail, so the decay
-      // has to be quicker here than it would be for round sprites.
-      fade: 1 - Math.exp(-dt * 12),
+      fade: 1 - Math.exp(-dt * TRAIL_DECAY),
       invert: !isDark,
       ground,
     });
