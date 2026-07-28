@@ -5,6 +5,11 @@ import { useEffect, useState } from "react";
 import { AnimatePresence, motion, useScroll, useSpring } from "motion/react";
 
 import { Icon } from "@/components/icon";
+import {
+  useHashScroll,
+  useScrollSpy,
+  useSectionIds,
+} from "@/components/site/hash-nav";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { ButtonLink, cn } from "@/components/ui/primitives";
 
@@ -60,6 +65,14 @@ function Wordmark({ name }: { name: string }) {
 export function SiteHeader({ name, links }: { name: string; links: NavLink[] }) {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const onHashClick = useHashScroll();
+
+  // Which section the reader is in, for the nav to mark and the address bar to
+  // follow. Only the links that point at somewhere on this page are watched,
+  // so on /resources the spy sits out and nothing is marked.
+  const active = useScrollSpy(useSectionIds(links.map((link) => link.href)));
+  const isActive = (href: string) =>
+    Boolean(active) && href.split("#")[1] === active;
 
   const { scrollYProgress } = useScroll();
   const progress = useSpring(scrollYProgress, {
@@ -96,19 +109,32 @@ export function SiteHeader({ name, links }: { name: string; links: NavLink[] }) 
         <Wordmark name={name} />
 
         <nav className="hidden items-center gap-1 lg:flex" aria-label="Primary">
-          {links.map((link) => (
-            <Link
-              key={link.id}
-              href={link.href}
-              className="group relative rounded-full px-4 py-2 text-sm text-ink-2 transition-colors duration-300 hover:text-ink"
-            >
-              {link.label}
-              <span
-                className="absolute inset-x-4 bottom-1 h-px scale-x-0 bg-accent transition-transform duration-300 group-hover:scale-x-100"
-                aria-hidden
-              />
-            </Link>
-          ))}
+          {links.map((link) => {
+            const current = isActive(link.href);
+
+            return (
+              <Link
+                key={link.id}
+                href={link.href}
+                onClick={(event) => onHashClick(event, link.href)}
+                aria-current={current ? "true" : undefined}
+                className={cn(
+                  "group relative rounded-full px-4 py-2 text-sm transition-colors duration-300 hover:text-ink",
+                  current ? "text-ink" : "text-ink-2",
+                )}
+              >
+                {link.label}
+                {/* The hover underline, held open for the section you are in. */}
+                <span
+                  className={cn(
+                    "absolute inset-x-4 bottom-1 h-px bg-accent transition-transform duration-300 group-hover:scale-x-100",
+                    current ? "scale-x-100" : "scale-x-0",
+                  )}
+                  aria-hidden
+                />
+              </Link>
+            );
+          })}
         </nav>
 
         <div className="flex items-center gap-3">
@@ -122,11 +148,16 @@ export function SiteHeader({ name, links }: { name: string; links: NavLink[] }) 
           <ButtonLink
             href="#contact"
             variant="secondary"
+            onClick={(event) => onHashClick(event, "#contact")}
             className="px-5 py-2.5 text-sm max-lg:hidden"
           >
             Talk to an Architect
           </ButtonLink>
-          <ButtonLink href="#contact" className="px-5 py-2.5 text-sm max-lg:hidden">
+          <ButtonLink
+            href="#contact"
+            onClick={(event) => onHashClick(event, "#contact")}
+            className="px-5 py-2.5 text-sm max-lg:hidden"
+          >
             Start Building
           </ButtonLink>
 
@@ -161,25 +192,45 @@ export function SiteHeader({ name, links }: { name: string; links: NavLink[] }) 
             aria-label="Mobile"
           >
             <div className="container-bw flex flex-col gap-1 py-6">
-              {links.map((link) => (
-                <Link
-                  key={link.id}
-                  href={link.href}
-                  onClick={() => setOpen(false)}
-                  className="rounded-lg px-3 py-3 text-base text-ink-2 transition-colors hover:bg-raised hover:text-ink"
-                >
-                  {link.label}
-                </Link>
-              ))}
+              {links.map((link) => {
+                const current = isActive(link.href);
+
+                return (
+                  <Link
+                    key={link.id}
+                    href={link.href}
+                    onClick={(event) => {
+                      setOpen(false);
+                      onHashClick(event, link.href);
+                    }}
+                    aria-current={current ? "true" : undefined}
+                    className={cn(
+                      "rounded-lg px-3 py-3 text-base transition-colors hover:bg-raised hover:text-ink",
+                      current ? "bg-raised text-accent" : "text-ink-2",
+                    )}
+                  >
+                    {link.label}
+                  </Link>
+                );
+              })}
 
               <div className="mt-4 flex flex-col gap-2.5">
-                <ButtonLink href="#contact" onClick={() => setOpen(false)}>
+                <ButtonLink
+                  href="#contact"
+                  onClick={(event) => {
+                    setOpen(false);
+                    onHashClick(event, "#contact");
+                  }}
+                >
                   Start Building
                 </ButtonLink>
                 <ButtonLink
                   href="#contact"
                   variant="secondary"
-                  onClick={() => setOpen(false)}
+                  onClick={(event) => {
+                    setOpen(false);
+                    onHashClick(event, "#contact");
+                  }}
                 >
                   Talk to an AI Architect
                 </ButtonLink>

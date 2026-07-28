@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { Icon } from "@/components/icon";
+import { AnchorLink } from "@/components/site/hash-nav";
 import { HairRule } from "@/components/ui/primitives";
 import { getNav, getSettings, groupFooterNav, isExternalHref } from "@/lib/content";
 
@@ -13,9 +14,9 @@ function FooterLink({ href, label }: { href: string; label: string }) {
 
   if (!isExternalHref(href)) {
     return (
-      <Link href={href} className={className}>
+      <AnchorLink href={href} className={className}>
         {label}
-      </Link>
+      </AnchorLink>
     );
   }
 
