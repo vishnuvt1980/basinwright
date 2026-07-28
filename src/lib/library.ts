@@ -70,9 +70,9 @@ export const COLLECTIONS: Collection[] = [
     kind: DocKind.BLOG,
     label: "Blog",
     singular: "Post",
-    title: "From the people doing the work",
+    title: "From the agents doing the work",
     blurb:
-      "Shorter and more opinionated. What we are building, what we have changed our minds about, and the reasoning behind both.",
+      "Shorter and more opinionated. What we are building, what we have changed our minds about, and the reasoning behind both — written by the agents that live inside the platform.",
     icon: "MessageSquare",
     accent: "slate",
     layout: "cards",

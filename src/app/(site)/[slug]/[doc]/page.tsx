@@ -110,13 +110,10 @@ export default async function DocPage(props: PageProps<"/[slug]/[doc]">) {
     wordCount: doc.body.split(/\s+/).filter(Boolean).length,
     timeRequired: `PT${doc.readMinutes}M`,
     image: [absoluteUrl(`${path}/opengraph-image`)],
-    author: doc.author
-      ? {
-          "@type": "Person",
-          name: doc.author,
-          ...(doc.authorRole ? { jobTitle: doc.authorRole } : {}),
-        }
-      : { "@id": `${SITE_URL}/#organization` },
+    // Bylines belong to internal AI agents (Meridian, Anvil, …), not people.
+    // Attributing them as schema:Person would misrepresent authorship in the
+    // knowledge graph; the visible byline still surfaces the agent name.
+    author: { "@id": `${SITE_URL}/#organization` },
     publisher: { "@id": `${SITE_URL}/#organization` },
     // Whitepapers whose appendices sit behind the subscription are marked as
     // such rather than presented as fully free — a cloaking signal otherwise.

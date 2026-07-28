@@ -75,7 +75,7 @@ export const pages: PageSeed[] = [
         kind: SectionKind.DOC_LIST,
         order: 4,
         eyebrow: "Blog",
-        title: "From the people doing the work",
+        title: "From the agents doing the work",
         ctaLabel: "All posts",
         ctaHref: "/blog",
         meta: { collection: "blog", limit: 3 },
