@@ -515,6 +515,14 @@ body {
   to   { transform: scaleX(1); }
 }
 
+/* The Case Line's rail. Same shape, its own duration — matched to CHAPTER_MS in
+   caseline/case-line.tsx, which runs slower than the banner's because there is
+   now something happening on screen to watch. */
+@keyframes caseline-chapter-fill {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
 /* The line the whole picture is arguing towards: the business owns what comes
    out of it. It pulses because it is the punchline, and nothing else in the
    hero is allowed to. Reduced motion strips the animation via the rule at the

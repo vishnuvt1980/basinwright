@@ -14,28 +14,24 @@ import {
 import { IconTile } from "@/components/icon";
 import { substrateChapters } from "@/components/sections/substrate-chapters";
 import { SubstrateNarrative } from "@/components/sections/substrate-narrative";
-import { useIsDark } from "@/components/theme/use-dark";
 import { ButtonLink, Eyebrow, cn } from "@/components/ui/primitives";
 import { useGraphics } from "@/components/webgl/graphics-store";
 import { HeroCanvas } from "@/components/webgl/hero-canvas";
-import type { Verdict } from "@/components/webgl/substrate/engine";
 import type { SectionWithEntries } from "@/lib/content";
 import { demoConfigRevision } from "@/lib/demo-config";
 import { useDemoConfig } from "@/lib/demo-config-store";
 
-/// Keeps the simulation, the shaders and the readouts out of the homepage
-/// payload — they arrive only on a machine that has cleared the capability
-/// gate, and never on a phone.
-const SubstrateBanner = dynamic(
-  () => import("@/components/webgl/substrate-banner"),
-  { ssr: false },
-);
+/// Keeps the simulation and the readouts out of the homepage payload. Client
+/// only, but no longer gated on hardware: the banner is DOM and SVG now, so
+/// there is no context to acquire and no machine to disqualify.
+const CaseLine = dynamic(() => import("@/components/caseline/case-line"), {
+  ssr: false,
+});
 
 /// The full console. Fetched only when the visitor asks for it.
-const SubstrateDemo = dynamic(
-  () => import("@/components/webgl/substrate-demo"),
-  { ssr: false },
-);
+const CaseConsole = dynamic(() => import("@/components/caseline/case-console"), {
+  ssr: false,
+});
 
 /// The questions that turn the console into their console. Fetched on the same
 /// click, and never before it.
@@ -72,9 +68,15 @@ function useTabHidden() {
  * but it is not a block on the page: it is the hero's banner. `page.tsx` pulls
  * it out of the section list and hands it here.
  *
- * On a phone, under reduced motion, with graphics switched off or without
- * JavaScript, there is no canvas at all. The same story is told as plain text
- * beneath the headline instead, because a story nobody can see is not a story.
+ * With graphics switched off or without JavaScript, the same story is told as
+ * plain text beneath the headline instead, because a story nobody can see is
+ * not a story.
+ *
+ * There is no longer a hardware gate on the banner. The old one drew a particle
+ * field on the GPU and needed WebGL2, a 1024px viewport and a machine that
+ * cleared a probe — which meant every phone got the plain-text fallback and saw
+ * no picture at all. The Case Line is DOM and SVG, so the only switch it
+ * answers to is the visitor's own.
  */
 export function Hero({
   section,
@@ -88,8 +90,6 @@ export function Hero({
   const reduced = useReducedMotion();
 
   const [onscreen, setOnscreen] = useState(true);
-  // Set when the runtime frame-rate guard gives up on this machine.
-  const [tooSlow, setTooSlow] = useState(false);
 
   /* The console is a three-state affair: shut, asking what to build, or
      running. A returning visitor skips the middle state — they already told us
@@ -101,8 +101,10 @@ export function Hero({
   // tearing it down a tick later when the saved configuration arrives.
   const { ready, config } = useDemoConfig();
 
-  const { sceneEnabled, sceneAnimated } = useGraphics();
-  const dark = useIsDark();
+  // Only the visitor's own choice can take the banner away now — `sceneEnabled`
+  // additionally requires a GPU and a wide viewport, neither of which this
+  // drawing needs.
+  const { choice } = useGraphics();
   const tabHidden = useTabHidden();
 
   const chapters = useMemo(
@@ -110,7 +112,7 @@ export function Hero({
     [substrate],
   );
 
-  const banner = sceneEnabled && !tooSlow && chapters.length > 0;
+  const banner = choice !== "off" && chapters.length > 0;
 
   const { scrollYProgress } = useScroll({
     target: ref,
@@ -148,13 +150,6 @@ export function Hero({
   const ask = useCallback(() => setStage("asking"), []);
   const run = useCallback(() => setStage("running"), []);
 
-  const handleVerdict = useCallback((verdict: Verdict) => {
-    // The engine steps its own quality down once; if that was not enough it
-    // says so and the hero falls back to the plain rendering. Never let the
-    // page stutter to preserve the effect.
-    if (verdict === "abort") setTooSlow(true);
-  }, []);
-
   const lines = section.headlineLines.length
     ? section.headlineLines
     : [section.title ?? ""];
@@ -168,15 +163,19 @@ export function Hero({
       data-substrate
       className={cn("relative isolate", !banner && "grain")}
     >
-      {/* The banner: full width, the field with nothing laid over it but its
-          own readouts, its story and one call to action. */}
+      {/* The banner: full width, the rail with nothing laid over it but its own
+          readouts, its story and one call to action.
+
+          Tall on purpose. The drawing needs a height budget, and a 720px laptop
+          does not have one to spare — so it is allowed to run past the fold on a
+          short screen rather than squeezing the diagram until its cards clip. */}
       {banner ? (
-        <div className="relative h-[min(92svh,54rem)] min-h-[34rem] overflow-hidden">
+        <div className="relative min-h-[46rem] lg:h-[min(94svh,58rem)] lg:min-h-[50rem]">
           {ready ? (
-            <SubstrateBanner
+            <CaseLine
               // A reconfiguration changes how many systems feed the board,
-              // which the field reads once at construction. Rebuild rather
-              // than swap under a running engine.
+              // which the rail reads once at construction. Rebuild rather than
+              // swap under a running engine.
               key={demoConfigRevision(config)}
               chapters={chapters}
               hint={substrate?.body ?? null}
@@ -186,12 +185,9 @@ export function Hero({
                   : null
               }
               config={config}
-              dark={dark}
-              animated={sceneAnimated}
-              // One simulation at a time: the console runs its own, and two
-              // fields competing for the GPU would slow both.
+              animated={!reduced}
+              // One simulation at a time: the console runs its own.
               paused={!onscreen || tabHidden || stage !== "shut"}
-              onVerdict={handleVerdict}
               onOpenDemo={openConsole}
             />
           ) : null}
@@ -209,12 +205,11 @@ export function Hero({
       ) : null}
 
       {stage === "running" ? (
-        <SubstrateDemo
+        <CaseConsole
           key={demoConfigRevision(config)}
           chapters={chapters}
           config={config}
-          dark={dark}
-          animated={sceneAnimated}
+          animated={!reduced}
           onClose={shut}
           onReconfigure={ask}
         />
