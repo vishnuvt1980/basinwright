@@ -68,6 +68,46 @@ export const homeSections: SectionSeed[] = [
     ],
   },
 
+  /* ---------------------------------------------------------------- Product */
+  {
+    // Immediately after the hero, and deliberately so.
+    //
+    // "We build, fine-tune, deploy and monitor" is a sentence a consultancy
+    // could write, and until this block existed a first-time reader had no way
+    // to tell the difference. Everything above is what we do; this is the thing
+    // it lands in — the console's own modules, drawn in the site's own tokens.
+    //
+    // The whole argument of the block is in the last line of the copy: the
+    // sixth use case arrives where the first one did. That is what a platform
+    // is, and it is the one claim a services firm cannot make.
+    key: "product",
+    kind: SectionKind.PRODUCT_CONSOLE,
+    order: 1,
+    meta: { anchor: "product", panel: "modules" },
+    eyebrow: "The platform underneath",
+    title: "You buy the outcome. You keep the platform that delivers it.",
+    subtitle:
+      "The work lands somewhere: a console you operate, with your models, your data connections, your deployments and your evidence in it. Not a slide pack and a handover call.",
+    entries: [
+      {
+        title: "One control plane, every use case",
+        body: "Fraud, claims, procurement and AI safety arrive in the same place, with one audit trail and one access model behind them — rather than six vendors and six governance stories.",
+      },
+      {
+        title: "Driven by API, not just by console",
+        body: "A REST API across the platform surface, Python and TypeScript SDKs, an OpenAI-compatible inference gateway that meters every call, and MCP so your models are reachable as tools. Anything you can click, you can automate.",
+      },
+      {
+        title: "Yours to keep",
+        body: "The estate runs in your tenancy under your keys, and what it produces — models, weights, governed corpora, decision history — stays inside it.",
+      },
+    ],
+    ctaLabel: "Explore the platform",
+    ctaHref: "/platform",
+    ctaLabel2: "See it running",
+    ctaHref2: "/substrate",
+  },
+
   /* --------------------------------------------------------------- Problems */
   {
     // The industry tier's front door. Each card is a link into
@@ -79,7 +119,7 @@ export const homeSections: SectionSeed[] = [
     // fifth card would be easy to write and impossible to stand behind.
     key: "problems",
     kind: SectionKind.FEATURE_GRID,
-    order: 1,
+    order: 2,
     meta: { anchor: "problems" },
     eyebrow: "Industries",
     title: "Enterprise problems we solve",
@@ -149,7 +189,7 @@ export const homeSections: SectionSeed[] = [
     // are the numbers a business already tracks and already wants moved.
     key: "outcomes",
     kind: SectionKind.SOLUTIONS,
-    order: 2,
+    order: 3,
     meta: { anchor: "outcomes" },
     eyebrow: "Outcomes",
     title: "Buy the outcome.",
@@ -194,11 +234,95 @@ export const homeSections: SectionSeed[] = [
     ],
   },
 
+  /* ------------------------------------------------------------- Catalogue */
+  {
+    // The outcomes block above says what a business wants moved. This says what
+    // exists to move it — and it is the second half of the argument the product
+    // block starts, because a catalogue is the thing a services firm does not
+    // have. Work that has been done once and can be done again is a product;
+    // work that starts from a blank page every time is a rate card.
+    //
+    // Seven domains, no counts. The catalogue's size is a real number and a
+    // moving one, and a figure in a headline goes stale in a way "across seven
+    // domains" does not — the same reasoning that keeps traction figures off
+    // the hero. What matters here is the shape: cross-industry domains that the
+    // four industry cards further up do not cover, and the last card, which is
+    // the whole point of the block.
+    //
+    // Four across: eight cards at three columns leaves an orphan.
+    key: "catalogue",
+    kind: SectionKind.FEATURE_GRID,
+    order: 4,
+    meta: { anchor: "catalogue", columns: 4 },
+    eyebrow: "What you can buy",
+    title: "A catalogue of use cases, each bought for a number",
+    subtitle:
+      "Some ship today as reference implementations — a working data pipeline, a trained artifact, an evaluation report and a model card, ready to be tuned on your data. Others are fully specified designs we build to order. We tell you plainly which is which and scope the difference honestly.",
+    entries: [
+      {
+        title: "Core fintech & customer intelligence",
+        icon: "Shield",
+        accent: "slate",
+        body: "Real-time fraud scoring, churn risk, lifetime value and behavioural authentication.",
+        bullets: ["Cut fraud loss without more false declines"],
+      },
+      {
+        title: "Credit, capital & regulatory risk",
+        icon: "LineChart",
+        accent: "brass",
+        body: "IFRS 9 ECL, Basel IRB capital, application scorecards and transaction monitoring.",
+        bullets: ["Numbers that survive challenge"],
+      },
+      {
+        title: "Insurance",
+        icon: "Umbrella",
+        accent: "verdigris",
+        body: "Automated underwriting, claims triage, fraud-ring detection and loss reserving.",
+        bullets: ["Shorter claims cycle time"],
+      },
+      {
+        title: "Procurement & supply chain",
+        icon: "ShoppingCart",
+        accent: "ember",
+        body: "Spend anomalies, supplier risk, three-way match, tender extraction and spend classification.",
+        bullets: ["Recover leaked spend"],
+      },
+      {
+        title: "AI security & LLM safety",
+        icon: "ShieldAlert",
+        accent: "ember",
+        body: "Injection, leakage, poisoning and agentic-abuse detection for your own GenAI stack.",
+        bullets: ["Ship GenAI that passes risk review"],
+      },
+      {
+        title: "Knowledge & GenAI",
+        icon: "MessageSquare",
+        accent: "verdigris",
+        body: "Grounded assistants and routing over your own document estate, with citations.",
+        bullets: ["Answers with sources, not guesses"],
+      },
+      {
+        title: "GPU-served & sovereign",
+        icon: "Cpu",
+        accent: "slate",
+        body: "On-premises embeddings, self-hosted LLM assistants and domain classifiers.",
+        bullets: ["Nothing leaves your perimeter"],
+      },
+      {
+        title: "Not in the catalogue?",
+        icon: "Wrench",
+        accent: "brass",
+        body: "Custom model development is a productised service, not a research project: the same authoring pipeline, the same governance, the same delivery discipline.",
+        bullets: ["Scoped to an outcome like everything else"],
+      },
+    ],
+  },
+
   /* -------------------------------------------------------------------- How */
   {
     key: "how",
     kind: SectionKind.FLOW,
-    order: 3,
+    order: 5,
     meta: { anchor: "how" },
     eyebrow: "How it works",
     title: "From business problem to measured outcome",
@@ -243,7 +367,7 @@ export const homeSections: SectionSeed[] = [
   {
     key: "why",
     kind: SectionKind.WHY_PILLARS,
-    order: 4,
+    order: 6,
     eyebrow: "Why BasinWright",
     title: "The four things that decide whether AI survives contact with your risk committee",
     subtitle:
@@ -315,7 +439,7 @@ export const homeSections: SectionSeed[] = [
     // from what watches it.
     key: "topology",
     kind: SectionKind.PLATFORM_TOPOLOGY,
-    order: 5,
+    order: 7,
     meta: { anchor: "platform" },
     eyebrow: "One platform",
     title: "The Enterprise Intelligence Platform",
@@ -392,7 +516,7 @@ export const homeSections: SectionSeed[] = [
   {
     key: "products",
     kind: SectionKind.PRODUCTS,
-    order: 6,
+    order: 8,
     eyebrow: "Platform capabilities",
     title: "What the platform is made of",
     subtitle:
@@ -525,7 +649,7 @@ export const homeSections: SectionSeed[] = [
   {
     key: "choose",
     kind: SectionKind.FEATURE_GRID,
-    order: 7,
+    order: 9,
     meta: { anchor: "choose" },
     eyebrow: "Why enterprises choose BasinWright",
     title: "What you are actually buying",
@@ -601,7 +725,7 @@ export const homeSections: SectionSeed[] = [
     // included.
     key: "proof",
     kind: SectionKind.DOC_LIST,
-    order: 8,
+    order: 10,
     meta: { anchor: "proof", collection: "reference-deployments", limit: 3 },
     eyebrow: "Worked designs",
     title: "Judge the thinking before you believe the claims",
@@ -615,7 +739,7 @@ export const homeSections: SectionSeed[] = [
   {
     key: "deployment",
     kind: SectionKind.INFRASTRUCTURE,
-    order: 9,
+    order: 11,
     meta: {
       anchor: "deployment",
       developer: [
@@ -652,7 +776,7 @@ export const homeSections: SectionSeed[] = [
     // are a statement about our own software and can be checked by trying one.
     key: "integrations",
     kind: SectionKind.LOGO_WALL,
-    order: 10,
+    order: 12,
     eyebrow: "Integrations",
     title: "Connected to the systems your business already runs on",
     entries: [
@@ -675,7 +799,7 @@ export const homeSections: SectionSeed[] = [
   {
     key: "journey",
     kind: SectionKind.FLOW,
-    order: 11,
+    order: 13,
     meta: { anchor: "journey" },
     eyebrow: "Customer journey",
     title: "How you get from first conversation to enterprise-wide",
@@ -714,7 +838,7 @@ export const homeSections: SectionSeed[] = [
   {
     key: "cta",
     kind: SectionKind.CTA,
-    order: 12,
+    order: 14,
     eyebrow: "Talk to us",
     title: "Let's identify your first AI outcome",
     subtitle:

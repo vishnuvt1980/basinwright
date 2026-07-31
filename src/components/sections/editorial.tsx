@@ -6,7 +6,7 @@ import { ButtonLink, SectionHeading, cn } from "@/components/ui/primitives";
 import { Reveal, Stagger, StaggerItem } from "@/components/ui/reveal";
 import { isExternalHref, type SectionWithEntries } from "@/lib/content";
 import { Markdown } from "@/lib/markdown";
-import { sectionAnchor } from "@/lib/meta";
+import { metaNumber, sectionAnchor } from "@/lib/meta";
 
 /* ---------------------------------------------------------------------------
    General-purpose blocks.
@@ -74,12 +74,29 @@ export function Prose({ section }: Props) {
 const CARD =
   "panel flex h-full flex-col p-7 transition-all duration-500 hover:shadow-[var(--bw-shadow-panel)]";
 
+/// Column counts the CMS may ask for. Four is for a wide list of short cards —
+/// the use-case domains — where three columns would leave a row of one.
+const GRID_COLUMNS: Record<number, string> = {
+  2: "lg:grid-cols-2",
+  3: "lg:grid-cols-3",
+  4: "lg:grid-cols-2 xl:grid-cols-4",
+};
+
 export function FeatureGrid({ section }: Props) {
-  const columns = section.entries.length % 3 === 0 ? "lg:grid-cols-3" : "lg:grid-cols-2";
+  // `meta.columns` wins where it is set; otherwise three across when the cards
+  // divide evenly by three and two when they do not, because the alternative is
+  // an orphan on the last row.
+  const columns =
+    GRID_COLUMNS[metaNumber(section.meta, "columns") ?? 0] ??
+    (section.entries.length % 3 === 0 ? "lg:grid-cols-3" : "lg:grid-cols-2");
+
+  // Four across is a denser card: the same padding would leave the text in a
+  // column two words wide.
+  const dense = columns === GRID_COLUMNS[4];
 
   return (
     <Block section={section}>
-      <Stagger className={cn("mt-14 grid gap-6 sm:grid-cols-2", columns)}>
+      <Stagger className={cn("mt-14 grid gap-6 sm:grid-cols-2", columns, dense && "gap-5")}>
         {section.entries.map((entry) => {
           const tone = toneForAccent(entry.accent, entry.title);
 
@@ -90,9 +107,16 @@ export function FeatureGrid({ section }: Props) {
           // you have to aim at.
           const body = (
             <>
-              {entry.icon ? <IconTile name={entry.icon} tone={tone} /> : null}
+              {entry.icon ? (
+                <IconTile name={entry.icon} tone={tone} size={dense ? "sm" : "md"} />
+              ) : null}
 
-              <h3 className="mt-5 flex items-center gap-1.5 text-lg text-ink">
+              <h3
+                className={cn(
+                  "mt-5 flex items-center gap-1.5 text-ink",
+                  dense ? "text-base leading-6" : "text-lg",
+                )}
+              >
                 {entry.title}
                 {entry.href ? (
                   <Icon
@@ -112,27 +136,44 @@ export function FeatureGrid({ section }: Props) {
                 </p>
               ) : null}
 
+              {/* Dense cards carry one bullet and it is a sentence — the thing
+                  that card is bought for. A chip is the wrong shape for a
+                  sentence: it wraps inside its own border and reads as a
+                  broken tag. So the four-across variant sets its bullets as a
+                  ticked line at the foot of the card instead. */}
               {entry.bullets.length ? (
-                <ul className="mt-5 flex flex-wrap gap-2 pt-1">
-                  {entry.bullets.map((bullet) => (
-                    <li
-                      key={bullet}
-                      className="rounded-md border border-line bg-raised px-2.5 py-1 text-xs text-ink-3"
-                    >
-                      {bullet}
-                    </li>
-                  ))}
-                </ul>
+                dense ? (
+                  <ul className="mt-auto flex flex-col gap-1.5 border-t border-line pt-4 [&:not(:first-child)]:mt-5">
+                    {entry.bullets.map((bullet) => (
+                      <li key={bullet} className="flex gap-2 text-sm text-accent">
+                        <Icon name="Check" className="mt-0.5 size-3.5 shrink-0" />
+                        <span className="text-pretty">{bullet}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <ul className="mt-5 flex flex-wrap gap-2 pt-1">
+                    {entry.bullets.map((bullet) => (
+                      <li
+                        key={bullet}
+                        className="rounded-md border border-line bg-raised px-2.5 py-1 text-xs text-ink-3"
+                      >
+                        {bullet}
+                      </li>
+                    ))}
+                  </ul>
+                )
               ) : null}
             </>
           );
 
-          const linked = cn(CARD, "group hover:-translate-y-0.5 hover:border-accent/50");
+          const card = cn(CARD, dense && "p-5");
+          const linked = cn(card, "group hover:-translate-y-0.5 hover:border-accent/50");
 
           return (
             <StaggerItem key={entry.id} className="h-full">
               {!entry.href ? (
-                <article data-tone={tone} className={CARD}>
+                <article data-tone={tone} className={card}>
                   {body}
                 </article>
               ) : isExternalHref(entry.href) ? (

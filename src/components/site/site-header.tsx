@@ -11,30 +11,11 @@ import {
   useSectionIds,
 } from "@/components/site/hash-nav";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
+import { Mark } from "@/components/ui/mark";
 import { ButtonLink, cn } from "@/components/ui/primitives";
 import { GraphicsToggle } from "@/components/webgl/graphics-toggle";
 
 type NavLink = { id: string; label: string; href: string };
-
-/// Where the mark's three lit dots sit on Fluent's Grid Dots lattice. Read in
-/// order they trace a check mark — the "Wright" in the name — and in colour they
-/// run the substrate's own sequence: governed, proven, yours.
-const LIT = [
-  { x: 5, y: 12, className: "mark-compute", label: "Compute" },
-  { x: 12, y: 19, className: "mark-data", label: "Data" },
-  { x: 19, y: 5, className: "mark-intelligence", label: "Intelligence" },
-];
-
-/// The other six. Fluent's regular weight against the lit dots' filled weight,
-/// so the three lead the lattice without being made outsized.
-const UNLIT = [
-  [5, 5],
-  [12, 5],
-  [12, 12],
-  [19, 12],
-  [5, 19],
-  [19, 19],
-];
 
 function Wordmark({ name }: { name: string }) {
   return (
@@ -42,22 +23,7 @@ function Wordmark({ name }: { name: string }) {
       {/* Fluent's Grid Dots with three of the nine lit. The estate is the
           lattice; what we resolve out of it is the check drawn through it.
           See the mark block in globals.css for the full reading. */}
-      <svg viewBox="0 0 24 24" className="size-7" aria-hidden>
-        <g className="mark-grid opacity-70 transition-opacity duration-500 group-hover:opacity-100">
-          {UNLIT.map(([x, y]) => (
-            <circle key={`${x}-${y}`} cx={x} cy={y} r="1.5" />
-          ))}
-        </g>
-        {LIT.map((dot) => (
-          <circle
-            key={dot.label}
-            cx={dot.x}
-            cy={dot.y}
-            r="2"
-            className={dot.className}
-          />
-        ))}
-      </svg>
+      <Mark grouped />
       <span className="font-display text-lg tracking-tight text-ink">{name}</span>
     </Link>
   );

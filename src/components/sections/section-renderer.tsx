@@ -21,6 +21,7 @@ import { Models } from "@/components/sections/models";
 import { PlatformGrid } from "@/components/sections/platform-grid";
 import { PlatformTopology } from "@/components/sections/platform-topology";
 import { Pricing } from "@/components/sections/pricing";
+import { ProductConsole } from "@/components/sections/product-console";
 import { Products } from "@/components/sections/products";
 import { Solutions } from "@/components/sections/solutions";
 import { WhyPillars } from "@/components/sections/why-pillars";
@@ -42,6 +43,7 @@ import type { SectionWithEntries } from "@/lib/content";
  */
 const RENDERERS = {
   COGNITIVE_SUBSTRATE: CognitiveSubstrate,
+  PRODUCT_CONSOLE: ProductConsole,
   LOGO_WALL: LogoWall,
   PLATFORM_GRID: PlatformGrid,
   WHY_PILLARS: WhyPillars,

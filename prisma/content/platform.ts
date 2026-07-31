@@ -29,9 +29,34 @@ export const platformPages: PageSeed[] = [
     order: 11,
     sections: [
       {
+        // The page opens on the product rather than on a description of it.
+        // Everything below this block is prose about a platform; this is the
+        // platform, with the module names it actually ships with.
+        key: "platform-console",
+        kind: SectionKind.PRODUCT_CONSOLE,
+        order: 0,
+        meta: { panel: "modules" },
+        eyebrow: "One environment",
+        title: "Not a toolkit. An operating environment you keep.",
+        subtitle:
+          "Models, data connections, deployments, guardrails, compute and the evidence behind every decision — in one console, inside your own tenancy.",
+        entries: [
+          {
+            title: "The sixth use case lands where the first one did",
+            body: "One control plane, one audit trail, one access model. The alternative is six vendors, six consoles and six governance stories to defend separately.",
+          },
+          {
+            title: "Everything the console does, the API does",
+            body: "Projects, registry entries, deployments, guardrails and evaluators are all addressable, so the estate is manageable as code rather than by browser.",
+          },
+        ],
+        ctaLabel: "Talk to an architect",
+        ctaHref: "#contact",
+      },
+      {
         key: "platform-grid",
         kind: SectionKind.PLATFORM_GRID,
-        order: 0,
+        order: 1,
         eyebrow: "What is in it",
         title: "Everything an AI estate needs, in one operating environment",
         subtitle:
@@ -92,7 +117,7 @@ export const platformPages: PageSeed[] = [
       {
         key: "platform-models",
         kind: SectionKind.MODELS,
-        order: 1,
+        order: 2,
         eyebrow: "Models",
         title: "Deterministic and generative, deliberately both",
         subtitle:
@@ -155,9 +180,36 @@ export const platformPages: PageSeed[] = [
         ],
       },
       {
+        // The registry, with the AI-safety screeners in it — the entries a
+        // visitor can be shown in the real product today, which is why they are
+        // the ones drawn here rather than a flattering selection.
+        //
+        // Console on the left, because the block above it put its diagram on
+        // the right and three of these down a page in the same arrangement
+        // reads as a template rather than as a product.
+        key: "platform-catalogue",
+        kind: SectionKind.PRODUCT_CONSOLE,
+        order: 3,
+        meta: { panel: "catalogue", side: "left" },
+        eyebrow: "Catalogue",
+        title: "A catalogue to start from, not a blank page",
+        subtitle:
+          "A shipping use case arrives as a working data pipeline, a trained artifact, an evaluation report and a model card. It is a starting point: what runs in your production is calibrated on your population, your policy and your thresholds.",
+        entries: [
+          {
+            title: "Tuned on your data, always",
+            body: "The reference model is where the work starts. Deterministic models are recalibrated and re-validated; LLM components are fine-tuned, grounded and guardrailed on your corpus.",
+          },
+          {
+            title: "Build to order on the same pipeline",
+            body: "What is not in the catalogue is specified and built the same way, with the same governance and the same monitoring — a productised service rather than a research project.",
+          },
+        ],
+      },
+      {
         key: "platform-agents",
         kind: SectionKind.AGENTS,
-        order: 2,
+        order: 4,
         eyebrow: "Agents",
         title: "A digital workforce that knows how your business runs",
         subtitle:
@@ -206,19 +258,73 @@ export const platformPages: PageSeed[] = [
         ],
       },
       {
+        // Model 360. The answer to the only question that matters six months
+        // after go-live, asked in front of a regulator or a board: is this
+        // thing still working, and what is the evidence?
+        key: "platform-model360",
+        kind: SectionKind.PRODUCT_CONSOLE,
+        order: 5,
+        meta: { anchor: "model-360", panel: "model360" },
+        eyebrow: "Model 360",
+        title: "An outcome you cannot measure is a claim",
+        subtitle:
+          "Every model carries the same evidence, on by default: why it decided what it did, a signed trail back to the inputs and sources behind it, and continuous monitoring of whether it still holds.",
+        entries: [
+          {
+            title: "Never a bare number",
+            body: "Contributing factors and reason codes on tabular models, cited source passages on retrieval and LLM models. Adverse-action reason codes are native, which matters wherever a declined applicant has a legal right to an explanation.",
+          },
+          {
+            title: "Signed reasoning receipts",
+            body: "A cryptographically signed evidence trail linking an output back to its inputs and its sources — built for audit and for dispute resolution rather than for a dashboard.",
+          },
+          {
+            title: "Watched, not assumed",
+            body: "Drift and accuracy decay monitored statistically, output quality scored by evaluators continuously rather than once at UAT, and every inference logged and metered.",
+          },
+        ],
+      },
+      {
+        key: "platform-serving",
+        kind: SectionKind.PRODUCT_CONSOLE,
+        order: 6,
+        meta: { anchor: "serving", panel: "serving", side: "left" },
+        eyebrow: "Serving",
+        title: "Runs where your policy allows it to run",
+        subtitle:
+          "Residency, sovereignty and blast radius are usually decided before the model is. The same platform, the same governance and the same evidence trail follow the model to whichever of the three it lands on.",
+        entries: [
+          {
+            title: "Not everything needs a GPU",
+            body: "CPU serving covers a large share of deterministic use cases at a fraction of the cost, and we will say so when a use case does not need the hardware.",
+          },
+          {
+            title: "Your data does not move to reach it",
+            body: "The platform database holds application state and metadata. Your business data stays in your systems and is read at query time — an architectural invariant enforced in the codebase, not a policy written for a website.",
+          },
+        ],
+      },
+      {
         key: "platform-api",
         kind: SectionKind.PROSE,
-        order: 3,
+        order: 7,
         eyebrow: "For engineers",
         title: "Driven by API, not just by console",
         body: "A public REST API across the full platform surface, SDKs for Python and TypeScript, an OpenAI-compatible inference gateway that authenticates and meters every call, and MCP support so your models and data are reachable as tools by agentic clients.\n\n**Anything you can click, you can automate.** Projects, registry entries, deployments, guardrails and evaluators are all addressable, which is what makes the platform survivable in an organisation that manages infrastructure as code rather than through a browser.\n\nEvery call routes through the gateway, so usage, cost and behaviour are visible per project, per model and per team — the same telemetry that makes drift monitoring possible in the first place.",
       },
       {
+        // The whole module list rather than the six that fitted a three-column
+        // grid. A platform is judged on whether the unglamorous half is there —
+        // access control, billing, templates — and leaving those out to keep
+        // the grid tidy is how a product ends up looking like a demo.
         key: "platform-modules",
         kind: SectionKind.FEATURE_GRID,
-        order: 4,
+        order: 8,
+        meta: { columns: 4 },
         eyebrow: "Modules",
         title: "What you operate day to day",
+        subtitle:
+          "Every one of these is a surface in the console and an endpoint on the API. Nothing here is on a roadmap.",
         entries: [
           {
             title: "Projects",
@@ -227,9 +333,15 @@ export const platformPages: PageSeed[] = [
             accent: "slate",
           },
           {
-            title: "Data Hub & Integrations",
-            body: "Register, browse, preview and query the stores your models read from. Credentials sealed and masked at rest.",
+            title: "Data Hub",
+            body: "Register, browse, preview and query the data stores your models read from.",
             icon: "Database",
+            accent: "brass",
+          },
+          {
+            title: "Integrations",
+            body: "Connect databases, warehouses, object stores, streams and AI providers. Credentials sealed and masked at rest.",
+            icon: "Network",
             accent: "brass",
           },
           {
@@ -245,10 +357,34 @@ export const platformPages: PageSeed[] = [
             accent: "ember",
           },
           {
+            title: "Services & Templates",
+            body: "Provision the supporting infrastructure — search, vector and query engines — from templates onto registered servers.",
+            icon: "Layers",
+            accent: "slate",
+          },
+          {
+            title: "GPU 360",
+            body: "Fleet inventory, live utilisation and cost per GPU server, across cloud capacity and your own hardware.",
+            icon: "Cpu",
+            accent: "verdigris",
+          },
+          {
+            title: "Chat & Knowledge",
+            body: "Grounded conversational access to your own documents and data, with the passage an answer came from attached.",
+            icon: "MessageSquare",
+            accent: "brass",
+          },
+          {
             title: "Guardrails & Evaluators",
             body: "Safety screening on inputs and outputs, plus rubric-based quality scoring run continuously rather than once at UAT.",
             icon: "ShieldCheck",
             accent: "verdigris",
+          },
+          {
+            title: "Automations",
+            body: "Multi-step workflows chaining models, data and actions on a schedule or a trigger.",
+            icon: "Zap",
+            accent: "ember",
           },
           {
             title: "Access Control",
@@ -256,12 +392,18 @@ export const platformPages: PageSeed[] = [
             icon: "Lock",
             accent: "slate",
           },
+          {
+            title: "Billing & Usage",
+            body: "Per-project consumption, rate cards, credits and spend visibility — because every inference routes through a gateway that meters it.",
+            icon: "LineChart",
+            accent: "ember",
+          },
         ],
       },
       {
         key: "platform-next",
         kind: SectionKind.LINK_LIST,
-        order: 5,
+        order: 9,
         eyebrow: "Elsewhere",
         title: "Where to go next",
         entries: [
@@ -294,7 +436,7 @@ export const platformPages: PageSeed[] = [
       {
         key: "platform-cta",
         kind: SectionKind.CONTACT,
-        order: 6,
+        order: 10,
         eyebrow: "Talk to us",
         title: "See it against your own estate",
         subtitle:
