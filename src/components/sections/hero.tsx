@@ -3,7 +3,6 @@
 import { motion, useReducedMotion, useScroll, useTransform } from "motion/react";
 import { useRef } from "react";
 
-import { IconTile } from "@/components/icon";
 import { ButtonLink, Eyebrow } from "@/components/ui/primitives";
 import { HeroCanvas } from "@/components/webgl/hero-canvas";
 import type { SectionWithEntries } from "@/lib/content";
@@ -23,6 +22,12 @@ const EASE = [0.16, 1, 0.3, 1] as const;
  * The backdrop is deliberately quiet — contour wash, the WebGL basin, a
  * vignette — and none of it carries meaning, so a machine that skips the canvas
  * loses nothing but the texture.
+ *
+ * The hero used to close with a four-tile band of capabilities, which sat under
+ * the fold of the first screen looking like a component from another site: no
+ * heading, no section rule, display-sized text over uppercase labels. What it
+ * had to say is now the "stack" block immediately below, drawn in the same card
+ * language as every other section. The hero ends at its buttons.
  */
 export function Hero({ section }: { section: SectionWithEntries }) {
   const ref = useRef<HTMLElement>(null);
@@ -138,26 +143,6 @@ export function Hero({ section }: { section: SectionWithEntries }) {
           </div>
         </motion.div>
       </div>
-
-      {/* What the platform is, in four tiles — the "why" block in miniature. */}
-      {section.entries.length ? (
-        <div className="container-bw relative z-10 pt-16 pb-24">
-          <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-line bg-line lg:grid-cols-4">
-            {section.entries.map((stat) => (
-              <div
-                key={stat.id}
-                className="group flex flex-col items-center gap-3 bg-surface px-5 py-7 transition-colors duration-500 hover:bg-raised"
-              >
-                <IconTile name={stat.icon} size="sm" />
-                <dd className="font-display text-3xl text-ink">{stat.subtitle}</dd>
-                <dt className="text-[0.7rem] tracking-[0.14em] text-ink-3 uppercase">
-                  {stat.title}
-                </dt>
-              </div>
-            ))}
-          </dl>
-        </div>
-      ) : null}
     </section>
   );
 }

@@ -116,15 +116,22 @@ function Field() {
       if (!shader) return;
 
       const accent = getComputedStyle(root).getPropertyValue("--bw-accent").trim();
-      const light = root.dataset.theme === "light";
+      // The theme is stamped on <html> once the theme script runs; light is
+      // also what an unstamped root renders as, so treat "not dark" as light.
+      const light = root.dataset.theme !== "dark";
 
-      shader.uniforms.uPrimary.value.set(accent || "#0078d4");
-      shader.uniforms.uSecondary.value.set(light ? "#038387" : "#4fd2d2");
+      // Light mode takes the pale end of each ramp — brand-400 and a soft teal
+      // rather than the link blue and Fluent's full-strength teal. On white the
+      // saturated hues drew a hard cyan-blue net across the headline; these sit
+      // behind the copy as texture, which is all the backdrop is for. Dark keeps
+      // the accent itself, which is already the light end of the ramp there.
+      shader.uniforms.uPrimary.value.set(light ? "#6cb8f6" : accent || "#0078d4");
+      shader.uniforms.uSecondary.value.set(light ? "#8ad9d9" : "#4fd2d2");
 
-      // On white the lines need more weight to read; on the dark band they
-      // would bloom if pushed that hard.
-      shader.uniforms.uIntensity.value = light ? 0.85 : 1;
-      shader.uniforms.uWash.value = light ? 0.04 : 0.05;
+      // Lighter hues on white need less weight, not more: the contrast against
+      // the canvas is what makes the lines read, and these have less of it.
+      shader.uniforms.uIntensity.value = light ? 0.5 : 1;
+      shader.uniforms.uWash.value = light ? 0.022 : 0.05;
     };
 
     sync();

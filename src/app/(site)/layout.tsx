@@ -1,4 +1,5 @@
 import { ChatWidget } from "@/components/chat/chat-widget";
+import { CookieConsent } from "@/components/site/cookie-consent";
 import { SiteFooter } from "@/components/site/site-footer";
 import { SiteHeader } from "@/components/site/site-header";
 import { getNav, getSettings } from "@/lib/content";
@@ -46,6 +47,10 @@ export default async function SiteLayout({
         greeting={settings["chat.greeting"] ?? "How can I help?"}
         suggestions={suggestions}
       />
+
+      {/* Last in the tree and above the chat launcher: on a first visit it is
+          the one thing on the page that has to be answered. */}
+      <CookieConsent />
     </>
   );
 }

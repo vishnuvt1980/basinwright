@@ -118,9 +118,21 @@ export const pages: PageSeed[] = [
     order: 0,
     sections: [
       {
-        key: "about-position",
+        // The name, before the argument. "BasinWright" is two pieces of
+        // vocabulary a reader is unlikely to hold at once, and until this block
+        // existed the page assumed both — which meant the one word a visitor
+        // has already read four times went unexplained.
+        key: "about-name",
         kind: SectionKind.PROSE,
         order: 0,
+        eyebrow: "The name",
+        title: "What is BasinWright?",
+        body: `A wright builds complete working systems. A basin of attraction is where a system naturally settles into a stable outcome. BasinWright reshapes how your organisation operates so better outcomes do not just happen once—they hold.`,
+      },
+      {
+        key: "about-position",
+        kind: SectionKind.PROSE,
+        order: 1,
         eyebrow: "The position",
         title: "Most enterprise AI is rented. That is the problem.",
         body: `The standard arrangement in this market is that a vendor holds the model, the pipeline, the evaluation suite and the operating knowledge, and the customer holds a contract. It works until the customer wants to change something — a provider, a region, a price, a vendor — and discovers that three years of accumulated capability was never theirs to move.
@@ -138,7 +150,7 @@ A customer who could leave next quarter and does not is telling you something re
         // easier to trust than one that publishes someone else's metrics.
         key: "about-stage",
         kind: SectionKind.PROSE,
-        order: 1,
+        order: 2,
         eyebrow: "Where we are",
         title: "Early, and saying so",
         body: `BasinWright is a startup. We do not have a wall of customer logos, a region count, or a case study with a percentage on it, and this site used to imply otherwise — so we took those claims down rather than soften them.
@@ -150,7 +162,7 @@ If you are evaluating us, the honest summary is this: judge the thinking and the
       {
         key: "about-how",
         kind: SectionKind.FEATURE_GRID,
-        order: 2,
+        order: 3,
         eyebrow: "How we work",
         title: "Four commitments, in the order they matter",
         subtitle:
@@ -189,7 +201,7 @@ If you are evaluating us, the honest summary is this: judge the thinking and the
       {
         key: "about-timeline",
         kind: SectionKind.TIMELINE,
-        order: 3,
+        order: 4,
         eyebrow: "History",
         // A dated company history with customer milestones stood here. None of
         // it had happened. What replaces it is the argument itself, which is
@@ -231,7 +243,7 @@ If you are evaluating us, the honest summary is this: judge the thinking and the
       {
         key: "about-reading",
         kind: SectionKind.DOC_LIST,
-        order: 4,
+        order: 5,
         eyebrow: "Read further",
         title: "The arguments behind the product",
         meta: { collection: "whitepapers", limit: 3 },
@@ -239,7 +251,7 @@ If you are evaluating us, the honest summary is this: judge the thinking and the
       {
         key: "about-next",
         kind: SectionKind.LINK_LIST,
-        order: 5,
+        order: 6,
         eyebrow: "Elsewhere",
         title: "Where to go next",
         entries: [
@@ -272,7 +284,7 @@ If you are evaluating us, the honest summary is this: judge the thinking and the
       {
         key: "about-cta",
         kind: SectionKind.CONTACT,
-        order: 6,
+        order: 7,
         eyebrow: "Talk to us",
         title: "Start with one decision",
         subtitle:

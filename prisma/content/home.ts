@@ -40,7 +40,7 @@ export const homeSections: SectionSeed[] = [
     eyebrow: "Model-as-a-Service",
     headlineLines: ["Model-as-a-Service,", "Delivered as an Outcome."],
     subtitle:
-      "Buy the business outcome, not the infrastructure. We build, fine-tune, deploy and monitor purpose-built AI models on your data — until they hit the outcome you signed up for.",
+      "BasinWright gives enterprises the platform to build, govern, and scale AI with confidence.",
     // The line that says who and what. The headline and subtitle above it are
     // about the commercial shape of the thing and are deliberately abstract, so
     // this is the only chance the first screen gets to name a reader and a
@@ -52,19 +52,49 @@ export const homeSections: SectionSeed[] = [
     ctaHref: "#contact",
     ctaLabel2: "See the substrate run live",
     ctaHref2: "/substrate",
-    // The hero's four tiles used to carry traction figures — models served,
-    // uptime, regions, GPU hours. We are early and had none of them, so they
-    // now describe what the platform *is*. A capability is checkable; a
-    // fabricated count is not.
+    // No entries: the hero's four-tile band was replaced by the "stack" block
+    // below, which says the same kind of thing with a heading over it and in
+    // the site's own card language. The tiles had no section chrome at all and
+    // read as a component borrowed from somewhere else.
+  },
+
+  /* ------------------------------------------------------------------ Stack */
+  {
+    // What the platform is made of, in the three layers a buyer already has a
+    // budget line for — models, data, infrastructure. It is the first thing
+    // after the hero because the hero's promise is abstract by design, and the
+    // reader's next question is "made of what?".
     //
-    // They are also the four pillars of the "why" block in miniature, in the
-    // same order, so the promise made in the first screen is the one argued
-    // properly further down.
+    // An ordinary FEATURE_GRID rather than a bespoke block: three cards in the
+    // same panel, icon tile and measure as every other card on the site, so the
+    // first screen and the twelfth are visibly the same website.
+    key: "stack",
+    kind: SectionKind.FEATURE_GRID,
+    order: 1,
+    meta: { anchor: "stack", columns: 3 },
+    eyebrow: "The stack",
+    title: "Stop managing fragmented infrastructure. Start directing outcomes.",
+    subtitle:
+      "Our AI agents connect your systems, automate work, and turn data into action from one secure interface.",
     entries: [
-      { title: "Purpose-built models", subtitle: "Trained for your problem", icon: "Boxes" },
-      { title: "Your data stays put", subtitle: "Inside your boundary", icon: "Lock" },
-      { title: "Explainable decisions", subtitle: "Evidence and reason codes", icon: "Scale" },
-      { title: "Monitored after go-live", subtitle: "Drift watched, models retuned", icon: "Activity" },
+      {
+        title: "AI Models",
+        icon: "Boxes",
+        accent: "brass",
+        body: "Purpose-built, sovereign AI that understands your business. From open-weight models and voice AI to flexible integrations, we help you deploy intelligence that evolves with your organisation.",
+      },
+      {
+        title: "Data Platform",
+        icon: "Database",
+        accent: "verdigris",
+        body: "Turn raw data into governed, usable insight. We unify ingestion, processing, orchestration, APIs, and AI services into a secure data foundation built for action.",
+      },
+      {
+        title: "Infrastructure",
+        icon: "Cpu",
+        accent: "ember",
+        body: "The compute, performance, and resilience modern AI demands. From training and inference to storage, pipelines, and AI-native data centres, BasinWright provides infrastructure designed to scale.",
+      },
     ],
   },
 
@@ -82,7 +112,7 @@ export const homeSections: SectionSeed[] = [
     // is, and it is the one claim a services firm cannot make.
     key: "product",
     kind: SectionKind.PRODUCT_CONSOLE,
-    order: 1,
+    order: 2,
     meta: { anchor: "product", panel: "modules" },
     eyebrow: "The platform underneath",
     title: "You buy the outcome. You keep the platform that delivers it.",
@@ -119,7 +149,7 @@ export const homeSections: SectionSeed[] = [
     // fifth card would be easy to write and impossible to stand behind.
     key: "problems",
     kind: SectionKind.FEATURE_GRID,
-    order: 2,
+    order: 3,
     meta: { anchor: "problems" },
     eyebrow: "Industries",
     title: "Enterprise problems we solve",
@@ -189,7 +219,7 @@ export const homeSections: SectionSeed[] = [
     // are the numbers a business already tracks and already wants moved.
     key: "outcomes",
     kind: SectionKind.SOLUTIONS,
-    order: 3,
+    order: 4,
     meta: { anchor: "outcomes" },
     eyebrow: "Outcomes",
     title: "Buy the outcome.",
@@ -252,7 +282,7 @@ export const homeSections: SectionSeed[] = [
     // Four across: eight cards at three columns leaves an orphan.
     key: "catalogue",
     kind: SectionKind.FEATURE_GRID,
-    order: 4,
+    order: 5,
     meta: { anchor: "catalogue", columns: 4 },
     eyebrow: "What you can buy",
     title: "A catalogue of use cases, each bought for a number",
@@ -322,7 +352,7 @@ export const homeSections: SectionSeed[] = [
   {
     key: "how",
     kind: SectionKind.FLOW,
-    order: 5,
+    order: 6,
     meta: { anchor: "how" },
     eyebrow: "How it works",
     title: "From business problem to measured outcome",
@@ -367,7 +397,7 @@ export const homeSections: SectionSeed[] = [
   {
     key: "why",
     kind: SectionKind.WHY_PILLARS,
-    order: 6,
+    order: 7,
     eyebrow: "Why BasinWright",
     title: "The four things that decide whether AI survives contact with your risk committee",
     subtitle:
@@ -439,7 +469,7 @@ export const homeSections: SectionSeed[] = [
     // from what watches it.
     key: "topology",
     kind: SectionKind.PLATFORM_TOPOLOGY,
-    order: 7,
+    order: 8,
     meta: { anchor: "platform" },
     eyebrow: "One platform",
     title: "The Enterprise Intelligence Platform",
@@ -516,7 +546,7 @@ export const homeSections: SectionSeed[] = [
   {
     key: "products",
     kind: SectionKind.PRODUCTS,
-    order: 8,
+    order: 9,
     eyebrow: "Platform capabilities",
     title: "What the platform is made of",
     subtitle:
@@ -649,7 +679,7 @@ export const homeSections: SectionSeed[] = [
   {
     key: "choose",
     kind: SectionKind.FEATURE_GRID,
-    order: 9,
+    order: 10,
     meta: { anchor: "choose" },
     eyebrow: "Why enterprises choose BasinWright",
     title: "What you are actually buying",
@@ -725,7 +755,7 @@ export const homeSections: SectionSeed[] = [
     // included.
     key: "proof",
     kind: SectionKind.DOC_LIST,
-    order: 10,
+    order: 11,
     meta: { anchor: "proof", collection: "reference-deployments", limit: 3 },
     eyebrow: "Worked designs",
     title: "Judge the thinking before you believe the claims",
@@ -739,7 +769,7 @@ export const homeSections: SectionSeed[] = [
   {
     key: "deployment",
     kind: SectionKind.INFRASTRUCTURE,
-    order: 11,
+    order: 12,
     meta: {
       anchor: "deployment",
       developer: [
@@ -776,7 +806,7 @@ export const homeSections: SectionSeed[] = [
     // are a statement about our own software and can be checked by trying one.
     key: "integrations",
     kind: SectionKind.LOGO_WALL,
-    order: 12,
+    order: 13,
     eyebrow: "Integrations",
     title: "Connected to the systems your business already runs on",
     entries: [
@@ -799,7 +829,7 @@ export const homeSections: SectionSeed[] = [
   {
     key: "journey",
     kind: SectionKind.FLOW,
-    order: 13,
+    order: 14,
     meta: { anchor: "journey" },
     eyebrow: "Customer journey",
     title: "How you get from first conversation to enterprise-wide",
@@ -838,7 +868,7 @@ export const homeSections: SectionSeed[] = [
   {
     key: "cta",
     kind: SectionKind.CTA,
-    order: 14,
+    order: 15,
     eyebrow: "Talk to us",
     title: "Let's identify your first AI outcome",
     subtitle:

@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { Icon } from "@/components/icon";
+import { CookiePreferencesLink } from "@/components/site/cookie-consent";
 import { AnchorLink } from "@/components/site/hash-nav";
 import { HairRule, cn } from "@/components/ui/primitives";
 import { getNav, getSettings, groupFooterNav, isExternalHref } from "@/lib/content";
@@ -123,6 +124,9 @@ export async function SiteFooter() {
                 {item.label}
               </Link>
             ))}
+            {/* A stored consent decision has to be changeable, or it was never
+                a decision. This is the way back into the banner. */}
+            <CookiePreferencesLink className="cursor-pointer transition-colors hover:text-ink-2" />
             <Link href="/admin" className="transition-colors hover:text-accent">
               CMS
             </Link>
