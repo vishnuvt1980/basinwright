@@ -2,10 +2,11 @@ import { IconTile } from "@/components/icon";
 import { SectionHeading } from "@/components/ui/primitives";
 import { Reveal, Stagger, StaggerItem } from "@/components/ui/reveal";
 import type { SectionWithEntries } from "@/lib/content";
+import { sectionAnchor } from "@/lib/meta";
 
 export function PlatformGrid({ section }: { section: SectionWithEntries }) {
   return (
-    <section id="platform" className="relative py-28 sm:py-36">
+    <section id={sectionAnchor(section.meta, "platform")} className="relative py-28 sm:py-36">
       <div className="container-bw">
         <Reveal>
           <SectionHeading

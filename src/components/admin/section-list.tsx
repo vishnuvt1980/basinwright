@@ -19,6 +19,7 @@ const ADDABLE: { kind: SectionKind; label: string }[] = [
   { kind: SectionKind.FEATURE_GRID, label: "Feature grid" },
   { kind: SectionKind.STAT_BAND, label: "Stat band" },
   { kind: SectionKind.TIMELINE, label: "Timeline" },
+  { kind: SectionKind.FLOW, label: "Flow (stepped diagram)" },
   { kind: SectionKind.FAQ, label: "FAQ" },
   { kind: SectionKind.LINK_LIST, label: "Link list" },
   { kind: SectionKind.DOC_LIST, label: "Library list" },

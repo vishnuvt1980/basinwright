@@ -101,7 +101,7 @@ export const pages: PageSeed[] = [
         ctaLabel: "Open the developer portal",
         ctaHref: "https://app.basinwright.com/docs",
         ctaLabel2: "See pricing",
-        ctaHref2: "/#pricing",
+        ctaHref2: "/pricing",
       },
     ],
   },
@@ -959,7 +959,7 @@ We are telling you this on the page where a risk function looks first, rather th
       "How BasinWright handles personal data on this website, in the platform, and in the course of delivering an engagement.",
     seoDescription:
       "The BasinWright Privacy Statement: what personal data we process, why, on what lawful basis, how long we keep it and your rights.",
-    order: 10,
+    order: 20,
     sections: [
       {
         key: "privacy-body",
@@ -1036,7 +1036,7 @@ privacy@basinwright.com — or write to the data protection contact named in you
       "The terms that apply to use of basinwright.com, the developer portal and the BasinWright platform.",
     seoDescription:
       "BasinWright Terms of Service covering the website, developer portal subscriptions, platform use, customer ownership of artefacts and liability.",
-    order: 11,
+    order: 21,
     sections: [
       {
         key: "terms-body",

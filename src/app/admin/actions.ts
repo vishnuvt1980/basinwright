@@ -416,13 +416,18 @@ export async function deleteSection(formData: FormData) {
 /* Pages                                                                      */
 /* -------------------------------------------------------------------------- */
 
-/// Lowercase, hyphenated, no leading or trailing separators.
+/// Lowercase and hyphenated, with "/" kept as a path separator so a page can
+/// nest: "industries/insurance" is the slug that renders at
+/// /industries/insurance. A hyphen either side of a slash is collapsed into it,
+/// so typing "Industries / Oil & Gas" lands on the slug that was meant, and
+/// leading and trailing separators are stripped either way.
 const slugify = (value: string) =>
   value
     .toLowerCase()
     .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
+    .replace(/[^a-z0-9/]+/g, "-")
+    .replace(/-*\/+-*/g, "/")
+    .replace(/^[-/]+|[-/]+$/g, "");
 
 export async function updatePage(
   _prev: ActionState,
@@ -441,8 +446,11 @@ export async function updatePage(
 
   const slug = slugify(String(formData.get("slug") ?? existing.slug));
   if (!slug) return fail("Slug is required.");
-  if (isReservedSlug(slug)) {
-    return fail(`"/${slug}" is a library collection and cannot be used as a page.`);
+  // A collection owns its whole subtree — /blog/anything is resolved by the
+  // library route — so the check is on the first segment, not the whole slug.
+  const [root] = slug.split("/");
+  if (isReservedSlug(root)) {
+    return fail(`"/${root}" is a library collection and cannot be used as a page.`);
   }
 
   try {

@@ -2,13 +2,14 @@ import { IconTile } from "@/components/icon";
 import { Chip, SectionHeading } from "@/components/ui/primitives";
 import { Reveal, Stagger, StaggerItem } from "@/components/ui/reveal";
 import { metaList, type SectionWithEntries } from "@/lib/content";
+import { sectionAnchor } from "@/lib/meta";
 
 export function Infrastructure({ section }: { section: SectionWithEntries }) {
   const developer = metaList(section.meta, "developer");
 
   return (
     <section
-      id="infrastructure"
+      id={sectionAnchor(section.meta, "infrastructure")}
       className="relative border-t border-line py-28 sm:py-36"
     >
       <div className="container-bw">

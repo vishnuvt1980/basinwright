@@ -6,6 +6,7 @@ import { useRef, useState } from "react";
 import { IconTile, toneForAccent } from "@/components/icon";
 import { SectionHeading, cn } from "@/components/ui/primitives";
 import type { SectionWithEntries } from "@/lib/content";
+import { sectionAnchor } from "@/lib/meta";
 
 /// Scrollytelling: the left column pins while the numbered pillars advance,
 /// each one taking over the sticky panel on the right as it reaches centre.
@@ -31,7 +32,7 @@ export function WhyPillars({ section }: { section: SectionWithEntries }) {
   const tone = toneForAccent(current.accent, current.title);
 
   return (
-    <section id="why" className="relative border-t border-line py-28 sm:py-36">
+    <section id={sectionAnchor(section.meta, "why")} className="relative border-t border-line py-28 sm:py-36">
       <div className="container-bw">
         <SectionHeading
           eyebrow={section.eyebrow}

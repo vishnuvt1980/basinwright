@@ -65,6 +65,7 @@ enum SectionKind {
   FEATURE_GRID
   STAT_BAND
   TIMELINE
+  FLOW
   FAQ
   LINK_LIST
   DOC_LIST

@@ -4,6 +4,7 @@ import { TopologyStage } from "@/components/sections/topology-stage";
 import { SectionHeading } from "@/components/ui/primitives";
 import { Reveal } from "@/components/ui/reveal";
 import type { SectionWithEntries } from "@/lib/content";
+import { sectionAnchor } from "@/lib/meta";
 
 /**
  * The platform topology block: one stack, four layers, one control plane.
@@ -18,7 +19,7 @@ export function PlatformTopology({ section }: { section: SectionWithEntries }) {
 
   return (
     <section
-      id="topology"
+      id={sectionAnchor(section.meta, "topology")}
       className="relative border-t border-line py-28 sm:py-36"
     >
       <div className="container-bw">

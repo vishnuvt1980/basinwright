@@ -148,19 +148,21 @@ export function SiteHeader({ name, links }: { name: string; links: NavLink[] }) 
           <ThemeToggle className="max-lg:hidden" />
 
           <ButtonLink
-            href="#contact"
+            href="/industries"
             variant="secondary"
-            onClick={(event) => onHashClick(event, "#contact")}
             className="px-5 py-2.5 text-sm max-lg:hidden"
           >
-            Talk to an Architect
+            Industry solutions
           </ButtonLink>
+          {/* "Start Building" was aimed at a developer signing up for an API.
+              The reader this site is now written for is deciding whether to
+              take a meeting, so the primary action is the meeting. */}
           <ButtonLink
             href="#contact"
             onClick={(event) => onHashClick(event, "#contact")}
             className="px-5 py-2.5 text-sm max-lg:hidden"
           >
-            Start Building
+            Book a session
           </ButtonLink>
 
           <button
@@ -224,7 +226,7 @@ export function SiteHeader({ name, links }: { name: string; links: NavLink[] }) 
                     onHashClick(event, "#contact");
                   }}
                 >
-                  Start Building
+                  Book a session
                 </ButtonLink>
                 <ButtonLink
                   href="#contact"
@@ -234,7 +236,7 @@ export function SiteHeader({ name, links }: { name: string; links: NavLink[] }) 
                     onHashClick(event, "#contact");
                   }}
                 >
-                  Talk to an AI Architect
+                  Talk to an architect
                 </ButtonLink>
               </div>
 

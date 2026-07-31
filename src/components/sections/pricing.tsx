@@ -2,11 +2,12 @@ import { Icon, IconTile, toneForAccent } from "@/components/icon";
 import { ButtonLink, SectionHeading, cn } from "@/components/ui/primitives";
 import { Reveal, Stagger, StaggerItem } from "@/components/ui/reveal";
 import type { SectionWithEntries } from "@/lib/content";
+import { sectionAnchor } from "@/lib/meta";
 
 export function Pricing({ section }: { section: SectionWithEntries }) {
   return (
     <section
-      id="pricing"
+      id={sectionAnchor(section.meta, "pricing")}
       className="grain relative border-t border-line bg-surface/50 py-28 sm:py-36"
     >
       <div className="container-bw relative">
@@ -86,7 +87,7 @@ export function Pricing({ section }: { section: SectionWithEntries }) {
                     variant={featured ? "primary" : "secondary"}
                     className="mt-8 w-full"
                   >
-                    {featured ? "Start Building" : "Talk to Sales"}
+                    {featured ? "Book a session" : "Talk to sales"}
                   </ButtonLink>
                 </article>
               </StaggerItem>

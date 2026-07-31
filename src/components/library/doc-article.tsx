@@ -74,7 +74,7 @@ function PortalCta({ appUrl }: { appUrl: string }) {
               Open the developer portal
               <Icon name="ExternalLink" className="size-4" />
             </a>
-            <ButtonLink href="/#pricing" variant="secondary">
+            <ButtonLink href="/pricing" variant="secondary">
               See pricing
             </ButtonLink>
           </div>

@@ -1,10 +1,19 @@
 /* ---------------------------------------------------------------------------
    Navigation and the site settings that surround it.
 
-   Two notes on hrefs:
+   The nav follows the site's three levels — home, industry, product — rather
+   than the product catalogue. "Industries" and "Platform" are pages now rather
+   than homepage anchors, because that is where the second and third levels
+   actually live.
 
-   • Homepage anchors are written as "/#products" rather than "#products". A
+   Three notes on hrefs:
+
+   • Homepage anchors are written as "/#outcomes" rather than "#outcomes". A
      bare fragment does nothing from /about — it has to route home first.
+
+   • "#contact" is written bare, deliberately. Every page ends with a contact
+     block under that id, so the link means "the form at the bottom of whatever
+     you are reading" rather than "go home and scroll".
 
    • Developer links are absolute URLs into app.basinwright.com. Documentation
      is part of the product and sits behind the subscription, so the footer
@@ -19,12 +28,11 @@
 export const APP_URL = "https://app.basinwright.com";
 
 export const headerNav = [
-  { label: "Products", href: "/#products" },
-  { label: "Solutions", href: "/#solutions" },
-  { label: "Industries", href: "/#industries" },
-  { label: "Models", href: "/#models" },
+  { label: "Industries", href: "/industries" },
+  { label: "Outcomes", href: "/#outcomes" },
+  { label: "Platform", href: "/platform" },
   { label: "Resources", href: "/resources" },
-  { label: "Pricing", href: "/#pricing" },
+  { label: "Pricing", href: "/pricing" },
 ];
 
 export const footerNav: {
@@ -32,14 +40,24 @@ export const footerNav: {
   items: { label: string; href: string }[];
 }[] = [
   {
-    group: "Products",
+    group: "Industries",
     items: [
-      { label: "BasinWright MaaS", href: "/#products" },
-      { label: "BasinWright Compute", href: "/#products" },
-      { label: "BasinWright Agents", href: "/#products" },
-      { label: "BasinWright Studio", href: "/#products" },
-      { label: "BasinWright Knowledge", href: "/#products" },
-      { label: "BasinWright Marketplace", href: "/#products" },
+      { label: "Insurance", href: "/industries/insurance" },
+      { label: "Banking & financial services", href: "/industries/banking" },
+      { label: "Manufacturing", href: "/industries/manufacturing" },
+      { label: "Energy, oil & gas", href: "/industries/energy" },
+      { label: "All industries", href: "/industries" },
+    ],
+  },
+  {
+    group: "Platform",
+    items: [
+      { label: "Platform overview", href: "/platform" },
+      { label: "Models", href: "/platform#models" },
+      { label: "Agents", href: "/platform#agents" },
+      { label: "Capabilities", href: "/#products" },
+      { label: "Deployment", href: "/#deployment" },
+      { label: "Pricing", href: "/pricing" },
     ],
   },
   {
@@ -50,7 +68,6 @@ export const footerNav: {
       { label: "SDKs", href: `${APP_URL}/docs/sdks` },
       { label: "CLI", href: `${APP_URL}/docs/cli` },
       { label: "Terraform Provider", href: `${APP_URL}/docs/terraform` },
-      { label: "Code Samples", href: `${APP_URL}/docs/samples` },
       { label: "Platform Status", href: `${APP_URL}/status` },
     ],
   },

@@ -2,11 +2,12 @@ import { ContactForm } from "@/components/sections/contact-form";
 import { Eyebrow } from "@/components/ui/primitives";
 import { Reveal } from "@/components/ui/reveal";
 import type { SectionWithEntries } from "@/lib/content";
+import { sectionAnchor } from "@/lib/meta";
 
 export function Cta({ section }: { section: SectionWithEntries }) {
   return (
     <section
-      id="contact"
+      id={sectionAnchor(section.meta, "contact")}
       className="grain relative overflow-hidden border-t border-line py-28 sm:py-36"
     >
       <div className="topo pointer-events-none absolute inset-0 opacity-45" aria-hidden />

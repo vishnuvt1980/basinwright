@@ -83,27 +83,11 @@ export function groupFooterNav<T extends { group: string | null }>(items: T[]) {
   return [...columns.entries()].map(([heading, links]) => ({ heading, links }));
 }
 
-function metaObject(meta: Prisma.JsonValue | null): Record<string, unknown> | null {
-  if (!meta || typeof meta !== "object" || Array.isArray(meta)) return null;
-  return meta as Record<string, unknown>;
-}
-
-/// Reads a `meta` JSON field as a string array. Returns [] when absent or malformed.
-export function metaList(meta: Prisma.JsonValue | null, key: string): string[] {
-  const value = metaObject(meta)?.[key];
-  if (!Array.isArray(value)) return [];
-  return value.filter((v): v is string => typeof v === "string");
-}
-
-export function metaString(meta: Prisma.JsonValue | null, key: string): string | null {
-  const value = metaObject(meta)?.[key];
-  return typeof value === "string" ? value : null;
-}
-
-export function metaNumber(meta: Prisma.JsonValue | null, key: string): number | null {
-  const value = metaObject(meta)?.[key];
-  return typeof value === "number" && Number.isFinite(value) ? value : null;
-}
+/// The `meta` readers moved to `lib/meta.ts` so the client blocks can use them
+/// too — this module is `server-only` and importing it from one is fatal. They
+/// are re-exported here because every server-side caller already knows this
+/// address, and there is nothing to be gained by making them all move.
+export { metaList, metaNumber, metaString, sectionAnchor } from "@/lib/meta";
 
 /// A link that leaves the site — an absolute URL or a mail/tel scheme. Used by
 /// the footer and the link-list block to decide between `next/link` and a

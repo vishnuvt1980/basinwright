@@ -6,6 +6,7 @@ import { ButtonLink, SectionHeading, cn } from "@/components/ui/primitives";
 import { Reveal, Stagger, StaggerItem } from "@/components/ui/reveal";
 import { isExternalHref, type SectionWithEntries } from "@/lib/content";
 import { Markdown } from "@/lib/markdown";
+import { sectionAnchor } from "@/lib/meta";
 
 /* ---------------------------------------------------------------------------
    General-purpose blocks.
@@ -27,7 +28,10 @@ function Block({
   const hasHeading = Boolean(section.eyebrow || section.title || section.subtitle);
 
   return (
-    <section className={cn("border-t border-line py-20 sm:py-24", className)}>
+    <section
+      id={sectionAnchor(section.meta)}
+      className={cn("border-t border-line py-20 sm:py-24", className)}
+    >
       <div className="container-bw">
         {hasHeading ? (
           <Reveal>
@@ -65,6 +69,11 @@ export function Prose({ section }: Props) {
 
 /* ------------------------------------------------------------ Feature grid */
 
+/// The card shell, shared by the plain and the linked variants below so the two
+/// cannot drift apart.
+const CARD =
+  "panel flex h-full flex-col p-7 transition-all duration-500 hover:shadow-[var(--bw-shadow-panel)]";
+
 export function FeatureGrid({ section }: Props) {
   const columns = section.entries.length % 3 === 0 ? "lg:grid-cols-3" : "lg:grid-cols-2";
 
@@ -74,39 +83,73 @@ export function FeatureGrid({ section }: Props) {
         {section.entries.map((entry) => {
           const tone = toneForAccent(entry.accent, entry.title);
 
+          // An entry with an `href` turns the whole card into the link rather
+          // than hanging a "read more" off the bottom of it. These cards are
+          // the industry tier's front door on the homepage, and a card-sized
+          // target is the difference between a section you can browse and one
+          // you have to aim at.
+          const body = (
+            <>
+              {entry.icon ? <IconTile name={entry.icon} tone={tone} /> : null}
+
+              <h3 className="mt-5 flex items-center gap-1.5 text-lg text-ink">
+                {entry.title}
+                {entry.href ? (
+                  <Icon
+                    name="ArrowUpRight"
+                    className="size-4 -translate-x-1 opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100"
+                  />
+                ) : null}
+              </h3>
+              {entry.subtitle ? (
+                <p className="mt-1 text-sm font-medium text-[var(--tone)]">
+                  {entry.subtitle}
+                </p>
+              ) : null}
+              {entry.body ? (
+                <p className="mt-3 text-sm leading-relaxed text-pretty text-ink-2">
+                  {entry.body}
+                </p>
+              ) : null}
+
+              {entry.bullets.length ? (
+                <ul className="mt-5 flex flex-wrap gap-2 pt-1">
+                  {entry.bullets.map((bullet) => (
+                    <li
+                      key={bullet}
+                      className="rounded-md border border-line bg-raised px-2.5 py-1 text-xs text-ink-3"
+                    >
+                      {bullet}
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </>
+          );
+
+          const linked = cn(CARD, "group hover:-translate-y-0.5 hover:border-accent/50");
+
           return (
             <StaggerItem key={entry.id} className="h-full">
-              <article
-                data-tone={tone}
-                className="panel flex h-full flex-col p-7 transition-shadow duration-500 hover:shadow-[var(--bw-shadow-panel)]"
-              >
-                {entry.icon ? <IconTile name={entry.icon} tone={tone} /> : null}
-
-                <h3 className="mt-5 text-lg text-ink">{entry.title}</h3>
-                {entry.subtitle ? (
-                  <p className="mt-1 text-sm font-medium text-[var(--tone)]">
-                    {entry.subtitle}
-                  </p>
-                ) : null}
-                {entry.body ? (
-                  <p className="mt-3 text-sm leading-relaxed text-pretty text-ink-2">
-                    {entry.body}
-                  </p>
-                ) : null}
-
-                {entry.bullets.length ? (
-                  <ul className="mt-5 flex flex-wrap gap-2 pt-1">
-                    {entry.bullets.map((bullet) => (
-                      <li
-                        key={bullet}
-                        className="rounded-md border border-line bg-raised px-2.5 py-1 text-xs text-ink-3"
-                      >
-                        {bullet}
-                      </li>
-                    ))}
-                  </ul>
-                ) : null}
-              </article>
+              {!entry.href ? (
+                <article data-tone={tone} className={CARD}>
+                  {body}
+                </article>
+              ) : isExternalHref(entry.href) ? (
+                <a
+                  href={entry.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  data-tone={tone}
+                  className={linked}
+                >
+                  {body}
+                </a>
+              ) : (
+                <Link href={entry.href} data-tone={tone} className={linked}>
+                  {body}
+                </Link>
+              )}
             </StaggerItem>
           );
         })}
@@ -362,7 +405,7 @@ function CtaLink({
 export function Contact({ section }: Props) {
   return (
     <section
-      id="contact"
+      id={sectionAnchor(section.meta, "contact")}
       className="relative overflow-hidden border-t border-line py-24 sm:py-28"
     >
       <div className="container-bw">

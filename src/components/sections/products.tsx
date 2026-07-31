@@ -6,6 +6,7 @@ import { useRef } from "react";
 import { IconTile, toneForAccent } from "@/components/icon";
 import { SectionHeading, cn } from "@/components/ui/primitives";
 import type { SectionWithEntries } from "@/lib/content";
+import { sectionAnchor } from "@/lib/meta";
 
 /// Each product card pins briefly and stacks over the previous one, so the
 /// ecosystem reads as one continuous descent rather than a grid.
@@ -100,7 +101,7 @@ function ProductCard({
 export function Products({ section }: { section: SectionWithEntries }) {
   return (
     <section
-      id="products"
+      id={sectionAnchor(section.meta, "products")}
       className="relative border-t border-line py-28 sm:py-36"
     >
       <div className="container-bw">

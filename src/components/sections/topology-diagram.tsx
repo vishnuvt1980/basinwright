@@ -1,4 +1,7 @@
-import type { TopologyLayer } from "@/components/sections/topology-layers";
+import {
+  topologyGeometry,
+  type TopologyLayer,
+} from "@/components/sections/topology-layers";
 
 /**
  * The stacked-layer diagram, drawn in SVG.
@@ -18,24 +21,17 @@ import type { TopologyLayer } from "@/components/sections/topology-layers";
    centre. A plate-local point (a, b) — both in [-1, 1], `a` along the width
    axis and `b` along the depth axis — projects as below.                     */
 const HW = 175; // half width, on screen
-const HD = 38; // half depth, on screen
 const THICKNESS = 9;
 const CX = 200;
-const TOP_Y = 62;
-/// Comfortably more than a plate's full height (2·HD + THICKNESS), so plates
-/// never collide.
-const SPACING = 90;
-const VIEWBOX_W = 580;
 /// Where captions start, clear of the widest plate.
 const CAPTION_X = CX + HW + 15;
 
-function project(a: number, b: number, y: number) {
-  return { x: CX + ((a - b) * HW) / 2, y: y + ((a + b) * HD) / 2 };
-}
+// Half-depth, spacing and the top margin are no longer constants: they come
+// from `topologyGeometry`, because a seven-layer stack has to flatten to stay
+// in a readable box. See the note there.
 
-/// Layers are indexed bottom-first, but drawn top-first.
-function centreY(index: number, count: number) {
-  return TOP_Y + (count - 1 - index) * SPACING;
+function project(a: number, b: number, y: number, hd: number) {
+  return { x: CX + ((a - b) * HW) / 2, y: y + ((a + b) * hd) / 2 };
 }
 
 /// Node positions across a plate's top face: two rows, evenly spread.
@@ -59,11 +55,11 @@ function nodeLayout(count: number) {
 /// Where the filaments between layers attach.
 const FILAMENT_ANCHORS = [-0.72, -0.36, 0, 0.36, 0.72];
 
-function plate(y: number) {
-  const back = project(-1, -1, y);
-  const right = project(1, -1, y);
-  const front = project(1, 1, y);
-  const left = project(-1, 1, y);
+function plate(y: number, hd: number) {
+  const back = project(-1, -1, y, hd);
+  const right = project(1, -1, y, hd);
+  const front = project(1, 1, y, hd);
+  const left = project(-1, 1, y, hd);
 
   return {
     top: `M${back.x} ${back.y} L${right.x} ${right.y} L${front.x} ${front.y} L${left.x} ${left.y} Z`,
@@ -77,11 +73,14 @@ export function TopologyDiagram({ layers }: { layers: TopologyLayer[] }) {
   if (!layers.length) return null;
 
   const count = layers.length;
-  const height = centreY(0, count) + HD + THICKNESS + 14;
+  const { depth, spacing, topY, width, height } = topologyGeometry(count);
+
+  /// Layers are indexed bottom-first, but drawn top-first.
+  const centreY = (index: number) => topY + (count - 1 - index) * spacing;
 
   return (
     <svg
-      viewBox={`0 0 ${VIEWBOX_W} ${height}`}
+      viewBox={`0 0 ${width} ${height}`}
       className="h-full w-full"
       aria-hidden
       role="presentation"
@@ -89,12 +88,12 @@ export function TopologyDiagram({ layers }: { layers: TopologyLayer[] }) {
       {/* Filaments first, so the plates sit on top of them. */}
       <g>
         {layers.slice(0, -1).map((layer, i) => {
-          const from = centreY(i, count);
-          const to = centreY(i + 1, count);
+          const from = centreY(i);
+          const to = centreY(i + 1);
 
           return FILAMENT_ANCHORS.map((anchor, k) => {
-            const start = project(anchor, 0, from);
-            const end = project(anchor, 0, to);
+            const start = project(anchor, 0, from, depth);
+            const end = project(anchor, 0, to, depth);
             // A slight bow keeps the run from reading as a hard rule.
             const bow = (k - (FILAMENT_ANCHORS.length - 1) / 2) * 2.5;
 
@@ -113,8 +112,8 @@ export function TopologyDiagram({ layers }: { layers: TopologyLayer[] }) {
       </g>
 
       {layers.map((layer, i) => {
-        const y = centreY(i, count);
-        const faces = plate(y);
+        const y = centreY(i);
+        const faces = plate(y, depth);
         const nodes = nodeLayout(layer.nodes.length);
 
         return (
@@ -133,7 +132,7 @@ export function TopologyDiagram({ layers }: { layers: TopologyLayer[] }) {
 
             {/* Nodes */}
             {nodes.map((point, k) => {
-              const p = project(point.a, point.b, y);
+              const p = project(point.a, point.b, y, depth);
               return (
                 <circle
                   key={layer.nodes[k] ?? k}

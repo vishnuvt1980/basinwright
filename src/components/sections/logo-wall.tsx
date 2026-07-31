@@ -23,7 +23,10 @@ export function LogoWall({ section }: { section: SectionWithEntries }) {
 
       <div
         className="relative mt-10 overflow-hidden [mask-image:linear-gradient(90deg,transparent,black_12%,black_88%,transparent)]"
-        aria-label="Customer logos"
+        // Named from the block's own heading rather than hardcoded to
+        // "Customer logos": what runs through here now is the connector list,
+        // and the eight invented customer names it was written for are gone.
+        aria-label={section.title ?? section.eyebrow ?? undefined}
       >
         <div className="flex w-max animate-marquee gap-14 hover:[animation-play-state:paused]">
           {track.map((logo, i) => (

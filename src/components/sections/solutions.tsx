@@ -2,10 +2,11 @@ import { Icon, IconTile } from "@/components/icon";
 import { SectionHeading } from "@/components/ui/primitives";
 import { Reveal, Stagger, StaggerItem } from "@/components/ui/reveal";
 import type { SectionWithEntries } from "@/lib/content";
+import { sectionAnchor } from "@/lib/meta";
 
 export function Solutions({ section }: { section: SectionWithEntries }) {
   return (
-    <section id="solutions" className="relative border-t border-line py-28 sm:py-36">
+    <section id={sectionAnchor(section.meta, "solutions")} className="relative border-t border-line py-28 sm:py-36">
       <div className="container-bw">
         <Reveal>
           <SectionHeading

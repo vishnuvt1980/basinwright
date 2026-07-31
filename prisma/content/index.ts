@@ -1,4 +1,8 @@
 import { blog } from "./blog";
+import { industryPages } from "./industries";
+import { pages as editorialPages } from "./pages";
+import { platformPages } from "./platform";
+import type { PageSeed } from "./types";
 import { referenceDeployments } from "./reference-deployments";
 import { learning } from "./learning";
 import { news } from "./news";
@@ -7,7 +11,17 @@ import { research } from "./research";
 import { whitepapers } from "./whitepapers";
 import type { DocSeed } from "./types";
 
-export { pages } from "./pages";
+export { homeSections } from "./home";
+
+/// Every CMS page, in one list. Split across three modules by tier — the
+/// editorial pages, the industry tier at /industries, and the product tier at
+/// /platform — because they are written by different people for different
+/// readers, not because the seeder cares.
+export const pages: PageSeed[] = [
+  ...editorialPages,
+  ...industryPages,
+  ...platformPages,
+];
 export { APP_URL, footerNav, headerNav, legalNav, navSettings } from "./nav";
 export type { DocSeed, EntrySeed, PageSeed, SectionSeed } from "./types";
 

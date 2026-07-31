@@ -11,6 +11,7 @@ import {
   StatBand,
   Timeline,
 } from "@/components/sections/editorial";
+import { Flow } from "@/components/sections/flow";
 import { Hero } from "@/components/sections/hero";
 import { Industries } from "@/components/sections/industries";
 import { Infrastructure } from "@/components/sections/infrastructure";
@@ -58,6 +59,7 @@ const RENDERERS = {
   FEATURE_GRID: FeatureGrid,
   STAT_BAND: StatBand,
   TIMELINE: Timeline,
+  FLOW: Flow,
   FAQ: Faq,
   LINK_LIST: LinkList,
   CALLOUT: Callout,

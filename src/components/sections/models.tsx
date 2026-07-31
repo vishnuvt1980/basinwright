@@ -2,12 +2,13 @@ import { IconTile } from "@/components/icon";
 import { Chip, HairRule, SectionHeading } from "@/components/ui/primitives";
 import { Reveal, Stagger, StaggerItem } from "@/components/ui/reveal";
 import { metaList, type SectionWithEntries } from "@/lib/content";
+import { sectionAnchor } from "@/lib/meta";
 
 export function Models({ section }: { section: SectionWithEntries }) {
   const providers = metaList(section.meta, "providers");
 
   return (
-    <section id="models" className="relative border-t border-line py-28 sm:py-36">
+    <section id={sectionAnchor(section.meta, "models")} className="relative border-t border-line py-28 sm:py-36">
       <div className="container-bw">
         <Reveal>
           <SectionHeading

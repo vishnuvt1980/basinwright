@@ -12,7 +12,10 @@ import {
 } from "react";
 
 import { IconTile } from "@/components/icon";
-import type { TopologyLayer } from "@/components/sections/topology-layers";
+import {
+  topologyGeometry,
+  type TopologyLayer,
+} from "@/components/sections/topology-layers";
 import { Chip, cn } from "@/components/ui/primitives";
 import { useGraphics } from "@/components/webgl/graphics-store";
 import type { FpsVerdict, Quality } from "@/components/webgl/platform-scene";
@@ -58,6 +61,9 @@ export function TopologyStage({
   children: ReactNode;
 }) {
   const stage = useRef<HTMLDivElement>(null);
+
+  /// The drawing's own proportions, so the box and the SVG inside it agree.
+  const box = topologyGeometry(layers.length);
 
   const [hovered, setHovered] = useState<number | null>(null);
   const [pinned, setPinned] = useState<number | null>(null);
@@ -239,7 +245,12 @@ export function TopologyStage({
           // Omitted rather than emptied when nothing is active — see the
           // specificity note beside these rules in globals.css.
           data-topology-active={active ?? undefined}
-          className="relative aspect-3/2 w-full"
+          // The box was a fixed 3:2, which is the shape a four-layer stack
+          // happens to be. It follows the drawing now, so a taller stack gets a
+          // taller box instead of being scaled down inside the old one. Four
+          // layers still compute to 3:2, so nothing moved for the original.
+          style={{ aspectRatio: `${box.width} / ${box.height}` }}
+          className="relative w-full"
         >
           {/* Both renderings are taken out of flow, so the box is sized purely
               by its aspect ratio and swapping them shifts nothing. */}

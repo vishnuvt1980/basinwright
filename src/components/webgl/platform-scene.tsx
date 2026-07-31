@@ -150,6 +150,12 @@ function layerY(index: number, count: number) {
   return (index - (count - 1) / 2) * SPACING;
 }
 
+/// The scene was framed for a four-layer stack. Anything taller is scaled down
+/// by the ratio of the spans so it occupies the same vertical room in frame.
+function fitScale(count: number) {
+  return count <= 4 ? 1 : 3 / (count - 1);
+}
+
 /**
  * Node placement, deliberately different per layer so the four read as four
  * kinds of thing: racks at the base, a spread of models above them, a ring of
@@ -861,7 +867,11 @@ function Stack({
       />
       <directionalLight position={[-6, 2, -5]} intensity={0.35} />
 
-      <group position={[OFFSET_X, 0, 0]}>
+      {/* The camera is fixed, so a stack taller than the four layers this was
+          composed for would simply run off the top and bottom of the frame.
+          Scaling the whole stack keeps it inside the same box and keeps the
+          composition identical — four layers still scale by exactly 1. */}
+      <group position={[OFFSET_X, 0, 0]} scale={fitScale(layers.length)}>
         <group rotation={[TILT, 0, 0]}>
           <group ref={sway} rotation={[0, RESTING_YAW, 0]}>
             <Filaments curves={curves} color={palette.accent} />
