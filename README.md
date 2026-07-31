@@ -141,7 +141,13 @@ Three audiences read this site without a browser, and they want different things
 
 ## The substrate console
 
-The hero banner runs a live simulation of the product. **Open the full console** on it
+`/substrate` runs a live simulation of the product. It used to run behind the homepage
+hero, which put a diagram of how the platform works in front of visitors who had not yet
+been told what it is; it now has a page of its own, reached from the hero's second call
+to action and the footer. The page is one `COGNITIVE_SUBSTRATE` block — the rail, the
+console it opens into, and the same seven stages written out underneath.
+
+**Open the full console** on it
 asks the visitor what to build first — industry, line of business, their own systems,
 the decisions they want it working, their scale and data residency, and what is hurting
 right now — and then runs the whole simulation on *their* answers: their systems feed
@@ -156,7 +162,7 @@ sector, and the last node carries their own company name.
 | `webgl/substrate-configurator.tsx` | The questions. |
 
 The answers are kept in `localStorage`, so a returning visitor goes straight to their own
-console and the hero banner adopts their world too. They are sent nowhere unless the
+console and the rail on `/substrate` adopts their world too. They are sent nowhere unless the
 visitor later submits the contact form, where the configuration is shown to them, is
 theirs to detach, and — if they leave it attached — arrives in `/admin/leads` under
 their enquiry.

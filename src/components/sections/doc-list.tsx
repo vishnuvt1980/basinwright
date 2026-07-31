@@ -4,7 +4,12 @@ import { DocGrid, DocRows } from "@/components/library/doc-card";
 import { Icon } from "@/components/icon";
 import { SectionHeading } from "@/components/ui/primitives";
 import { Reveal } from "@/components/ui/reveal";
-import { metaNumber, metaString, type SectionWithEntries } from "@/lib/content";
+import {
+  metaNumber,
+  metaString,
+  sectionAnchor,
+  type SectionWithEntries,
+} from "@/lib/content";
 import { findCollection, getRecentDocs } from "@/lib/library";
 
 /**
@@ -16,6 +21,9 @@ import { findCollection, getRecentDocs } from "@/lib/library";
  *
  * A missing or unknown collection renders nothing rather than throwing — an
  * editor mistyping a slug should leave a gap on the page, not a 500.
+ *
+ * `meta.anchor` gives the block a DOM id, the same as every other section kind:
+ * the homepage's proof block is linked to as `/#proof`.
  */
 export async function DocList({ section }: { section: SectionWithEntries }) {
   const collection = findCollection(metaString(section.meta, "collection") ?? undefined);
@@ -26,7 +34,10 @@ export async function DocList({ section }: { section: SectionWithEntries }) {
   if (!docs.length) return null;
 
   return (
-    <section className="border-t border-line py-20 sm:py-24">
+    <section
+      id={sectionAnchor(section.meta)}
+      className="border-t border-line py-20 sm:py-24"
+    >
       <div className="container-bw">
         <div className="flex flex-wrap items-end justify-between gap-6">
           <Reveal>

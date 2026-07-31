@@ -20,10 +20,11 @@ import "./globals.css";
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSettingsForMetadata();
   const name = settings["site.name"] ?? "BasinWright";
-  const tagline = settings["site.tagline"] ?? "Enterprise Intelligence as a Service";
+  const tagline =
+    settings["site.tagline"] ?? "Model-as-a-Service, delivered as an outcome";
   const description = clampDescription(
     settings["site.description"] ??
-      "The infrastructure, intelligence and governance to build, deploy and scale AI across your organisation.",
+      "Purpose-built AI models built, deployed and monitored on your data, for regulated industries — bought as a business outcome rather than as infrastructure.",
   );
 
   return {

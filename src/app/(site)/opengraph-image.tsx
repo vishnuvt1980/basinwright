@@ -1,7 +1,7 @@
 import { getSettingsForMetadata } from "@/lib/content";
 import { OG_CONTENT_TYPE, OG_SIZE, ogCard } from "@/lib/og-card";
 
-export const alt = "BasinWright — Enterprise Intelligence as a Service";
+export const alt = "BasinWright — Model-as-a-Service, delivered as an outcome";
 export const size = OG_SIZE;
 export const contentType = OG_CONTENT_TYPE;
 
@@ -17,10 +17,8 @@ export default async function Image() {
   const settings = await getSettingsForMetadata();
 
   return ogCard({
-    eyebrow: settings["site.tagline"] ?? "Enterprise Intelligence as a Service",
-    title:
-      settings["footer.tagline"] ??
-      "Building the Infrastructure for Enterprise Intelligence",
+    eyebrow: settings["site.tagline"] ?? "Model-as-a-Service, delivered as an outcome",
+    title: settings["footer.tagline"] ?? "Model-as-a-Service. Delivered as an outcome.",
     description:
       settings["footer.subline"] ??
       "AI models, agentic systems, high-performance compute, enterprise knowledge and secure deployment.",

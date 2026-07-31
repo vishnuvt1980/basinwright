@@ -64,7 +64,7 @@ import {
 } from "./simulation";
 
 /**
- * The Case Line: the hero banner drawn as a process a person can read.
+ * The Case Line: the substrate drawn as a process a person can read.
  *
  * The rule this component is built around is that a chapter change must be
  * visible. The copy claims something; the picture shows that exact thing
@@ -221,7 +221,7 @@ export default function CaseLine({
   }, [paused]);
 
   // The story advances on its own, and stops while the visitor is driving it or
-  // the hero is off screen.
+  // the rail is off screen.
   useEffect(() => {
     if (paused || held || chapters.length < 2) return;
     const timer = setInterval(
@@ -239,8 +239,10 @@ export default function CaseLine({
 
   return (
     <div className="relative flex h-full flex-col">
-      {/* Status and readouts, clear of the fixed 4.5rem site header. */}
-      <div className="relative z-10 pt-[5.25rem]">
+      {/* Status and readouts. The rail no longer opens the page — the page hero
+          above it has already cleared the fixed site header — so this is
+          breathing room rather than the 5.25rem inset it used to need. */}
+      <div className="relative z-10 pt-6 sm:pt-8">
         <div className="container-bw flex flex-wrap items-start justify-between gap-x-6 gap-y-3">
           <div className="flex items-center gap-3">
             <p className="flex items-center gap-2 font-mono text-[0.65rem] font-medium tracking-[0.14em] text-ink-2 uppercase">
@@ -344,7 +346,7 @@ export type Source = { id: string; label: string; sub: string };
 /**
  * The drawing itself, exported because the console shows the same one.
  *
- * The hero and the console differ in what surrounds the rail — a story and one
+ * The page and the console differ in what surrounds the rail — a story and one
  * call to action there, an operator's instruments here — never in the rail.
  * Two pictures of one product would be two products.
  */

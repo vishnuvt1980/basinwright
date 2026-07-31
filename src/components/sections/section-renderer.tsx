@@ -1,4 +1,5 @@
 import { Agents } from "@/components/sections/agents";
+import { CognitiveSubstrate } from "@/components/sections/cognitive-substrate";
 import { Cta } from "@/components/sections/cta";
 import { DocList } from "@/components/sections/doc-list";
 import {
@@ -33,13 +34,14 @@ import type { SectionWithEntries } from "@/lib/content";
  *
  * The first group are the homepage's bespoke blocks; the second are the
  * general-purpose ones the editorial pages are built from. Nothing in either
- * group knows which page it is on, so any block works anywhere.
+ * group knows which page it is on, so any block works anywhere — including
+ * `COGNITIVE_SUBSTRATE`, which used to be the homepage hero's banner and is now
+ * an ordinary block sitting on the page at /substrate.
  *
- * Two kinds are deliberately absent. `HERO` takes an extra prop and is handled
- * below; `COGNITIVE_SUBSTRATE` is not a block on the page at all — it is the
- * hero's banner, and the homepage routes it there.
+ * `HERO` is the one kind deliberately absent: it is handled below.
  */
 const RENDERERS = {
+  COGNITIVE_SUBSTRATE: CognitiveSubstrate,
   LOGO_WALL: LogoWall,
   PLATFORM_GRID: PlatformGrid,
   WHY_PILLARS: WhyPillars,
@@ -88,16 +90,9 @@ function RichText({ section }: { section: SectionWithEntries }) {
   );
 }
 
-export function SectionRenderer({
-  section,
-  substrate = null,
-}: {
-  section: SectionWithEntries;
-  /// The substrate section, passed through to the hero that draws it.
-  substrate?: SectionWithEntries | null;
-}) {
+export function SectionRenderer({ section }: { section: SectionWithEntries }) {
   if (section.kind === "HERO") {
-    return <Hero section={section} substrate={substrate} />;
+    return <Hero section={section} />;
   }
 
   const Component = RENDERERS[section.kind as keyof typeof RENDERERS];

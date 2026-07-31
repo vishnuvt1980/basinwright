@@ -12,9 +12,9 @@ import type { PageSeed } from "./types";
 
    So the use cases on these pages are the real catalogue entries, taken from
    `src/lib/industries.ts` — the same table that drives the substrate
-   configurator on the homepage. Anything a visitor reads here they can watch
-   run in the console. That is deliberate: a use case we cannot simulate is a
-   use case we should not be listing.
+   configurator at /substrate. Anything a visitor reads here they can watch run
+   in the console. That is deliberate: a use case we cannot simulate is a use
+   case we should not be listing.
 
    Slugs nest — "industries/insurance" renders at /industries/insurance through
    the route at app/(site)/industries/[industry]. The index page is a plain
@@ -201,7 +201,7 @@ export const industryPages: PageSeed[] = [
         eyebrow: "Use cases",
         title: "Where models earn their place",
         subtitle:
-          "Each of these is a catalogue entry with a trained reference implementation behind it — and each is one you can watch run in the console on our homepage.",
+          "Each of these is a catalogue entry with a trained reference implementation behind it — and each is one you can watch run in the console at /substrate.",
         entries: [
           {
             title: "FNOL severity",

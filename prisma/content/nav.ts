@@ -53,6 +53,7 @@ export const footerNav: {
     group: "Platform",
     items: [
       { label: "Platform overview", href: "/platform" },
+      { label: "Live substrate demo", href: "/substrate" },
       { label: "Models", href: "/platform#models" },
       { label: "Agents", href: "/platform#agents" },
       { label: "Capabilities", href: "/#products" },

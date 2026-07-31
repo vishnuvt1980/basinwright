@@ -20,26 +20,38 @@ import type { SectionSeed } from "./types";
    of it was deleted; it moved to /platform and /pricing, where somebody who
    has already decided the story is true goes looking for it.
 
-   Two blocks are not in the reading order. `substrate` is the hero's banner,
-   pulled out of the flow by page.tsx. And the industry tier the problem cards
-   link to lives at /industries — the second level of the site, not a block.
+   The industry tier the problem cards link to lives at /industries, and the
+   substrate simulation lives at /substrate — both are pages of their own rather
+   than blocks here. The substrate used to run behind this hero, which meant the
+   first thing a visitor met was a diagram of how the thing works, before they
+   had been told what it is. It is a page people now reach on purpose.
 --------------------------------------------------------------------------- */
 
 export const homeSections: SectionSeed[] = [
   /* ------------------------------------------------------------------- Hero */
   {
+    // The offer in one line: they are buying a result, and everything under it
+    // — the training, the deployment, the monitoring — is ours to carry until
+    // that result arrives. "Model-as-a-Service" names the commercial shape;
+    // "delivered as an outcome" says what is actually being bought.
     key: "hero",
     kind: SectionKind.HERO,
     order: 0,
-    eyebrow: "Enterprise Intelligence",
-    headlineLines: ["Enterprise Intelligence.", "Built Around Outcomes."],
+    eyebrow: "Model-as-a-Service",
+    headlineLines: ["Model-as-a-Service,", "Delivered as an Outcome."],
     subtitle:
-      "Stop buying AI infrastructure. Deploy AI that solves real business problems — from fraud detection and claims automation to procurement intelligence and enterprise knowledge.",
-    body: "Built for regulated industries that need AI to be secure, explainable and sovereign.",
+      "Buy the business outcome, not the infrastructure. We build, fine-tune, deploy and monitor purpose-built AI models on your data — until they hit the outcome you signed up for.",
+    // The line that says who and what. The headline and subtitle above it are
+    // about the commercial shape of the thing and are deliberately abstract, so
+    // this is the only chance the first screen gets to name a reader and a
+    // problem they would recognise as theirs. Four problems, then the audience:
+    // a visitor who leaves after eight seconds should still be able to say who
+    // this is for and what it is pointed at.
+    body: "Fraud loss, claims cycle time, procurement leakage, engineering knowledge — for regulated industries that need AI to be secure, explainable and sovereign.",
     ctaLabel: "Book an AI strategy session",
     ctaHref: "#contact",
-    ctaLabel2: "Explore industry solutions",
-    ctaHref2: "/industries",
+    ctaLabel2: "See the substrate run live",
+    ctaHref2: "/substrate",
     // The hero's four tiles used to carry traction figures — models served,
     // uptime, regions, GPU hours. We are early and had none of them, so they
     // now describe what the platform *is*. A capability is checkable; a
@@ -56,110 +68,6 @@ export const homeSections: SectionSeed[] = [
     ],
   },
 
-  /* -------------------------------------------------------------- Substrate */
-  {
-    // Not a block on the page: this is the hero's banner. `page.tsx` pulls it
-    // out of the section flow and hands it to the hero, which either draws it
-    // as a live simulation or tells the same story as plain text.
-    //
-    // Entry order is structural — the stage maps each chapter onto the part of
-    // the substrate it lights up, so reordering the entries reorders the
-    // emphasis with them. Copy is free to change. The entry carrying the badge
-    // "highlight" gets the closing treatment, wherever it sits.
-    key: "substrate",
-    kind: SectionKind.COGNITIVE_SUBSTRATE,
-    order: 1,
-    eyebrow: "Cognitive Substrate",
-    title: "We build it, run it and watch it. You own it.",
-    subtitle:
-      "A live simulation of the substrate underneath the platform. Every mark is a record with its own state, quality and lineage — the picture is downstream of the simulation, not a shader with copy laid over it.",
-    body: "Nothing here is a loop. The counters, the cases and the decisions are all produced by a simulation running in your browser.",
-    entries: [
-      {
-        title: "Everything arrives messy",
-        subtitle: "Ingest",
-        body: "Records land unnormalised, duplicated and unlinked, from systems that never agreed on a schema. They enter the substrate grey, because nothing has earned meaning yet. Colour here is not decoration — it is the quality of the record.",
-        icon: "Boxes",
-        accent: "slate",
-        bullets: ["Unnormalised", "Duplicated", "Unlinked", "Unknown quality"],
-      },
-      {
-        title: "Resolution is where meaning starts",
-        subtitle: "Cognitive Data Hub",
-        body: "The hub resolves entities, collapses duplicates into one governed record and decides what is fit to use. What fails the quality bar falls into quarantine — some records are remediated and released, others expire. A funnel with no rejects is not one anybody has run.",
-        icon: "Database",
-        accent: "brass",
-        bullets: [
-          "Entity resolution",
-          "Duplicate collapse",
-          "Quarantine & remediation",
-          "Policy applied once",
-        ],
-      },
-      {
-        title: "BasinWright builds the model and deploys it into your estate",
-        subtitle: "Build & deploy",
-        body: "We train, tune and evaluate against your governed data, then deploy into your tenancy and your region — not ours. The control plane underneath the field is our work; the estate it runs in is yours.",
-        icon: "Rocket",
-        accent: "ember",
-        bullets: [
-          "Trained on your data",
-          "Evaluated before promotion",
-          "Deployed in your tenancy",
-          "Your region, your keys",
-        ],
-      },
-      {
-        title: "Three engines, running at once",
-        subtitle: "Ground · Verify · Explain",
-        body: "Cognitive RAG grounds the case in retrieved evidence, deterministic models verify it against real constraints, and LLM reasoning weighs the options and explains the call. Three concurrent lanes, not three sequential steps.",
-        icon: "Network",
-        accent: "verdigris",
-        bullets: ["Cognitive RAG", "Deterministic models", "LLM reasoning"],
-      },
-      {
-        title: "Monitored every hour of every day",
-        subtitle: "Run & monitor 24×7",
-        body: "Drift, accuracy, latency and cost are watched continuously, and a model that starts to slip is retrained and re-evaluated before it reaches a decision that matters. Running it is the part that never stops — and it is the part we carry.",
-        icon: "Activity",
-        accent: "brass",
-        bullets: [
-          "Drift detection",
-          "Accuracy & latency SLOs",
-          "Cost per decision",
-          "Retrain and roll forward",
-        ],
-      },
-      {
-        title: "A case decides only when every lane is satisfied",
-        subtitle: "Decision layer",
-        body: "Evidence accrues per lane and nothing is decided early. The agent council then runs its skills over the assembled evidence, and every decision keeps the lineage of the exact records that produced it. Confidence is computed, not asserted.",
-        icon: "Scale",
-        accent: "ember",
-        bullets: [
-          "Evidence quorum",
-          "Agent council",
-          "Computed confidence",
-          "Record-level lineage",
-        ],
-      },
-      {
-        title: "Your business owns the model and the intelligence",
-        subtitle: "Ownership",
-        badge: "highlight",
-        body: "We build it, deploy it and keep it running — but what comes out the other end is yours. The model, the weights, the governed data it learned from and every decision it has ever made stay inside your estate, under your control. Intelligence you own and can walk away with, not a black box you rent by the month.",
-        icon: "Lock",
-        accent: "verdigris",
-        bullets: [
-          "You own the model",
-          "You own the data",
-          "You own the decisions",
-          "No lock-in",
-        ],
-      },
-    ],
-  },
-
   /* --------------------------------------------------------------- Problems */
   {
     // The industry tier's front door. Each card is a link into
@@ -171,7 +79,7 @@ export const homeSections: SectionSeed[] = [
     // fifth card would be easy to write and impossible to stand behind.
     key: "problems",
     kind: SectionKind.FEATURE_GRID,
-    order: 2,
+    order: 1,
     meta: { anchor: "problems" },
     eyebrow: "Industries",
     title: "Enterprise problems we solve",
@@ -241,7 +149,7 @@ export const homeSections: SectionSeed[] = [
     // are the numbers a business already tracks and already wants moved.
     key: "outcomes",
     kind: SectionKind.SOLUTIONS,
-    order: 3,
+    order: 2,
     meta: { anchor: "outcomes" },
     eyebrow: "Outcomes",
     title: "Buy the outcome.",
@@ -290,7 +198,7 @@ export const homeSections: SectionSeed[] = [
   {
     key: "how",
     kind: SectionKind.FLOW,
-    order: 4,
+    order: 3,
     meta: { anchor: "how" },
     eyebrow: "How it works",
     title: "From business problem to measured outcome",
@@ -335,7 +243,7 @@ export const homeSections: SectionSeed[] = [
   {
     key: "why",
     kind: SectionKind.WHY_PILLARS,
-    order: 5,
+    order: 4,
     eyebrow: "Why BasinWright",
     title: "The four things that decide whether AI survives contact with your risk committee",
     subtitle:
@@ -407,7 +315,7 @@ export const homeSections: SectionSeed[] = [
     // from what watches it.
     key: "topology",
     kind: SectionKind.PLATFORM_TOPOLOGY,
-    order: 6,
+    order: 5,
     meta: { anchor: "platform" },
     eyebrow: "One platform",
     title: "The Enterprise Intelligence Platform",
@@ -484,7 +392,7 @@ export const homeSections: SectionSeed[] = [
   {
     key: "products",
     kind: SectionKind.PRODUCTS,
-    order: 7,
+    order: 6,
     eyebrow: "Platform capabilities",
     title: "What the platform is made of",
     subtitle:
@@ -617,18 +525,28 @@ export const homeSections: SectionSeed[] = [
   {
     key: "choose",
     kind: SectionKind.FEATURE_GRID,
-    order: 8,
+    order: 7,
     meta: { anchor: "choose" },
     eyebrow: "Why enterprises choose BasinWright",
     title: "What you are actually buying",
     subtitle:
-      "Most organisations putting AI into production end up with a generic platform that has no models in it, or a point solution that brings its own console and its own audit story. This is neither.",
+      "Most organisations putting AI into production end up with a generic platform that has no models in it, or a point solution that brings its own console and its own audit story. This is neither: you are buying a target metric, the work of hitting it, and everything that work produces.",
+    // Six cards, and six is not incidental — the grid runs three across only on
+    // a multiple of three, and a seventh card would drop the whole block to two
+    // columns with an orphan on the end.
+    //
+    // Ownership leads. It is the sharpest thing we say and the hardest for a
+    // platform vendor to answer, and it used to appear on this page only as the
+    // closing line of the substrate simulation — which now lives at /substrate.
+    // "Buy outcomes, not infrastructure" left this list when it did: the hero
+    // says exactly that, twice the size, and the block's own subtitle carries
+    // what is left of the point.
     entries: [
       {
-        title: "Buy outcomes",
-        subtitle: "Not infrastructure",
-        body: "We define the target metric with you and own the work of hitting it. You are not buying a workshop and a set of tools with the product still left to build.",
-        icon: "LineChart",
+        title: "You own what we build",
+        subtitle: "And the exit is written first",
+        body: "The model, the weights, the governed corpora it learned from and every decision it has made sit inside your estate throughout. Leaving is us stopping work rather than you extracting anything — and which artefacts transfer, in what format and on what cadence is agreed in writing before the first deployment.",
+        icon: "Lock",
         accent: "brass",
       },
       {
@@ -667,6 +585,30 @@ export const homeSections: SectionSeed[] = [
         accent: "verdigris",
       },
     ],
+  },
+
+  /* ------------------------------------------------------------------ Proof */
+  {
+    // Six confident claims sit directly above this block, and until now the
+    // page gave a sceptical reader nothing to test them against: no logos, no
+    // case studies, no numbers, and no route to the reading that does exist.
+    //
+    // We are early and have no customer stories, so the evidence offered is the
+    // design work itself — which is also the only kind we can stand behind. The
+    // block says so in its own subtitle rather than letting the cards imply
+    // customers we do not have. Cards come from the reference deployments; the
+    // link goes to the whole library, whitepapers and engineering notes
+    // included.
+    key: "proof",
+    kind: SectionKind.DOC_LIST,
+    order: 8,
+    meta: { anchor: "proof", collection: "reference-deployments", limit: 3 },
+    eyebrow: "Worked designs",
+    title: "Judge the thinking before you believe the claims",
+    subtitle:
+      "There is no wall of customer logos here, because we are early and would rather say so. What there is instead is the design work: the problem shape, the architecture we would propose for it, and what we would expect to be measured against afterwards.",
+    ctaLabel: "Everything we have published",
+    ctaHref: "/resources",
   },
 
   /* ------------------------------------------------------------- Deployment */

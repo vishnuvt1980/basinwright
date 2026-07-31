@@ -16,9 +16,13 @@ const prisma = new PrismaClient();
 
 const settings = [
   { key: "site.name", value: "BasinWright", label: "Site name", group: "brand", order: 0 },
+  // The tagline is the browser tab, the search result, the Open Graph card's
+  // eyebrow and the first line of /llms.txt. It said "Enterprise Intelligence,
+  // built around outcomes" while the hero said Model-as-a-Service, which meant
+  // the tab and the page disagreed about what is being sold.
   {
     key: "site.tagline",
-    value: "Enterprise Intelligence, built around outcomes",
+    value: "Model-as-a-Service, delivered as an outcome",
     label: "Tagline",
     group: "brand",
     order: 1,
@@ -26,15 +30,17 @@ const settings = [
   {
     key: "site.description",
     value:
-      "BasinWright helps regulated industries deploy secure, explainable AI that delivers measurable business outcomes \u2014 not just AI infrastructure.",
+      "BasinWright builds, fine-tunes, deploys and monitors purpose-built AI models on your data \u2014 Model-as-a-Service delivered as a business outcome, for regulated industries that need AI to be secure, explainable and sovereign.",
     label: "Meta description",
     group: "brand",
     type: "textarea",
     order: 2,
   },
+  // Also the Open Graph card's headline, which is why it is a sentence rather
+  // than a fragment.
   {
     key: "footer.tagline",
-    value: "Enterprise Intelligence. Built around outcomes.",
+    value: "Model-as-a-Service. Delivered as an outcome.",
     label: "Footer tagline",
     group: "footer",
     order: 0,
