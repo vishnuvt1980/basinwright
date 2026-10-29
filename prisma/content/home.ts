@@ -52,6 +52,10 @@ export const homeSections: SectionSeed[] = [
     ctaHref: "#contact",
     ctaLabel2: "See the substrate run live",
     ctaHref2: "/substrate",
+    // The explainer, muted and looping behind the copy on desktop. It replaces
+    // the WebGL basin rather than joining it — both are full-bleed texture on
+    // the same plane, and contour lines over moving footage read as noise.
+    meta: { video: "/media/basinwright-explainer.mp4" },
     // No entries: the hero's four-tile band was replaced by the "stack" block
     // below, which says the same kind of thing with a heading over it and in
     // the site's own card language. The tiles had no section chrome at all and

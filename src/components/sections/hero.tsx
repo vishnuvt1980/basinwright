@@ -3,9 +3,11 @@
 import { motion, useReducedMotion, useScroll, useTransform } from "motion/react";
 import { useRef } from "react";
 
+import { HeroVideo } from "@/components/site/hero-video";
 import { ButtonLink, Eyebrow } from "@/components/ui/primitives";
 import { HeroCanvas } from "@/components/webgl/hero-canvas";
 import type { SectionWithEntries } from "@/lib/content";
+import { metaString } from "@/lib/meta";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -22,6 +24,11 @@ const EASE = [0.16, 1, 0.3, 1] as const;
  * The backdrop is deliberately quiet — contour wash, the WebGL basin, a
  * vignette — and none of it carries meaning, so a machine that skips the canvas
  * loses nothing but the texture.
+ *
+ * Give the block a `meta.video` and the explainer takes the backdrop's place,
+ * muted and looping behind the copy. The two never run together: both are
+ * full-bleed texture competing for the same plane, and the shader's contour
+ * lines over moving footage read as interference.
  *
  * The hero used to close with a four-tile band of capabilities, which sat under
  * the fold of the first screen looking like a component from another site: no
@@ -47,15 +54,18 @@ export function Hero({ section }: { section: SectionWithEntries }) {
     ? section.headlineLines
     : [section.title ?? ""];
 
+  const video = metaString(section.meta, "video");
+
   return (
     <section ref={ref} className="grain relative isolate">
       <div className="relative flex min-h-[100svh] flex-col justify-center overflow-hidden pt-32 pb-20">
-        {/* Layered backdrop: contour wash, WebGL basin, vignette. */}
+        {/* Layered backdrop: contour wash, the video or the WebGL basin,
+            vignette. */}
         <div
           className="topo pointer-events-none absolute inset-0 opacity-60"
           aria-hidden
         />
-        <HeroCanvas />
+        {video ? <HeroVideo src={video} /> : <HeroCanvas />}
         <div
           className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_50%_38%,transparent_0%,var(--bw-canvas)_78%)]"
           aria-hidden

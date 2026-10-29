@@ -65,13 +65,23 @@ export function SectionForm({ section }: { section: SectionWithEntries }) {
       </div>
 
       {isHero ? (
-        <TextArea
-          label="Headline lines"
-          hint="one line per row — the last is gradient-filled"
-          name="headlineLines"
-          rows={3}
-          defaultValue={section.headlineLines.join("\n")}
-        />
+        <>
+          <TextArea
+            label="Headline lines"
+            hint="one line per row — the last is gradient-filled"
+            name="headlineLines"
+            rows={3}
+            defaultValue={section.headlineLines.join("\n")}
+          />
+
+          <TextField
+            label="Background video"
+            hint="plays muted and looping behind the copy; empty falls back to the animated basin"
+            name="metaVideo"
+            defaultValue={String(metaValue(section.meta, "video") ?? "")}
+            placeholder="/media/basinwright-explainer.mp4"
+          />
+        </>
       ) : null}
 
       <TextArea

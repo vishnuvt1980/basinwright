@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { DocKind, SectionKind } from "@prisma/client";
+import { DocKind, Prisma, SectionKind } from "@prisma/client";
 
 import { requireUser } from "@/lib/auth";
 import { db } from "@/lib/db";
@@ -78,21 +78,54 @@ export async function updateSection(
 
   if (!parsed.success) return fail("Some fields are invalid.");
 
-  // DOC_LIST blocks are configured through two extra fields rather than a raw
+  // A handful of kinds are configured through extra fields rather than a raw
   // JSON textarea. Absent fields leave `meta` alone, so every other kind — and
-  // anything hand-edited in the database — is untouched by a save.
-  const collection = optional(formData.get("metaCollection"));
-  const meta = formData.has("metaCollection")
-    ? {
-        collection,
-        limit: Number(formData.get("metaLimit")) || 3,
-      }
-    : undefined;
+  // anything hand-edited in the database, `anchor` included — is untouched by
+  // a save.
+  let meta: Record<string, unknown> | undefined;
+
+  if (formData.has("metaCollection")) {
+    meta = {
+      collection: optional(formData.get("metaCollection")),
+      limit: Number(formData.get("metaLimit")) || 3,
+    };
+  }
+
+  // The hero's backdrop video. This one merges rather than replaces: the hero
+  // is also the block most likely to carry a hand-set `anchor`, and clearing
+  // the video field has to mean "no video", not "no meta".
+  if (formData.has("metaVideo")) {
+    const current = await db.section.findUnique({
+      where: { id },
+      select: { meta: true },
+    });
+
+    const existing =
+      current?.meta && typeof current.meta === "object" && !Array.isArray(current.meta)
+        ? (current.meta as Record<string, unknown>)
+        : {};
+
+    const video = optional(formData.get("metaVideo"));
+    // Checked at write time so a bad path fails in the form, rather than
+    // silently rendering nothing on the homepage. A file under `public/` or an
+    // absolute https URL; anything else is a typo.
+    if (video && !/^(\/|https:\/\/)/.test(video)) {
+      return fail("The video must be a path like /media/clip.mp4 or an https URL.");
+    }
+
+    meta = { ...existing, ...meta, video };
+  }
 
   try {
     await db.section.update({
       where: { id },
-      data: { ...parsed.data, ...(meta ? { meta } : {}) },
+      // `meta` is operator-authored JSON with no shape Prisma can check: the
+      // readers in lib/meta.ts are what give it one, and they treat anything
+      // malformed as absent.
+      data: {
+        ...parsed.data,
+        ...(meta ? { meta: meta as Prisma.InputJsonObject } : {}),
+      },
     });
   } catch {
     return fail("Could not save the section.");
