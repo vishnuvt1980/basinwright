@@ -76,26 +76,29 @@ export function SectionForm({ section }: { section: SectionWithEntries }) {
 
           <div className="grid gap-5 sm:grid-cols-2">
             <TextField
-              label="Hero image"
-              hint="splits the hero in two — copy left, picture right"
-              name="metaImage"
-              defaultValue={String(metaValue(section.meta, "image") ?? "")}
-              placeholder="/media/platform-stack.webp"
-            />
-
-            <TextField
               label="Video"
-              hint="adds a play button over the image"
+              hint="adds a play button under the stack"
               name="metaVideo"
               defaultValue={String(metaValue(section.meta, "video") ?? "")}
               placeholder="/media/basinwright-explainer.mp4"
             />
 
             <TextField
-              label="Image description"
-              hint="what the picture shows, for screen readers — not a repeat of the headline"
-              name="metaImageAlt"
-              defaultValue={String(metaValue(section.meta, "imageAlt") ?? "")}
+              label="Governance band"
+              hint="the line under the stack; empty hides it"
+              name="metaGovernance"
+              defaultValue={String(metaValue(section.meta, "governance") ?? "")}
+            />
+
+            <TextField
+              label="Industries"
+              hint="comma separated — the chips above the stack. The stack's own layers are the entries below."
+              name="metaIndustries"
+              defaultValue={
+                Array.isArray(metaValue(section.meta, "industries"))
+                  ? (metaValue(section.meta, "industries") as string[]).join(", ")
+                  : ""
+              }
               className="sm:col-span-2"
             />
           </div>

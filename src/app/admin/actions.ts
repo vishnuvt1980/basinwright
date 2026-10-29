@@ -91,11 +91,11 @@ export async function updateSection(
     };
   }
 
-  // The hero's picture and the video behind its play button. These merge
-  // rather than replace: the hero is also the block most likely to carry a
-  // hand-set `anchor`, and clearing one of the fields has to mean "no video",
-  // not "no meta".
-  if (formData.has("metaImage") || formData.has("metaVideo")) {
+  // The hero's extras: the video behind its play button, the industry chips
+  // over the stack and the band under it. These merge rather than replace —
+  // the hero is also the block most likely to carry a hand-set `anchor`, and
+  // clearing one of the fields has to mean "no video", not "no meta".
+  if (formData.has("metaVideo")) {
     const current = await db.section.findUnique({
       where: { id },
       select: { meta: true },
@@ -106,23 +106,25 @@ export async function updateSection(
         ? (current.meta as Record<string, unknown>)
         : {};
 
-    const image = optional(formData.get("metaImage"));
     const video = optional(formData.get("metaVideo"));
-    const imageAlt = optional(formData.get("metaImageAlt"));
 
     // Checked at write time so a bad path fails in the form, rather than
     // silently rendering nothing on the homepage. A file under `public/` or an
     // absolute https URL; anything else is a typo.
-    for (const [label, value] of [
-      ["image", image],
-      ["video", video],
-    ] as const) {
-      if (value && !/^(\/|https:\/\/)/.test(value)) {
-        return fail(`The ${label} must be a path like /media/file or an https URL.`);
-      }
+    if (video && !/^(\/|https:\/\/)/.test(video)) {
+      return fail("The video must be a path like /media/clip.mp4 or an https URL.");
     }
 
-    meta = { ...existing, ...meta, image, video, imageAlt };
+    meta = {
+      ...existing,
+      ...meta,
+      video,
+      governance: optional(formData.get("metaGovernance")),
+      industries: String(formData.get("metaIndustries") ?? "")
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean),
+    };
   }
 
   try {
