@@ -108,6 +108,7 @@ export async function updateSection(
 
     const image = optional(formData.get("metaImage"));
     const video = optional(formData.get("metaVideo"));
+    const imageAlt = optional(formData.get("metaImageAlt"));
 
     // Checked at write time so a bad path fails in the form, rather than
     // silently rendering nothing on the homepage. A file under `public/` or an
@@ -121,7 +122,7 @@ export async function updateSection(
       }
     }
 
-    meta = { ...existing, ...meta, image, video };
+    meta = { ...existing, ...meta, image, video, imageAlt };
   }
 
   try {

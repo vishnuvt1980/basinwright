@@ -90,6 +90,14 @@ export function SectionForm({ section }: { section: SectionWithEntries }) {
               defaultValue={String(metaValue(section.meta, "video") ?? "")}
               placeholder="/media/basinwright-explainer.mp4"
             />
+
+            <TextField
+              label="Image description"
+              hint="what the picture shows, for screen readers — not a repeat of the headline"
+              name="metaImageAlt"
+              defaultValue={String(metaValue(section.meta, "imageAlt") ?? "")}
+              className="sm:col-span-2"
+            />
           </div>
         </>
       ) : null}

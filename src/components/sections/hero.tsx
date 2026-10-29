@@ -181,9 +181,13 @@ export function Hero({ section }: { section: SectionWithEntries }) {
               <HeroMedia
                 image={image}
                 video={video}
+                // Describes the picture, not the headline. The first cut of
+                // this passed `section.title`, which reads back the offer a
+                // screen reader has just been given and says nothing about
+                // what is being shown.
                 alt={
-                  section.title ??
-                  "The BasinWright stack, from chips up to the application"
+                  metaString(section.meta, "imageAlt") ??
+                  "The BasinWright stack in five layers — computing at the base, then infrastructure, the data hub, models, and the application on top, serving finance, retail, legal, health, government and security."
                 }
               />
             </motion.div>
