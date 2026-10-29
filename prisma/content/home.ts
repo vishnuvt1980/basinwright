@@ -53,13 +53,14 @@ export const homeSections: SectionSeed[] = [
     ctaLabel2: "See the substrate run live",
     ctaHref2: "/substrate",
     // The stack beside the offer: five layers, computing at the base and the
-    // application at the top, which is the whole product in one glance. It is
-    // built from the entries below rather than drawn as a picture — see
-    // components/site/platform-stack.tsx for why.
+    // application at the top, which is the whole product in one glance. The
+    // artwork carries no words; the entries below are set as text over it, so
+    // the labels stay readable at the size the hero actually draws it.
     //
     // The explainer sits behind a play button under it rather than running as
     // a wash beneath the headline, where it could be seen but not watched.
     meta: {
+      image: "/media/platform-stack.webp",
       video: "/media/basinwright-explainer.mp4",
       industries: [
         "Finance",
@@ -69,7 +70,9 @@ export const homeSections: SectionSeed[] = [
         "Government",
         "Security",
       ],
-      governance: "Governance and guardrails — every layer",
+      // Closes the spoken description of the figure, after the layers and the
+      // industries have been read out.
+      governance: "Governance and guardrails run across every layer.",
     },
     // Bottom of the stack first, as everywhere else in the CMS: entry 0 is the
     // base. Reordering them in /admin restacks the diagram.
@@ -93,8 +96,8 @@ export const homeSections: SectionSeed[] = [
         accent: "teal",
       },
       {
-        title: "Models and agents",
-        subtitle: "Open-weight and custom — never a black box",
+        title: "Models",
+        subtitle: "Open-weight and custom, with the agents built on them",
         icon: "Shapes",
         accent: "brass",
       },

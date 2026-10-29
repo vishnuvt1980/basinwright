@@ -69,7 +69,7 @@ export function Hero({
   // The hero splits in two only when the block actually carries a stack to put
   // on the right. Every other page's hero has no entries, so it stays the
   // single centred column it has always been.
-  const media = section.entries.length > 0;
+  const media = section.entries.length > 0 && Boolean(metaString(section.meta, "image"));
 
   return (
     <section ref={ref} className="grain relative isolate">

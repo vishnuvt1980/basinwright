@@ -104,9 +104,10 @@ export function SectionRenderer({ section }: { section: SectionWithEntries }) {
     return (
       <Hero section={section}>
         <PlatformStack
+          image={metaString(section.meta, "image") ?? ""}
           layers={topologyLayers(section)}
           industries={metaList(section.meta, "industries")}
-          governance={metaString(section.meta, "governance")}
+          caption={metaString(section.meta, "governance")}
         />
       </Hero>
     );

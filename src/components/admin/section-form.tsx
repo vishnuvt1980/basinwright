@@ -76,6 +76,14 @@ export function SectionForm({ section }: { section: SectionWithEntries }) {
 
           <div className="grid gap-5 sm:grid-cols-2">
             <TextField
+              label="Stack artwork"
+              hint="the labels are drawn over it from the entries below"
+              name="metaImage"
+              defaultValue={String(metaValue(section.meta, "image") ?? "")}
+              placeholder="/media/platform-stack.webp"
+            />
+
+            <TextField
               label="Video"
               hint="adds a play button under the stack"
               name="metaVideo"
@@ -84,10 +92,11 @@ export function SectionForm({ section }: { section: SectionWithEntries }) {
             />
 
             <TextField
-              label="Governance band"
-              hint="the line under the stack; empty hides it"
+              label="Figure description"
+              hint="closes the screen-reader description of the diagram"
               name="metaGovernance"
               defaultValue={String(metaValue(section.meta, "governance") ?? "")}
+              className="sm:col-span-2"
             />
 
             <TextField
