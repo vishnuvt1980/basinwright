@@ -1,9 +1,13 @@
 "use client";
 
 import { motion, useReducedMotion, useScroll, useTransform } from "motion/react";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 
-import { HeroVideo } from "@/components/site/hero-video";
+import {
+  HeroVideo,
+  HeroVideoButton,
+  HeroVideoDialog,
+} from "@/components/site/hero-video";
 import { ButtonLink, Eyebrow } from "@/components/ui/primitives";
 import { HeroCanvas } from "@/components/webgl/hero-canvas";
 import type { SectionWithEntries } from "@/lib/content";
@@ -26,9 +30,10 @@ const EASE = [0.16, 1, 0.3, 1] as const;
  * loses nothing but the texture.
  *
  * Give the block a `meta.video` and the explainer takes the backdrop's place,
- * muted and looping behind the copy. The two never run together: both are
- * full-bleed texture competing for the same plane, and the shader's contour
- * lines over moving footage read as interference.
+ * muted and looping behind the copy, with a play button under the buttons that
+ * opens it full size and with sound. The video never runs alongside the shader:
+ * both are full-bleed texture competing for the same plane, and contour lines
+ * over moving footage read as interference.
  *
  * The hero used to close with a four-tile band of capabilities, which sat under
  * the fold of the first screen looking like a component from another site: no
@@ -55,6 +60,7 @@ export function Hero({ section }: { section: SectionWithEntries }) {
     : [section.title ?? ""];
 
   const video = metaString(section.meta, "video");
+  const [watching, setWatching] = useState(false);
 
   return (
     <section ref={ref} className="grain relative isolate">
@@ -65,7 +71,7 @@ export function Hero({ section }: { section: SectionWithEntries }) {
           className="topo pointer-events-none absolute inset-0 opacity-60"
           aria-hidden
         />
-        {video ? <HeroVideo src={video} /> : <HeroCanvas />}
+        {video ? <HeroVideo src={video} held={watching} /> : <HeroCanvas />}
         <div
           className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_50%_38%,transparent_0%,var(--bw-canvas)_78%)]"
           aria-hidden
@@ -150,9 +156,30 @@ export function Hero({ section }: { section: SectionWithEntries }) {
                 </ButtonLink>
               ) : null}
             </motion.div>
+
+            {/* Last in, and on its own line. It asks for two minutes where the
+                buttons above it ask for a meeting, so it arrives after them and
+                carries none of their weight. */}
+            {video ? (
+              <motion.div
+                className="mt-7"
+                initial={reduced ? false : { opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.8, delay: 0.9, ease: EASE }}
+              >
+                <HeroVideoButton onPlay={() => setWatching(true)} />
+              </motion.div>
+            ) : null}
           </div>
         </motion.div>
       </div>
+
+      {/* Mounted only while open: a dialog in the top layer does not care where
+          in the tree it was declared, and leaving it unmounted keeps a second
+          copy of the file off the wire until someone asks for it. */}
+      {video && watching ? (
+        <HeroVideoDialog src={video} onClose={() => setWatching(false)} />
+      ) : null}
     </section>
   );
 }
