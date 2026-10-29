@@ -74,13 +74,23 @@ export function SectionForm({ section }: { section: SectionWithEntries }) {
             defaultValue={section.headlineLines.join("\n")}
           />
 
-          <TextField
-            label="Background video"
-            hint="plays muted and looping behind the copy; empty falls back to the animated basin"
-            name="metaVideo"
-            defaultValue={String(metaValue(section.meta, "video") ?? "")}
-            placeholder="/media/basinwright-explainer.mp4"
-          />
+          <div className="grid gap-5 sm:grid-cols-2">
+            <TextField
+              label="Hero image"
+              hint="splits the hero in two — copy left, picture right"
+              name="metaImage"
+              defaultValue={String(metaValue(section.meta, "image") ?? "")}
+              placeholder="/media/platform-stack.webp"
+            />
+
+            <TextField
+              label="Video"
+              hint="adds a play button over the image"
+              name="metaVideo"
+              defaultValue={String(metaValue(section.meta, "video") ?? "")}
+              placeholder="/media/basinwright-explainer.mp4"
+            />
+          </div>
         </>
       ) : null}
 

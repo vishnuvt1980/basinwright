@@ -91,10 +91,11 @@ export async function updateSection(
     };
   }
 
-  // The hero's backdrop video. This one merges rather than replaces: the hero
-  // is also the block most likely to carry a hand-set `anchor`, and clearing
-  // the video field has to mean "no video", not "no meta".
-  if (formData.has("metaVideo")) {
+  // The hero's picture and the video behind its play button. These merge
+  // rather than replace: the hero is also the block most likely to carry a
+  // hand-set `anchor`, and clearing one of the fields has to mean "no video",
+  // not "no meta".
+  if (formData.has("metaImage") || formData.has("metaVideo")) {
     const current = await db.section.findUnique({
       where: { id },
       select: { meta: true },
@@ -105,15 +106,22 @@ export async function updateSection(
         ? (current.meta as Record<string, unknown>)
         : {};
 
+    const image = optional(formData.get("metaImage"));
     const video = optional(formData.get("metaVideo"));
+
     // Checked at write time so a bad path fails in the form, rather than
     // silently rendering nothing on the homepage. A file under `public/` or an
     // absolute https URL; anything else is a typo.
-    if (video && !/^(\/|https:\/\/)/.test(video)) {
-      return fail("The video must be a path like /media/clip.mp4 or an https URL.");
+    for (const [label, value] of [
+      ["image", image],
+      ["video", video],
+    ] as const) {
+      if (value && !/^(\/|https:\/\/)/.test(value)) {
+        return fail(`The ${label} must be a path like /media/file or an https URL.`);
+      }
     }
 
-    meta = { ...existing, ...meta, video };
+    meta = { ...existing, ...meta, image, video };
   }
 
   try {

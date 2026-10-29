@@ -1,14 +1,10 @@
 "use client";
 
 import { motion, useReducedMotion, useScroll, useTransform } from "motion/react";
-import { useRef, useState } from "react";
+import { useRef } from "react";
 
-import {
-  HeroVideo,
-  HeroVideoButton,
-  HeroVideoDialog,
-} from "@/components/site/hero-video";
-import { ButtonLink, Eyebrow } from "@/components/ui/primitives";
+import { HeroMedia } from "@/components/site/hero-media";
+import { ButtonLink, Eyebrow, cn } from "@/components/ui/primitives";
 import { HeroCanvas } from "@/components/webgl/hero-canvas";
 import type { SectionWithEntries } from "@/lib/content";
 import { metaString } from "@/lib/meta";
@@ -29,11 +25,12 @@ const EASE = [0.16, 1, 0.3, 1] as const;
  * vignette — and none of it carries meaning, so a machine that skips the canvas
  * loses nothing but the texture.
  *
- * Give the block a `meta.video` and the explainer takes the backdrop's place,
- * muted and looping behind the copy, with a play button under the buttons that
- * opens it full size and with sound. The video never runs alongside the shader:
- * both are full-bleed texture competing for the same plane, and contour lines
- * over moving footage read as interference.
+ * Give the block a `meta.image` and the hero splits in two: the offer on the
+ * left, the picture of the stack on the right, with a play button over it when
+ * `meta.video` is set too. The explainer briefly ran full-bleed behind the copy
+ * instead, which put it somewhere nobody could watch it — muted, blurred and
+ * cropped — and left the first screen's picture a moving texture rather than a
+ * statement. The still states; the video is a click away.
  *
  * The hero used to close with a four-tile band of capabilities, which sat under
  * the fold of the first screen looking like a component from another site: no
@@ -60,18 +57,17 @@ export function Hero({ section }: { section: SectionWithEntries }) {
     : [section.title ?? ""];
 
   const video = metaString(section.meta, "video");
-  const [watching, setWatching] = useState(false);
+  const image = metaString(section.meta, "image");
 
   return (
     <section ref={ref} className="grain relative isolate">
       <div className="relative flex min-h-[100svh] flex-col justify-center overflow-hidden pt-32 pb-20">
-        {/* Layered backdrop: contour wash, the video or the WebGL basin,
-            vignette. */}
+        {/* Layered backdrop: contour wash, WebGL basin, vignette. */}
         <div
           className="topo pointer-events-none absolute inset-0 opacity-60"
           aria-hidden
         />
-        {video ? <HeroVideo src={video} held={watching} /> : <HeroCanvas />}
+        <HeroCanvas />
         <div
           className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_50%_38%,transparent_0%,var(--bw-canvas)_78%)]"
           aria-hidden
@@ -81,7 +77,21 @@ export function Hero({ section }: { section: SectionWithEntries }) {
           style={reduced ? undefined : { y, opacity, scale }}
           className="container-bw relative z-10"
         >
-          <div className="flex flex-col items-center text-center">
+          {/* One column and centred without a picture — which is what every
+              other page's hero still is — and two columns with one. The copy
+              only goes left once there is something to its right; centred text
+              beside an image reads as a mistake. */}
+          <div
+            className={cn(
+              image && "grid items-center gap-12 lg:grid-cols-2 lg:gap-16",
+            )}
+          >
+          <div
+            className={cn(
+              "flex flex-col items-center text-center",
+              image && "lg:items-start lg:text-left",
+            )}
+          >
             <motion.div
               initial={reduced ? false : { opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
@@ -156,30 +166,31 @@ export function Hero({ section }: { section: SectionWithEntries }) {
                 </ButtonLink>
               ) : null}
             </motion.div>
+          </div>
 
-            {/* Last in, and on its own line. It asks for two minutes where the
-                buttons above it ask for a meeting, so it arrives after them and
-                carries none of their weight. */}
-            {video ? (
-              <motion.div
-                className="mt-7"
-                initial={reduced ? false : { opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.8, delay: 0.9, ease: EASE }}
-              >
-                <HeroVideoButton onPlay={() => setWatching(true)} />
-              </motion.div>
-            ) : null}
+          {/* After the copy in the source order as well as on the page: the
+              offer is what a reader — and anything reading the markup — should
+              meet first, and on a phone that means scrolling past no picture to
+              reach it. */}
+          {image ? (
+            <motion.div
+              initial={reduced ? false : { opacity: 0, scale: 0.97 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 1, delay: 0.3, ease: EASE }}
+            >
+              <HeroMedia
+                image={image}
+                video={video}
+                alt={
+                  section.title ??
+                  "The BasinWright stack, from chips up to the application"
+                }
+              />
+            </motion.div>
+          ) : null}
           </div>
         </motion.div>
       </div>
-
-      {/* Mounted only while open: a dialog in the top layer does not care where
-          in the tree it was declared, and leaving it unmounted keeps a second
-          copy of the file off the wire until someone asks for it. */}
-      {video && watching ? (
-        <HeroVideoDialog src={video} onClose={() => setWatching(false)} />
-      ) : null}
     </section>
   );
 }
