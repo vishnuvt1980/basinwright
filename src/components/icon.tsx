@@ -47,6 +47,8 @@ export function toneFor(seed: string | null | undefined): Tone {
 }
 
 /// Maps the CMS `accent` field onto a tone, for sections that set one.
+/// The original four accent words the CMS was seeded with, each pointing at
+/// the tone it was always drawn in.
 const ACCENT_TONE: Record<string, Tone> = {
   brass: "brass",
   verdigris: "teal",
@@ -54,7 +56,22 @@ const ACCENT_TONE: Record<string, Tone> = {
   slate: "azure",
 };
 
+const TONE_NAMES: ReadonlySet<string> = new Set(TONES);
+
+/**
+ * A tone for an entry's `accent`.
+ *
+ * Two vocabularies are accepted. The four words above are what the seed has
+ * always used; a tone's own name is also taken as itself, so an editor who
+ * wants the green one can write "green" rather than learning which of brass,
+ * verdigris, ember and slate happens to mean it.
+ *
+ * An unrecognised accent falls back to a hash of the seed, which is a stable
+ * colour rather than a right one — so a typo looks arbitrary instead of
+ * looking broken.
+ */
 export function toneForAccent(accent: string | null | undefined, fallbackSeed?: string): Tone {
+  if (accent && TONE_NAMES.has(accent)) return accent as Tone;
   return (accent && ACCENT_TONE[accent]) || toneFor(fallbackSeed);
 }
 

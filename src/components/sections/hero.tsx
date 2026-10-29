@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useReducedMotion, useScroll, useTransform } from "motion/react";
-import { useRef } from "react";
+import { useRef, type ReactNode } from "react";
 
 import { HeroMedia } from "@/components/site/hero-media";
 import { ButtonLink, Eyebrow, cn } from "@/components/ui/primitives";
@@ -25,12 +25,14 @@ const EASE = [0.16, 1, 0.3, 1] as const;
  * vignette — and none of it carries meaning, so a machine that skips the canvas
  * loses nothing but the texture.
  *
- * Give the block a `meta.image` and the hero splits in two: the offer on the
- * left, the picture of the stack on the right, with a play button over it when
- * `meta.video` is set too. The explainer briefly ran full-bleed behind the copy
- * instead, which put it somewhere nobody could watch it — muted, blurred and
- * cropped — and left the first screen's picture a moving texture rather than a
- * statement. The still states; the video is a click away.
+ * Give the block entries and the hero splits in two: the offer on the left,
+ * the stack built from those entries on the right, with a play button under it
+ * when `meta.video` is set. The stack arrives as children, built on the server.
+ *
+ * It was a rendered illustration before that, and a full-bleed video before
+ * that again. The video put the explainer somewhere nobody could watch it; the
+ * illustration put its labels at five pixels. Text set as text has neither
+ * problem.
  *
  * The hero used to close with a four-tile band of capabilities, which sat under
  * the fold of the first screen looking like a component from another site: no
@@ -38,7 +40,14 @@ const EASE = [0.16, 1, 0.3, 1] as const;
  * had to say is now the "stack" block immediately below, drawn in the same card
  * language as every other section. The hero ends at its buttons.
  */
-export function Hero({ section }: { section: SectionWithEntries }) {
+export function Hero({
+  section,
+  children,
+}: {
+  section: SectionWithEntries;
+  /// The stack, built on the server and handed in — see the section renderer.
+  children?: ReactNode;
+}) {
   const ref = useRef<HTMLElement>(null);
   const reduced = useReducedMotion();
 
@@ -57,7 +66,10 @@ export function Hero({ section }: { section: SectionWithEntries }) {
     : [section.title ?? ""];
 
   const video = metaString(section.meta, "video");
-  const image = metaString(section.meta, "image");
+  // The hero splits in two only when the block actually carries a stack to put
+  // on the right. Every other page's hero has no entries, so it stays the
+  // single centred column it has always been.
+  const media = section.entries.length > 0;
 
   return (
     <section ref={ref} className="grain relative isolate">
@@ -83,13 +95,13 @@ export function Hero({ section }: { section: SectionWithEntries }) {
               beside an image reads as a mistake. */}
           <div
             className={cn(
-              image && "grid items-center gap-12 lg:grid-cols-2 lg:gap-16",
+              media && "grid items-center gap-12 lg:grid-cols-2 lg:gap-16",
             )}
           >
           <div
             className={cn(
               "flex flex-col items-center text-center",
-              image && "lg:items-start lg:text-left",
+              media && "lg:items-start lg:text-left",
             )}
           >
             <motion.div
@@ -170,26 +182,15 @@ export function Hero({ section }: { section: SectionWithEntries }) {
 
           {/* After the copy in the source order as well as on the page: the
               offer is what a reader — and anything reading the markup — should
-              meet first, and on a phone that means scrolling past no picture to
+              meet first, and on a phone that means scrolling past no diagram to
               reach it. */}
-          {image ? (
+          {media ? (
             <motion.div
-              initial={reduced ? false : { opacity: 0, scale: 0.97 }}
-              animate={{ opacity: 1, scale: 1 }}
+              initial={reduced ? false : { opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1, delay: 0.3, ease: EASE }}
             >
-              <HeroMedia
-                image={image}
-                video={video}
-                // Describes the picture, not the headline. The first cut of
-                // this passed `section.title`, which reads back the offer a
-                // screen reader has just been given and says nothing about
-                // what is being shown.
-                alt={
-                  metaString(section.meta, "imageAlt") ??
-                  "The BasinWright stack in five layers — computing at the base, then infrastructure, the data hub, models, and the application on top, serving finance, retail, legal, health, government and security."
-                }
-              />
+              <HeroMedia video={video}>{children}</HeroMedia>
             </motion.div>
           ) : null}
           </div>

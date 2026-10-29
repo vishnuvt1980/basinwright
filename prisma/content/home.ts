@@ -52,14 +52,59 @@ export const homeSections: SectionSeed[] = [
     ctaHref: "#contact",
     ctaLabel2: "See the substrate run live",
     ctaHref2: "/substrate",
-    // The picture beside the offer: five layers, chips at the bottom and the
-    // application at the top, which is the whole product in one glance. The
-    // explainer sits behind a play button on it rather than running as a wash
-    // under the headline, where it could be seen but not watched.
+    // The stack beside the offer: five layers, computing at the base and the
+    // application at the top, which is the whole product in one glance. It is
+    // built from the entries below rather than drawn as a picture — see
+    // components/site/platform-stack.tsx for why.
+    //
+    // The explainer sits behind a play button under it rather than running as
+    // a wash beneath the headline, where it could be seen but not watched.
     meta: {
-      image: "/media/platform-stack.webp",
       video: "/media/basinwright-explainer.mp4",
+      industries: [
+        "Finance",
+        "Retail",
+        "Legal",
+        "Health",
+        "Government",
+        "Security",
+      ],
+      governance: "Governance and guardrails — every layer",
     },
+    // Bottom of the stack first, as everywhere else in the CMS: entry 0 is the
+    // base. Reordering them in /admin restacks the diagram.
+    entries: [
+      {
+        title: "Computing",
+        subtitle: "GPU, CPU, memory and storage",
+        icon: "Cpu",
+        accent: "azure",
+      },
+      {
+        title: "Infrastructure",
+        subtitle: "Self-hosted on your cloud and servers",
+        icon: "Cloud",
+        accent: "purple",
+      },
+      {
+        title: "Data Hub",
+        subtitle: "Stores, datasets, knowledge and memory",
+        icon: "Database",
+        accent: "teal",
+      },
+      {
+        title: "Models and agents",
+        subtitle: "Open-weight and custom — never a black box",
+        icon: "Shapes",
+        accent: "brass",
+      },
+      {
+        title: "Application",
+        subtitle: "Assistants, automations and APIs",
+        icon: "LayoutDashboard",
+        accent: "green",
+      },
+    ],
     // No entries: the hero's four-tile band was replaced by the "stack" block
     // below, which says the same kind of thing with a heading over it and in
     // the site's own card language. The tiles had no section chrome at all and

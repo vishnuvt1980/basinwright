@@ -2,78 +2,52 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import type { ReactNode } from "react";
+
 /* ---------------------------------------------------------------------------
    The hero's right-hand column: the stack, and the way into the explainer.
 
-   The video used to run full-bleed behind the copy. That put the footage
-   somewhere nobody could watch it — muted, blurred, cropped to the viewport —
-   and it meant the first screen's picture was a moving texture rather than a
-   statement. The still does the stating now: five layers, chips at the bottom
-   and the application at the top, which is the whole product in one glance.
-   The video is a click away rather than a wash behind the headline.
+   The stack itself arrives as children, built on the server — see
+   `platform-stack.tsx` for why it is markup rather than a picture. Only the
+   player is interactive, so only the player lives on this side of the client
+   boundary.
+
+   The play button sits under the diagram rather than over it. Over a rendered
+   illustration a centred disc was the obvious place for it; over five rows of
+   real text it would cover the words the diagram exists to show.
 --------------------------------------------------------------------------- */
 
-/**
- * The still, with a play button over it when there is something to play.
- *
- * The whole figure is the button, not just the disc — a play glyph sitting on
- * an image sets the expectation that the image is clickable, and honouring it
- * costs nothing.
- */
 export function HeroMedia({
-  image,
   video,
-  alt,
+  children,
 }: {
-  image: string;
   video: string | null;
-  alt: string;
+  children: ReactNode;
 }) {
   const [watching, setWatching] = useState(false);
 
   return (
-    <div className="relative mx-auto w-full max-w-md lg:max-w-none">
-      {/* Height-capped rather than width-capped. The illustration is portrait,
-          and a column's worth of width would make it tall enough to push the
-          buttons off the first screen on a laptop. */}
-      {/* eslint-disable-next-line @next/next/no-img-element -- no loader in
-          this project; the asset ships at its final size. */}
-      <img
-        src={image}
-        alt={alt}
-        width={1126}
-        height={1397}
-        // Rounded and ringed. The illustration's own background is near-white,
-        // which all but disappears against the light canvas but lands as a bare
-        // white rectangle on the dark one; the corners and the hairline make it
-        // read as a framed figure rather than a stray block.
-        className="mx-auto block max-h-[58svh] w-auto max-w-full rounded-2xl object-contain ring-1 ring-line"
-      />
+    <div className="w-full">
+      {children}
 
       {video ? (
-        <button
-          type="button"
-          onClick={() => setWatching(true)}
-          aria-label="Watch the BasinWright overview"
-          className="group absolute inset-0 grid place-items-center rounded-2xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent"
-        >
-          <span className="flex flex-col items-center gap-3">
-            <span className="grid size-16 place-items-center rounded-full bg-accent text-white shadow-xl ring-4 ring-white/50 transition-transform duration-300 group-hover:scale-105">
+        <div className="mt-5 flex justify-center">
+          <button
+            type="button"
+            onClick={() => setWatching(true)}
+            className="group inline-flex items-center gap-2.5 rounded-full py-1.5 pr-4 pl-1.5 text-sm font-medium text-ink-2 transition-colors hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+          >
+            <span className="grid size-9 place-items-center rounded-full bg-accent text-white shadow-md transition-transform duration-300 group-hover:scale-105">
               {/* Nudged right by a hair: a triangle's optical centre is left of
                   its bounding box, and centred by the numbers it looks like it
                   is about to fall over. */}
-              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden className="ml-1 size-6">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden className="ml-0.5 size-3.5">
                 <path d="M8 5.14v13.72a.5.5 0 0 0 .76.43l11.1-6.86a.5.5 0 0 0 0-.86L8.76 4.71A.5.5 0 0 0 8 5.14Z" />
               </svg>
             </span>
-
-            {/* The label carries its own background: it sits over an
-                illustration whose colours we do not control. */}
-            <span className="rounded-full bg-canvas/85 px-3 py-1 text-xs font-medium tracking-wide text-ink backdrop-blur-sm">
-              Watch Video
-            </span>
-          </span>
-        </button>
+            Watch the overview
+          </button>
+        </div>
       ) : null}
 
       {/* Mounted only while open: a dialog in the top layer does not care where

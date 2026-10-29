@@ -24,10 +24,13 @@ import { Pricing } from "@/components/sections/pricing";
 import { ProductConsole } from "@/components/sections/product-console";
 import { Products } from "@/components/sections/products";
 import { Solutions } from "@/components/sections/solutions";
+import { topologyLayers } from "@/components/sections/topology-layers";
 import { WhyPillars } from "@/components/sections/why-pillars";
+import { PlatformStack } from "@/components/site/platform-stack";
 import { SectionHeading } from "@/components/ui/primitives";
 import { Reveal } from "@/components/ui/reveal";
 import type { SectionWithEntries } from "@/lib/content";
+import { metaList, metaString } from "@/lib/meta";
 
 /**
  * Maps a CMS `SectionKind` to the component that renders it. Adding a kind to
@@ -94,7 +97,19 @@ function RichText({ section }: { section: SectionWithEntries }) {
 
 export function SectionRenderer({ section }: { section: SectionWithEntries }) {
   if (section.kind === "HERO") {
-    return <Hero section={section} />;
+    // The stack is built here and handed down, the same way the topology
+    // section hands down its SVG: the hero is a client component for its
+    // scroll and entrance motion, and there is no reason for a diagram made
+    // entirely of text to cross that boundary and take the icon set with it.
+    return (
+      <Hero section={section}>
+        <PlatformStack
+          layers={topologyLayers(section)}
+          industries={metaList(section.meta, "industries")}
+          governance={metaString(section.meta, "governance")}
+        />
+      </Hero>
+    );
   }
 
   const Component = RENDERERS[section.kind as keyof typeof RENDERERS];
